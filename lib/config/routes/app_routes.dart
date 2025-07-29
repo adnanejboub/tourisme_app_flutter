@@ -3,13 +3,13 @@ import 'package:tourisme_app_flutter/features/auth/presentation/pages/onboarding
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/onboarding/welcome_screen.dart';
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/authentification/login_screen.dart';
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/authentification/signup_page.dart';
-import 'package:tourisme_app_flutter/features/auth/presentation/pages/password_recovery//forgot_password_page.dart';
+import 'package:tourisme_app_flutter/features/auth/presentation/pages/password_recovery/forgot_password_page.dart';
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/password_recovery/reset_password_page.dart';
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/password_recovery/reset_password_confirmation_page.dart';
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/verification/otp_verification_page.dart';
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/verification/two_factor_auth_page.dart';
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/authentification/logout_screen.dart';
-
+import 'package:tourisme_app_flutter/features/auth/presentation/pages/onboarding/travel_preferences_page.dart';
 
 class AppRoutes {
   // Route names
@@ -30,7 +30,6 @@ class AppRoutes {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case splash:
-      // Correction: Supprimer 'const' car SplashScreen n'est pas un constructeur const
         return _buildRoute(SplashScreen(), settings);
 
       case welcome:
@@ -62,10 +61,11 @@ class AppRoutes {
       case twoFactorAuth:
         return _buildRoute(const TwoFactorAuthPage(), settings);
 
+      case travelPreferences:
+        return _buildRoute(const TravelPreferencesPage(), settings);
 
       case logout:
         return _buildRoute(const LogoutPage(), settings);
-
 
       default:
         return _buildRoute(
