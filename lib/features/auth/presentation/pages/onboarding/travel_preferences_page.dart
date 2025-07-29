@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:tourisme_app_flutter/config/routes/app_routes.dart';
+import 'package:tourisme_app_flutter/core/services/localization_service.dart';
 
 class TravelPreferencesPage extends StatefulWidget {
   const TravelPreferencesPage({Key? key}) : super(key: key);
@@ -15,61 +17,61 @@ class _TravelPreferencesPageState extends State<TravelPreferencesPage> {
   final List<Map<String, dynamic>> questions = [
     {
       'id': 'duration',
-      'title': 'How long do you plan to travel ?',
+      'title': 'duration_question',
       'type': 'slider',
       'icon': Icons.calendar_today,
       'minValue': 1.0,
       'maxValue': 7.0,
       'defaultValue': 1.0,
-      'unit': 'days'
+      'unit': 'duration_unit'
     },
     {
       'id': 'budget',
-      'title': 'What is your approximate budget ?',
+      'title': 'budget_question',
       'type': 'single_choice',
       'icon': Icons.attach_money,
       'options': [
-        {'value': 'budget', 'label': 'Economic (< 500 DH/day)', 'color': Colors.blue},
-        {'value': 'moderate', 'label': 'Moderate (500-1500 DH/day)', 'color': Colors.blue},
-        {'value': 'luxury', 'label': 'Luxurious (> 1500 DH/day)', 'color': Colors.blue},
+        {'value': 'budget', 'label': 'budget_economic', 'color': Colors.blue},
+        {'value': 'moderate', 'label': 'budget_moderate', 'color': Colors.blue},
+        {'value': 'luxury', 'label': 'budget_luxury', 'color': Colors.blue},
       ]
     },
     {
       'id': 'activities',
-      'title': 'What types of activities interest you ?',
+      'title': 'activities_question',
       'type': 'multiple_choice',
       'icon': Icons.local_activity,
       'options': [
-        {'value': 'culture', 'label': 'Culture & History', 'color': Colors.blue},
-        {'value': 'nature', 'label': 'Nature & Hiking', 'color': Colors.blue},
-        {'value': 'beach', 'label': 'Beach & Relaxation', 'color': Colors.blue},
-        {'value': 'adventure', 'label': 'Sports & Adventure', 'color': Colors.blue},
-        {'value': 'nightlife', 'label': 'Nightlife', 'color': Colors.blue},
-        {'value': 'gastronomy', 'label': 'Gastronomy', 'color': Colors.blue},
+        {'value': 'culture', 'label': 'activity_culture', 'color': Colors.blue},
+        {'value': 'nature', 'label': 'activity_nature', 'color': Colors.blue},
+        {'value': 'beach', 'label': 'activity_beach', 'color': Colors.blue},
+        {'value': 'adventure', 'label': 'activity_adventure', 'color': Colors.blue},
+        {'value': 'nightlife', 'label': 'activity_nightlife', 'color': Colors.blue},
+        {'value': 'gastronomy', 'label': 'activity_gastronomy', 'color': Colors.blue},
       ]
     },
     {
       'id': 'accommodation',
-      'title': 'What type of accommodation do you prefer ?',
+      'title': 'accommodation_question',
       'type': 'single_choice',
       'icon': Icons.hotel,
       'options': [
-        {'value': 'hotel', 'label': 'Hotel', 'color': Colors.blue},
-        {'value': 'hostel', 'label': 'Youth hostel', 'color': Colors.blue},
-        {'value': 'airbnb', 'label': 'Airbnb/Rental', 'color': Colors.blue},
-        {'value': 'camping', 'label': 'Camping', 'color': Colors.blue},
+        {'value': 'hotel', 'label': 'accommodation_hotel', 'color': Colors.blue},
+        {'value': 'hostel', 'label': 'accommodation_hostel', 'color': Colors.blue},
+        {'value': 'airbnb', 'label': 'accommodation_airbnb', 'color': Colors.blue},
+        {'value': 'camping', 'label': 'accommodation_camping', 'color': Colors.blue},
       ]
     },
     {
       'id': 'group_size',
-      'title': 'Who are you traveling with ?',
+      'title': 'group_size_question',
       'type': 'single_choice',
       'icon': Icons.group,
       'options': [
-        {'value': 'solo', 'label': 'Alone', 'color': Colors.blue},
-        {'value': 'couple', 'label': 'As a couple', 'color': Colors.blue},
-        {'value': 'family', 'label': 'With family', 'color': Colors.blue},
-        {'value': 'friends', 'label': 'With friends', 'color': Colors.blue},
+        {'value': 'solo', 'label': 'group_solo', 'color': Colors.blue},
+        {'value': 'couple', 'label': 'group_couple', 'color': Colors.blue},
+        {'value': 'family', 'label': 'group_family', 'color': Colors.blue},
+        {'value': 'friends', 'label': 'group_friends', 'color': Colors.blue},
       ]
     }
   ];
@@ -102,8 +104,14 @@ class _TravelPreferencesPageState extends State<TravelPreferencesPage> {
 
   void _submitAnswers() {
     print('Answers collected: $answers');
-    // Ici vous pouvez traiter les réponses pour générer des recommandations
-    Navigator.pop(context, answers);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(LocalizationService().translate('preferences_saved')),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
+    AppRoutes.navigateToHome(context);
   }
 
   Widget _buildSliderQuestion(Map<String, dynamic> question) {
@@ -114,7 +122,7 @@ class _TravelPreferencesPageState extends State<TravelPreferencesPage> {
         Icon(question['icon'], size: 48, color: Colors.blue),
         SizedBox(height: 20),
         Text(
-          question['title'],
+          LocalizationService().translate(question['title']),
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
@@ -128,7 +136,7 @@ class _TravelPreferencesPageState extends State<TravelPreferencesPage> {
           child: Column(
             children: [
               Text(
-                'Duration: ${currentValue.round()} ${question['unit']}',
+                '${LocalizationService().translate('duration_unit')} ${currentValue.round()}',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.blue),
               ),
               SizedBox(height: 20),
@@ -157,7 +165,7 @@ class _TravelPreferencesPageState extends State<TravelPreferencesPage> {
         Icon(question['icon'], size: 48, color: Colors.blue),
         SizedBox(height: 20),
         Text(
-          question['title'],
+          LocalizationService().translate(question['title']),
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
@@ -197,7 +205,7 @@ class _TravelPreferencesPageState extends State<TravelPreferencesPage> {
                     SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        option['label'],
+                        LocalizationService().translate(option['label']),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
@@ -222,13 +230,13 @@ class _TravelPreferencesPageState extends State<TravelPreferencesPage> {
         Icon(question['icon'], size: 48, color: Colors.blue),
         SizedBox(height: 20),
         Text(
-          question['title'],
+          LocalizationService().translate(question['title']),
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
         SizedBox(height: 10),
         Text(
-          'Select all the options that interest you',
+          LocalizationService().translate('multiple_choice_instruction'),
           style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           textAlign: TextAlign.center,
         ),
@@ -279,7 +287,7 @@ class _TravelPreferencesPageState extends State<TravelPreferencesPage> {
                     SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        option['label'],
+                        LocalizationService().translate(option['label']),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
@@ -326,14 +334,13 @@ class _TravelPreferencesPageState extends State<TravelPreferencesPage> {
           onPressed: currentQuestionIndex > 0 ? _previousQuestion : () => Navigator.pop(context),
         ),
         title: Text(
-          'Travel Preferences',
+          LocalizationService().translate('travel_preferences_title'),
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
       ),
       body: Column(
         children: [
-          // Progress indicator
           Container(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Column(
@@ -356,8 +363,6 @@ class _TravelPreferencesPageState extends State<TravelPreferencesPage> {
               ],
             ),
           ),
-
-          // Question content
           Expanded(
             child: PageView.builder(
               controller: _pageController,
@@ -375,8 +380,6 @@ class _TravelPreferencesPageState extends State<TravelPreferencesPage> {
               },
             ),
           ),
-
-          // Bottom buttons
           Container(
             padding: EdgeInsets.all(20),
             child: Row(
@@ -385,16 +388,14 @@ class _TravelPreferencesPageState extends State<TravelPreferencesPage> {
                   Expanded(
                     child: TextButton(
                       onPressed: () {
-                        // Skip for later functionality
+                        AppRoutes.navigateToHome(context);
                       },
-                      child: Text('Skip for later', style: TextStyle(color: Colors.grey[600])),
+                      child: Text(LocalizationService().translate('skip_button'), style: TextStyle(color: Colors.grey[600])),
                     ),
                   )
                 else
                   Spacer(),
-
                 SizedBox(width: 10),
-
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _canProceed() ? _nextQuestion : null,
@@ -406,7 +407,9 @@ class _TravelPreferencesPageState extends State<TravelPreferencesPage> {
                       ),
                     ),
                     child: Text(
-                      currentQuestionIndex < questions.length - 1 ? 'Next' : 'Finish',
+                      currentQuestionIndex < questions.length - 1
+                          ? LocalizationService().translate('next_button')
+                          : LocalizationService().translate('finish_button'),
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                     ),
                   ),

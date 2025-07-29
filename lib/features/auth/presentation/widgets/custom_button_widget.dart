@@ -1,4 +1,3 @@
-// lib/features/presentation/widgets/custom_button_widget.dart
 import 'package:flutter/material.dart';
 import '../../../../../config/theme/app_theme.dart';
 
@@ -180,7 +179,7 @@ class CustomButtonWidget extends StatelessWidget {
   }
 }
 
-// Specialized button widgets
+
 class SocialLoginButton extends StatelessWidget {
   final String text;
   final Widget icon;

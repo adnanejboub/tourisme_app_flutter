@@ -1,4 +1,3 @@
-// lib/features/presentation/widgets/custom_text_field_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../../config/theme/app_theme.dart';
@@ -215,7 +214,7 @@ class _CustomTextFieldWidgetState extends State<CustomTextFieldWidget>
   }
 }
 
-// Specialized text field widgets
+
 class EmailTextField extends StatelessWidget {
   final TextEditingController? controller;
   final String? Function(String?)? validator;
@@ -300,7 +299,7 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
   }
 
   Widget _buildPasswordStrengthIndicator() {
-    // This would show password strength - implement based on your needs
+
     return Container(
       margin: EdgeInsets.only(top: 8),
       child: Row(

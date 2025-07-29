@@ -1,4 +1,3 @@
-// lib/features/presentation/widgets/language_selector_widget.dart
 import 'package:flutter/material.dart';
 import '../../../../../config/theme/app_theme.dart';
 import '../../../../../core/constants/constants.dart';
@@ -19,7 +18,7 @@ class LanguageSelectorWidget extends StatelessWidget {
       width: double.infinity,
       constraints: BoxConstraints(
         minHeight: 56,
-        maxHeight: 80, // Limite la hauteur maximale
+        maxHeight: 80,
       ),
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -46,11 +45,11 @@ class LanguageSelectorWidget extends StatelessWidget {
           style: TextStyle(
             fontSize: 16,
             color: AppTheme.textPrimaryColor,
-            decoration: TextDecoration.none, // Remove any inherited decoration
+            decoration: TextDecoration.none,
           ),
-          menuMaxHeight: 280, // Menu scrollable
+          menuMaxHeight: 280,
           dropdownColor: Colors.white,
-          underline: Container(), // Ensure no underline
+          underline: Container(),
           items: AppConstants.supportedLanguages.map((Map<String, String> language) {
             return DropdownMenuItem<String>(
               value: language['name'],
@@ -76,14 +75,14 @@ class LanguageSelectorWidget extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Flag
+
           Container(
             width: 32,
             child: Text(
               language['flag']!,
               style: TextStyle(
                 fontSize: 20,
-                decoration: TextDecoration.none, // Remove any text decoration
+                decoration: TextDecoration.none,
               ),
               textAlign: TextAlign.center,
             ),
@@ -91,7 +90,7 @@ class LanguageSelectorWidget extends StatelessWidget {
 
           SizedBox(width: 12),
 
-          // Language info
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +103,7 @@ class LanguageSelectorWidget extends StatelessWidget {
                     fontSize: 16,
                     color: AppTheme.textPrimaryColor,
                     fontWeight: FontWeight.w500,
-                    decoration: TextDecoration.none, // Remove any text decoration
+                    decoration: TextDecoration.none,
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -116,7 +115,7 @@ class LanguageSelectorWidget extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       color: AppTheme.textSecondaryColor,
-                      decoration: TextDecoration.none, // Remove any text decoration
+                      decoration: TextDecoration.none,
                     ),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -126,7 +125,6 @@ class LanguageSelectorWidget extends StatelessWidget {
             ),
           ),
 
-          // Check icon
           if (selectedLanguage == language['name'])
             Container(
               width: 24,

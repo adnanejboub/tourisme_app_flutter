@@ -1,4 +1,3 @@
-// lib/features/presentation/widgets/animated_logo_widget.dart
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
@@ -87,7 +86,7 @@ class _AnimatedLogoWidgetState extends State<AnimatedLogoWidget>
               ),
               child: Stack(
                 children: [
-                  // Outer ring
+
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
@@ -100,7 +99,7 @@ class _AnimatedLogoWidgetState extends State<AnimatedLogoWidget>
                     ),
                   ),
 
-                  // Inner content
+
                   Center(
                     child: Icon(
                       Icons.explore,
@@ -109,7 +108,7 @@ class _AnimatedLogoWidgetState extends State<AnimatedLogoWidget>
                     ),
                   ),
 
-                  // Moroccan pattern overlay
+
                   Positioned.fill(
                     child: CustomPaint(
                       painter: MoroccanPatternPainter(),
@@ -144,7 +143,7 @@ class MoroccanPatternPainter extends CustomPainter {
     final double centerY = size.height / 2;
     final double radius = size.width / 3;
 
-    // Draw geometric pattern
+
     for (int i = 0; i < 8; i++) {
       final double angle = (i * 45) * (3.14159 / 180);
       final double x1 = centerX + (radius * 0.5) * cos(angle);
@@ -155,7 +154,7 @@ class MoroccanPatternPainter extends CustomPainter {
       canvas.drawLine(Offset(x1, y1), Offset(x2, y2), paint);
     }
 
-    // Draw center circle
+
     canvas.drawCircle(
       Offset(centerX, centerY),
       radius * 0.3,
@@ -167,12 +166,12 @@ class MoroccanPatternPainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
 
-// Helper function for cos calculation
+
 double cos(double angle) {
   return math.cos(angle);
 }
 
-// Helper function for sin calculation
+
 double sin(double angle) {
   return math.sin(angle);
 }

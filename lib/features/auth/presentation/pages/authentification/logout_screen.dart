@@ -1,4 +1,3 @@
-// lib/features/auth/presentation/pages/logout_page.dart
 import 'package:flutter/material.dart';
 import 'package:tourisme_app_flutter/config/routes/app_routes.dart';
 
@@ -25,17 +24,15 @@ class LogoutPage extends StatelessWidget {
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
-                // Logout logic here
                 print('Déconnexion de l\'utilisateur');
-                // Navigate to the login page after logout
                 Navigator.pushNamedAndRemoveUntil(
                   context,
                   AppRoutes.login,
-                      (Route<dynamic> route) => false, // Remove all previous routes
+                      (Route<dynamic> route) => false,
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent, // Red button for logout
+                backgroundColor: Colors.redAccent,
                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -50,7 +47,7 @@ class LogoutPage extends StatelessWidget {
             const SizedBox(height: 20),
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Go back to the previous page
+                Navigator.pop(context);
               },
               child: const Text(
                 'Annuler',

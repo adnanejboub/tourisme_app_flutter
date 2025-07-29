@@ -1,7 +1,7 @@
-// lib/features/presentation/widgets/social_login_buttons_widget.dart
 import 'package:flutter/material.dart';
 import '../../../../../config/theme/app_theme.dart';
 import 'custom_button_widget.dart';
+import '../../../../../core/services/localization_service.dart';
 
 class SocialLoginButtonsWidget extends StatelessWidget {
   final VoidCallback? onGooglePressed;
@@ -21,25 +21,32 @@ class SocialLoginButtonsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Google Login Button
-        _buildGoogleButton(),
+    return ListenableBuilder(
+      listenable: LocalizationService(),
+      builder: (context, child) {
+        final localizationService = LocalizationService();
 
-        if (showApple) ...[
-          SizedBox(height: 12),
-          _buildAppleButton(),
-        ],
+        return Column(
+          children: [
 
-        if (showFacebook) ...[
-          SizedBox(height: 12),
-          _buildFacebookButton(),
-        ],
-      ],
+            _buildGoogleButton(localizationService),
+
+            if (showApple) ...[
+              SizedBox(height: 12),
+              _buildAppleButton(localizationService),
+            ],
+
+            if (showFacebook) ...[
+              SizedBox(height: 12),
+              _buildFacebookButton(localizationService),
+            ],
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildGoogleButton() {
+  Widget _buildGoogleButton(LocalizationService localizationService) {
     return SizedBox(
       width: double.infinity,
       height: 56,
@@ -47,7 +54,7 @@ class SocialLoginButtonsWidget extends StatelessWidget {
         onPressed: onGooglePressed,
         icon: _buildGoogleIcon(),
         label: Text(
-          'Continue with Google',
+          localizationService.translate('sign_up_google'),
           style: TextStyle(
             color: AppTheme.textPrimaryColor,
             fontSize: 16,
@@ -67,7 +74,7 @@ class SocialLoginButtonsWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildAppleButton() {
+  Widget _buildAppleButton(LocalizationService localizationService) {
     return SizedBox(
       width: double.infinity,
       height: 56,
@@ -79,7 +86,7 @@ class SocialLoginButtonsWidget extends StatelessWidget {
           size: 24,
         ),
         label: Text(
-          'Continue with Apple',
+          localizationService.translate('sign_up_apple'),
           style: TextStyle(
             color: AppTheme.textPrimaryColor,
             fontSize: 16,
@@ -99,7 +106,7 @@ class SocialLoginButtonsWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildFacebookButton() {
+  Widget _buildFacebookButton(LocalizationService localizationService) {
     return SizedBox(
       width: double.infinity,
       height: 56,
@@ -111,7 +118,7 @@ class SocialLoginButtonsWidget extends StatelessWidget {
           size: 24,
         ),
         label: Text(
-          'Continue with Facebook',
+          localizationService.translate('sign_up_facebook'),
           style: TextStyle(
             color: AppTheme.textPrimaryColor,
             fontSize: 16,
@@ -173,7 +180,7 @@ class SocialLoginButtonsWidget extends StatelessWidget {
   }
 }
 
-// Alternative compact social buttons for limited space
+
 class CompactSocialButtons extends StatelessWidget {
   final VoidCallback? onGooglePressed;
   final VoidCallback? onApplePressed;

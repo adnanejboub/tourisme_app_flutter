@@ -1,38 +1,36 @@
-// lib/config/theme/app_theme.dart
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Colors
+
   static const Color primaryColor = Color(0xFF1E88E5);
   static const Color primaryDarkColor = Color(0xFF1565C0);
   static const Color secondaryColor = Color(0xFF42A5F5);
   static const Color accentColor = Color(0xFF00BCD4);
 
-  // Gradient colors
+
   static const Color gradientStart = Color(0xFF1E88E5);
   static const Color gradientEnd = Color(0xFF42A5F5);
 
-  // Neutral colors
   static const Color backgroundColor = Color(0xFFFAFAFA);
   static const Color surfaceColor = Color(0xFFFFFFFF);
   static const Color cardColor = Color(0xFFFFFFFF);
 
-  // Text colors
+
   static const Color textPrimaryColor = Color(0xFF212121);
   static const Color textSecondaryColor = Color(0xFF757575);
   static const Color textHintColor = Color(0xFFBDBDBD);
 
-  // Status colors
+
   static const Color successColor = Color(0xFF4CAF50);
   static const Color errorColor = Color(0xFFE53935);
   static const Color warningColor = Color(0xFFFFA726);
   static const Color infoColor = Color(0xFF2196F3);
 
-  // Border colors
+
   static const Color borderColor = Color(0xFFE0E0E0);
   static const Color dividerColor = Color(0xFFEEEEEE);
 
-  // Gradients
+
   static const LinearGradient primaryGradient = LinearGradient(
     colors: [gradientStart, gradientEnd],
     begin: Alignment.topLeft,
@@ -45,7 +43,7 @@ class AppTheme {
     end: Alignment.bottomCenter,
   );
 
-  // Light Theme
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
@@ -66,7 +64,7 @@ class AppTheme {
         },
       ),
 
-      // Color scheme
+
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
         brightness: Brightness.light,
@@ -77,7 +75,7 @@ class AppTheme {
         error: errorColor,
       ),
 
-      // AppBar theme
+
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -90,7 +88,7 @@ class AppTheme {
         ),
       ),
 
-      // Text theme
+
       textTheme: TextTheme(
         displayLarge: TextStyle(
           fontSize: 32,
@@ -139,7 +137,6 @@ class AppTheme {
         ),
       ),
 
-      // Input decoration theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Color(0xFFF8F9FA),
@@ -169,7 +166,7 @@ class AppTheme {
         errorStyle: TextStyle(color: errorColor),
       ),
 
-      // Elevated button theme
+
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
@@ -187,7 +184,7 @@ class AppTheme {
         ),
       ),
 
-      // Outlined button theme
+
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: textPrimaryColor,
@@ -203,7 +200,7 @@ class AppTheme {
         ),
       ),
 
-      // Text button theme
+
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: primaryColor,
@@ -228,7 +225,7 @@ class AppTheme {
         thickness: 1,
       ),
 
-      // Checkbox theme
+
       checkboxTheme: CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
@@ -244,7 +241,7 @@ class AppTheme {
     );
   }
 
-  // Dark Theme
+
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,

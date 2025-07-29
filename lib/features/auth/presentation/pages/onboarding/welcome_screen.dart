@@ -1,9 +1,12 @@
-// lib/features/presentation/pages/welcome_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../../config/routes/app_routes.dart';
 import '../../../../../config/theme/app_theme.dart';
 import '../../widgets/language_selector_widget.dart';
 import '../../widgets/custom_button_widget.dart';
+import '../../widgets/theme_toggle_button.dart';
+import '../../../../../core/services/localization_service.dart';
+import '../../../../../core/providers/theme_provider.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -19,11 +22,17 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   late Animation<Offset> _slideAnimation;
 
   String selectedLanguage = 'English';
+  final LocalizationService _localizationService = LocalizationService();
 
   @override
   void initState() {
     super.initState();
     _initAnimations();
+    _localizationService.addListener(_onLanguageChanged);
+  }
+
+  void _onLanguageChanged() {
+    setState(() {});
   }
 
   void _initAnimations() {
@@ -53,22 +62,41 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Container(
         decoration: BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
+          gradient: _getBackgroundGradient(isDarkMode),
         ),
         child: SafeArea(
           child: Column(
             children: [
-              // Skip button
+              // Header avec boutons
               Padding(
                 padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 0.0),
-                child: _buildSkipButton(),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ThemeToggleButton(),
+                    TextButton(
+                      onPressed: () => AppRoutes.navigateToLogin(context),
+                      child: Text(
+                        _localizationService.translate('skip'),
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
-              // Scrollable content
+              // Contenu principal
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -76,7 +104,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     constraints: BoxConstraints(
                       minHeight: MediaQuery.of(context).size.height -
                           MediaQuery.of(context).padding.top -
-                          MediaQuery.of(context).padding.bottom - 170, // Increased buffer to prevent overflow
+                          MediaQuery.of(context).padding.bottom - 170,
                     ),
                     child: AnimatedBuilder(
                       animation: _animationController,
@@ -88,18 +116,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             child: IntrinsicHeight(
                               child: Column(
                                 children: [
-                                  // Spacer flexible pour centrer le contenu
                                   const Flexible(child: SizedBox(height: 20)),
-
-                                  _buildHeroImage(),
+                                  _buildHeroImage(isDarkMode),
                                   const SizedBox(height: 40),
-
                                   _buildWelcomeText(),
                                   const SizedBox(height: 40),
-
                                   _buildLanguageSelector(),
-
-                                  // Spacer flexible pour pousser vers le bas
                                   const Flexible(child: SizedBox(height: 40)),
                                 ],
                               ),
@@ -112,7 +134,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 ),
               ),
 
-              // Action buttons (fixed at bottom)
+              // Boutons d'action
               Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: _buildActionButtons(),
@@ -124,24 +146,23 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
-  Widget _buildSkipButton() {
-    return Align(
-      alignment: Alignment.topRight,
-      child: TextButton(
-        onPressed: () => AppRoutes.navigateToLogin(context),
-        child: Text(
-          'Skip',
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-    );
+  // Méthode pour obtenir le gradient de fond selon le thème
+  LinearGradient _getBackgroundGradient(bool isDarkMode) {
+    if (isDarkMode) {
+      return const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Color(0xFF1E1E1E),
+          Color(0xFF121212),
+        ],
+      );
+    } else {
+      return AppTheme.backgroundGradient;
+    }
   }
 
-  Widget _buildHeroImage() {
+  Widget _buildHeroImage(bool isDarkMode) {
     return Hero(
       tag: 'welcome_image',
       child: Container(
@@ -149,10 +170,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         height: 160,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          gradient: AppTheme.primaryGradient,
+          gradient: _getPrimaryGradient(isDarkMode),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.primaryColor.withOpacity(0.3),
+              color: _getPrimaryShadowColor(isDarkMode),
               spreadRadius: 4,
               blurRadius: 20,
               offset: const Offset(0, 10),
@@ -163,7 +184,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           borderRadius: BorderRadius.circular(24),
           child: Stack(
             children: [
-              // Background image
               Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(
@@ -178,32 +198,30 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   ),
                 ),
               ),
-
-              // Overlay with icon
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
-                      AppTheme.primaryColor.withOpacity(0.7),
+                      _getPrimaryColor(isDarkMode).withOpacity(0.7),
                     ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
                 ),
-                child: const Center(
+                child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.explore,
                         size: 48,
                         color: Colors.white,
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
-                        'Morocco',
-                        style: TextStyle(
+                        _localizationService.translate('morocco'),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -224,21 +242,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     return Column(
       children: [
         Text(
-          'Welcome to Our App',
+          _localizationService.translate('welcome_title'),
           style: Theme.of(context).textTheme.displayMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: AppTheme.textPrimaryColor,
+            color: Theme.of(context).colorScheme.onBackground,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16),
-
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(
-            'Discover a new way to connect and explore.\nGet started on your journey today!',
+            _localizationService.translate('welcome_subtitle'),
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppTheme.textSecondaryColor,
+              color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
               height: 1.6,
             ),
             textAlign: TextAlign.center,
@@ -256,20 +273,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Select Language',
+            _localizationService.translate('select_language'),
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppTheme.textPrimaryColor,
+              color: Theme.of(context).colorScheme.onBackground,
             ),
           ),
           const SizedBox(height: 12),
-
           LanguageSelectorWidget(
             selectedLanguage: selectedLanguage,
             onLanguageChanged: (String newLanguage) {
               setState(() {
                 selectedLanguage = newLanguage;
               });
+              _localizationService.changeLanguage(newLanguage);
             },
           ),
         ],
@@ -278,34 +295,32 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   Widget _buildActionButtons() {
+    final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Get Started Button
         CustomButtonWidget(
-          text: 'Get Started',
+          text: _localizationService.translate('get_started'),
           onPressed: () => AppRoutes.navigateToLogin(context),
           isLoading: false,
           buttonType: ButtonType.primary,
         ),
-
         const SizedBox(height: 16),
-
-        // Already have account
         TextButton(
           onPressed: () => AppRoutes.navigateToLogin(context),
           child: RichText(
             text: TextSpan(
-              text: 'Already have an account? ',
+              text: _localizationService.translate('already_account'),
               style: TextStyle(
-                color: AppTheme.textSecondaryColor,
+                color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
                 fontSize: 14,
               ),
               children: [
                 TextSpan(
-                  text: 'Log In',
+                  text: _localizationService.translate('log_in'),
                   style: TextStyle(
-                    color: AppTheme.primaryColor,
+                    color: _getPrimaryColor(isDarkMode),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -317,8 +332,39 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
+  // Méthodes utilitaires pour les couleurs selon le thème
+  LinearGradient _getPrimaryGradient(bool isDarkMode) {
+    if (isDarkMode) {
+      return LinearGradient(
+        colors: [
+          Colors.blue.shade400,
+          Colors.blue.shade600,
+        ],
+      );
+    } else {
+      return AppTheme.primaryGradient;
+    }
+  }
+
+  Color _getPrimaryColor(bool isDarkMode) {
+    if (isDarkMode) {
+      return Colors.blue.shade400;
+    } else {
+      return AppTheme.primaryColor;
+    }
+  }
+
+  Color _getPrimaryShadowColor(bool isDarkMode) {
+    if (isDarkMode) {
+      return Colors.blue.shade400.withOpacity(0.2);
+    } else {
+      return AppTheme.primaryColor.withOpacity(0.3);
+    }
+  }
+
   @override
   void dispose() {
+    _localizationService.removeListener(_onLanguageChanged);
     _animationController.dispose();
     super.dispose();
   }

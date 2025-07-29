@@ -1,34 +1,34 @@
-// lib/core/util/constants.dart
 class AppConstants {
+  static const int primaryColor = 0xFF1E88E5;
   // App Info
   static const String appName = 'Marhaba Explorer';
   static const String appVersion = '1.0.0';
   static const String appDescription = 'Discover Morocco - Tourism Guide';
 
-  // API Configuration
+
   static const String baseUrl = 'https://api.banani-tourism.com';
   static const String apiVersion = 'v1';
   static const int connectionTimeout = 30000; // 30 seconds
   static const int receiveTimeout = 30000; // 30 seconds
 
-  // Authentication
+
   static const String tokenKey = 'auth_token';
   static const String refreshTokenKey = 'refresh_token';
   static const String userDataKey = 'user_data';
   static const String isLoggedInKey = 'is_logged_in';
   static const String languageKey = 'selected_language';
 
-  // Keycloak Configuration
+
   static const String keycloakUrl = 'https://auth.banani-tourism.com';
   static const String keycloakRealm = 'banani-realm';
   static const String keycloakClientId = 'banani-mobile-app';
 
-  // Social Login
+
   static const String googleClientId = 'your-google-client-id';
   static const String facebookAppId = 'your-facebook-app-id';
   static const String appleServiceId = 'your-apple-service-id';
 
-  // Languages
+
   static const List<Map<String, String>> supportedLanguages = [
     {'code': 'en', 'name': 'English', 'flag': '🇺🇸'},
     {'code': 'fr', 'name': 'Français', 'flag': '🇫🇷'},
@@ -36,7 +36,7 @@ class AppConstants {
     {'code': 'es', 'name': 'Español', 'flag': '🇪🇸'},
   ];
 
-  // Morocco Cities
+
   static const List<Map<String, dynamic>> moroccoCities = [
     {
       'id': 1,
@@ -100,7 +100,7 @@ class AppConstants {
     },
   ];
 
-  // Activity Types
+
   static const List<Map<String, dynamic>> activityTypes = [
     {'id': 'beach', 'name': 'Beaches', 'icon': '🏖️', 'arabicName': 'الشواطئ'},
     {'id': 'mountains', 'name': 'Mountains', 'icon': '⛰️', 'arabicName': 'الجبال'},
@@ -114,7 +114,7 @@ class AppConstants {
     {'id': 'nightlife', 'name': 'Nightlife', 'icon': '🌙', 'arabicName': 'الحياة الليلية'},
   ];
 
-  // Transport Types
+
   static const List<Map<String, String>> transportTypes = [
     {'id': 'flight', 'name': 'Flight', 'icon': '✈️', 'arabicName': 'طيران'},
     {'id': 'car_rental', 'name': 'Car Rental', 'icon': '🚗', 'arabicName': 'تأجير سيارة'},
@@ -123,7 +123,6 @@ class AppConstants {
     {'id': 'train', 'name': 'Train', 'icon': '🚄', 'arabicName': 'قطار'},
   ];
 
-  // Accommodation Types
   static const List<Map<String, String>> accommodationTypes = [
     {'id': 'hotel', 'name': 'Hotel', 'icon': '🏨', 'arabicName': 'فندق'},
     {'id': 'riad', 'name': 'Riad', 'icon': '🏛️', 'arabicName': 'رياض'},
@@ -133,7 +132,7 @@ class AppConstants {
     {'id': 'apartment', 'name': 'Apartment', 'icon': '🏢', 'arabicName': 'شقة'},
   ];
 
-  // Budget Ranges
+
   static const List<Map<String, dynamic>> budgetRanges = [
     {'id': 'budget', 'name': 'Budget', 'min': 0, 'max': 500, 'currency': 'MAD'},
     {'id': 'mid_range', 'name': 'Mid-range', 'min': 500, 'max': 1500, 'currency': 'MAD'},
@@ -141,7 +140,7 @@ class AppConstants {
     {'id': 'ultra_luxury', 'name': 'Ultra Luxury', 'min': 5000, 'max': 99999, 'currency': 'MAD'},
   ];
 
-  // Trip Durations
+
   static const List<Map<String, dynamic>> tripDurations = [
     {'id': 'weekend', 'name': 'Weekend (2-3 days)', 'days': 3},
     {'id': 'short', 'name': 'Short Trip (4-6 days)', 'days': 5},
@@ -150,19 +149,18 @@ class AppConstants {
     {'id': 'long', 'name': 'Long Trip (15+ days)', 'days': 20},
   ];
 
-  // Validation
+
   static const int minPasswordLength = 8;
   static const int otpLength = 6;
   static const int otpExpiryMinutes = 10;
   static const int maxFileUploadSize = 10 * 1024 * 1024; // 10MB
 
-  // Images
+
   static const String defaultProfileImage = 'assets/images/default_profile.png';
   static const String logoImage = 'assets/images/logo.png';
   static const String splashImage = 'assets/images/splash_bg.jpg';
   static const String welcomeImage = 'assets/images/morocco_welcome.jpg';
 
-  // Error Messages
   static const String networkError = 'Network connection error. Please check your internet connection.';
   static const String serverError = 'Server error. Please try again later.';
   static const String unknownError = 'An unknown error occurred. Please try again.';
@@ -173,14 +171,14 @@ class AppConstants {
   static const String invalidOtp = 'Invalid OTP code.';
   static const String otpExpired = 'OTP code has expired.';
 
-  // Success Messages
+
   static const String loginSuccess = 'Login successful!';
   static const String registrationSuccess = 'Registration successful!';
   static const String passwordResetSuccess = 'Password reset successful!';
   static const String otpSentSuccess = 'OTP sent successfully!';
   static const String profileUpdatedSuccess = 'Profile updated successfully!';
 
-  // Regex Patterns
+
   static const String emailPattern = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
   static const String phonePattern = r'^(\+212|0)[5-7][0-9]{8}$'; // Moroccan phone numbers
   static const String passwordPattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$';

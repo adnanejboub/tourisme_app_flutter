@@ -1,7 +1,7 @@
-// lib/features/auth/presentation/pages/forgot_password_page.dart
 import 'package:flutter/material.dart';
 import 'package:tourisme_app_flutter/config/routes/app_routes.dart';
-import 'package:tourisme_app_flutter/features/auth/presentation/pages/password_recovery/reset_password_confirmation_page.dart'; // Import for ResetPasswordConfirmationPage
+import 'package:tourisme_app_flutter/features/auth/presentation/pages/password_recovery/reset_password_confirmation_page.dart';
+import 'package:tourisme_app_flutter/core/services/localization_service.dart'; // Import ajouté
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -35,7 +35,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               Text(
-                'Forgotten Password ?',
+                LocalizationService().translate('forgot_password_title'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 28,
@@ -45,7 +45,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
               const SizedBox(height: 20),
               Text(
-                'Enter your email address to receive a password reset link.',
+                LocalizationService().translate('forgot_password_subtitle'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -53,13 +53,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 ),
               ),
               const SizedBox(height: 40),
-              // Email input field
+
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'Enter your email address ',
+                  labelText: LocalizationService().translate('email_label'),
+                  hintText: LocalizationService().translate('forgot_password_email_hint'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -70,12 +70,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 ),
               ),
               const SizedBox(height: 30),
-              // "Send reset link" button
+
               ElevatedButton(
                 onPressed: () {
-                  // Logic to send the reset link
                   print('Envoyer le lien à: ${_emailController.text}');
-                  // Simulate sending and navigate to the confirmation page
                   Navigator.pushNamed(context, AppRoutes.resetPasswordConfirmation);
                 },
                 style: ElevatedButton.styleFrom(
@@ -86,19 +84,19 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   ),
                   elevation: 5,
                 ),
-                child: const Text(
-                  'Send password reset link',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+                child: Text(
+                  LocalizationService().translate('send_reset_link'),
+                  style: const TextStyle(fontSize: 18, color: Colors.white),
                 ),
               ),
               const SizedBox(height: 20),
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context); // Go back to the login page
+                  Navigator.pop(context);
                 },
-                child: const Text(
-                  'Back to login',
-                  style: TextStyle(color: Colors.blueAccent, fontSize: 16),
+                child: Text(
+                  LocalizationService().translate('back_to_login'),
+                  style: const TextStyle(color: Colors.blueAccent, fontSize: 16),
                 ),
               ),
             ],

@@ -1,4 +1,3 @@
-// lib/features/presentation/pages/splash_screen.dart
 import 'package:flutter/material.dart';
 import '../../../../../config/routes/app_routes.dart';
 import '../../../../../config/theme/app_theme.dart';
@@ -60,9 +59,6 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(Duration(milliseconds: 3500));
 
     if (mounted) {
-      // Check if user is logged in
-      // bool isLoggedIn = await _checkLoginStatus();
-      // For now, always go to welcome screen
       AppRoutes.navigateToWelcome(context);
     }
   }
@@ -84,7 +80,7 @@ class _SplashScreenState extends State<SplashScreen>
                   children: [
                     Spacer(flex: 2),
 
-                    // Logo with animations
+
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: ScaleTransition(
@@ -95,7 +91,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                     SizedBox(height: 24),
 
-                    // App Name
+
                     SlideTransition(
                       position: _slideAnimation,
                       child: FadeTransition(
@@ -121,7 +117,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                     SizedBox(height: 8),
 
-                    // Tagline
+
                     SlideTransition(
                       position: _slideAnimation,
                       child: FadeTransition(
@@ -140,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                     Spacer(flex: 2),
 
-                    // Loading indicator
+
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: Container(

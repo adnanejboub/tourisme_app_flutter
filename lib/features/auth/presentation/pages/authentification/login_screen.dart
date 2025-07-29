@@ -1,4 +1,3 @@
-// Remontée de 6 niveaux pour atteindre lib/ depuis auth/presentation/pages/authentication/
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,13 +5,13 @@ import 'package:flutter/services.dart';
 import '../../../../../config/routes/app_routes.dart';
 import '../../../../../config/theme/app_theme.dart';
 import '../../../../../core/utils/validators.dart';
-// Remontée de 2 niveaux pour atteindre presentation/ depuis pages/authentication/
 import '../../widgets/custom_button_widget.dart';
 import '../../widgets/custom_text_field_widget.dart';
 import '../../widgets/social_login_buttons_widget.dart';
+import '../../../../../core/services/localization_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key); // FIX 1: Added const constructor and Key
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -32,15 +31,22 @@ class _LoginScreenState extends State<LoginScreen>
   bool _isLoading = false;
   bool _rememberMe = false;
 
+  final LocalizationService _localizationService = LocalizationService();
+
   @override
   void initState() {
     super.initState();
     _initAnimations();
+    _localizationService.addListener(_onLanguageChanged);
+  }
+
+  void _onLanguageChanged() {
+    setState(() {});
   }
 
   void _initAnimations() {
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1000), // Added const
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
 
@@ -53,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen>
     ));
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3), // Added const
+      begin: const Offset(0, 0.3),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _animationController,
@@ -77,48 +83,40 @@ class _LoginScreenState extends State<LoginScreen>
               child: SlideTransition(
                 position: _slideAnimation,
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24.0), // Added const
+                  padding: const EdgeInsets.all(24.0),
                   child: Form(
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 20), // Added const
+                        const SizedBox(height: 20),
 
-                        // Header
                         _buildHeader(),
-                        const SizedBox(height: 32), // Added const
+                        const SizedBox(height: 32),
 
-                        // Email Field
                         _buildEmailField(),
-                        const SizedBox(height: 20), // Added const
+                        const SizedBox(height: 20),
 
-                        // Password Field
                         _buildPasswordField(),
-                        const SizedBox(height: 16), // Added const
+                        const SizedBox(height: 16),
 
-                        // Remember Me & Forgot Password
                         _buildRememberMeRow(),
-                        const SizedBox(height: 32), // Added const
+                        const SizedBox(height: 32),
 
-                        // Login Button
                         _buildLoginButton(),
-                        const SizedBox(height: 32), // Added const
+                        const SizedBox(height: 32),
 
-                        // Divider
                         _buildDivider(),
-                        const SizedBox(height: 24), // Added const
+                        const SizedBox(height: 24),
 
-                        // Social Login Buttons
                         SocialLoginButtonsWidget(
                           onGooglePressed: _handleGoogleLogin,
                           onApplePressed: _handleAppleLogin,
                           onFacebookPressed: _handleFacebookLogin,
                         ),
 
-                        const SizedBox(height: 40), // Added const
+                        const SizedBox(height: 40),
 
-                        // Sign Up Link
                         _buildSignUpLink(),
                       ],
                     ),
@@ -137,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen>
       backgroundColor: Colors.transparent,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon( // Added const
+        icon: const Icon(
           Icons.arrow_back_ios,
           color: AppTheme.textPrimaryColor,
           size: 20,
@@ -153,15 +151,15 @@ class _LoginScreenState extends State<LoginScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Log In',
+          _localizationService.translate('login_title'),
           style: Theme.of(context).textTheme.displayLarge?.copyWith(
             fontWeight: FontWeight.bold,
             color: AppTheme.textPrimaryColor,
           ),
         ),
-        const SizedBox(height: 8), // Added const
+        const SizedBox(height: 8),
         Text(
-          'Welcome back! Please enter your details.',
+          _localizationService.translate('login_subtitle'),
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             color: AppTheme.textSecondaryColor,
           ),
@@ -173,17 +171,17 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildEmailField() {
     return CustomTextFieldWidget(
       controller: _emailController,
-      label: 'Email or Phone',
-      hintText: 'Enter your email or phone',
+      label: _localizationService.translate('email_phone_label'),
+      hintText: _localizationService.translate('email_phone_hint'),
       prefixIcon: Icons.email_outlined,
       keyboardType: TextInputType.emailAddress,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Please enter your email or phone';
+          return _localizationService.translate('email_phone_error');
         }
-        // Accept both email and phone formats
+
         if (!Validators.isValidEmail(value) && value.length < 10) {
-          return 'Please enter a valid email or phone number';
+          return _localizationService.translate('email_phone_invalid');
         }
         return null;
       },
@@ -193,8 +191,8 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildPasswordField() {
     return CustomTextFieldWidget(
       controller: _passwordController,
-      label: 'Password',
-      hintText: 'Enter your password',
+      label: _localizationService.translate('password_label'),
+      hintText: _localizationService.translate('password_hint'),
       prefixIcon: Icons.lock_outlined,
       obscureText: _obscurePassword,
       suffixIcon: IconButton(
@@ -210,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen>
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Please enter your password';
+          return _localizationService.translate('password_error');
         }
         return null;
       },
@@ -239,10 +237,10 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
               ),
             ),
-            const SizedBox(width: 8), // Added const
-            const Text( // Added const
-              'Remember me',
-              style: TextStyle(
+            const SizedBox(width: 8),
+            Text(
+              _localizationService.translate('remember_me'),
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppTheme.textSecondaryColor,
               ),
@@ -252,7 +250,7 @@ class _LoginScreenState extends State<LoginScreen>
         TextButton(
           onPressed: () => AppRoutes.navigateToForgotPassword(context),
           child: Text(
-            'Forgot Password?',
+            _localizationService.translate('forgot_password'),
             style: TextStyle(
               color: AppTheme.primaryColor,
               fontSize: 14,
@@ -265,9 +263,8 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _buildLoginButton() {
-    return CustomButtonWidget( // Changed from LoadingButton to CustomButtonWidget based on common usage
-      text: 'Log In',
-      // loadingText: 'Logging in...', // Removed if CustomButtonWidget doesn't support it
+    return CustomButtonWidget(
+      text: _localizationService.translate('login_button'),
       onPressed: _handleLogin,
       isLoading: _isLoading,
       buttonType: ButtonType.primary,
@@ -277,18 +274,18 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildDivider() {
     return Row(
       children: [
-        const Expanded(child: Divider(color: AppTheme.dividerColor, thickness: 1)), // Added const
+        const Expanded(child: Divider(color: AppTheme.dividerColor, thickness: 1)),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16), // Added const
-          child: const Text( // Added const
-            'Or continue with',
-            style: TextStyle(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            _localizationService.translate('or_continue_with'),
+            style: const TextStyle(
               color: AppTheme.textSecondaryColor,
               fontSize: 14,
             ),
           ),
         ),
-        const Expanded(child: Divider(color: AppTheme.dividerColor, thickness: 1)), // Added const
+        const Expanded(child: Divider(color: AppTheme.dividerColor, thickness: 1)),
       ],
     );
   }
@@ -299,14 +296,14 @@ class _LoginScreenState extends State<LoginScreen>
         onPressed: () => AppRoutes.navigateToSignup(context),
         child: RichText(
           text: TextSpan(
-            text: "Don't have an account? ",
+            text: _localizationService.translate('no_account'),
             style: TextStyle(
               color: AppTheme.textSecondaryColor,
               fontSize: 14,
             ),
             children: [
               TextSpan(
-                text: 'Sign Up',
+                text: _localizationService.translate('sign_up'),
                 style: TextStyle(
                   color: AppTheme.primaryColor,
                   fontWeight: FontWeight.w600,
@@ -320,9 +317,9 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _handleLogin() async {
-    // FIX 3: Check if widget is mounted before using context after async gap
+
     if (!_formKey.currentState!.validate()) {
-      return; // Exit if validation fails
+      return;
     }
 
     setState(() {
@@ -330,28 +327,28 @@ class _LoginScreenState extends State<LoginScreen>
     });
 
     try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2)); // Added const
 
-      if (!mounted) return; // FIX 3: Check mounted before using context
+      await Future.delayed(const Duration(seconds: 2));
+
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Login successful!'), // Added const
+          content: Text(_localizationService.translate('login_success')),
           backgroundColor: AppTheme.successColor,
         ),
       );
 
-      if (!mounted) return; // FIX 3: Check mounted before using context
-      // Navigate to travel preferences or home
+      if (!mounted) return;
+
       AppRoutes.navigateToTravelPreferences(context);
 
     } catch (e) {
-      if (!mounted) return; // FIX 3: Check mounted before using context
-      // Show error message
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Login failed. Please try again.'), // Added const
+          content: Text(_localizationService.translate('login_failed')),
           backgroundColor: AppTheme.errorColor,
         ),
       );
@@ -365,37 +362,32 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _handleGoogleLogin() async {
-    // Implement Google Sign-In
-    // FIX 4: Replaced print with debugPrint for production safety
     debugPrint('Google Login pressed');
-    if (!mounted) return; // FIX 3: Check mounted before using context
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Google Login - À implémenter avec google_sign_in package')), // Added const
+      SnackBar(content: Text(_localizationService.translate('google_login_todo'))),
     );
   }
 
   Future<void> _handleAppleLogin() async {
-    // Implement Apple Sign-In
-    // FIX 4: Replaced print with debugPrint for production safety
     debugPrint('Apple Login pressed');
-    if (!mounted) return; // FIX 3: Check mounted before using context
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Apple Login - À implémenter avec sign_in_with_apple package')), // Added const
+      SnackBar(content: Text(_localizationService.translate('apple_login_todo'))),
     );
   }
 
   Future<void> _handleFacebookLogin() async {
-    // Implement Facebook Sign-In
-    // FIX 4: Replaced print with debugPrint for production safety
     debugPrint('Facebook Login pressed');
-    if (!mounted) return; // FIX 3: Check mounted before using context
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Facebook Login - À implémenter avec flutter_facebook_auth package')), // Added const
+      SnackBar(content: Text(_localizationService.translate('facebook_login_todo'))),
     );
   }
 
   @override
   void dispose() {
+    _localizationService.removeListener(_onLanguageChanged);
     _emailController.dispose();
     _passwordController.dispose();
     _animationController.dispose();

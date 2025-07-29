@@ -1,4 +1,3 @@
-// lib/features/auth/presentation/pages/two_factor_auth_page.dart
 import 'package:flutter/material.dart';
 import 'package:tourisme_app_flutter/config/routes/app_routes.dart';
 
@@ -52,12 +51,12 @@ class _TwoFactorAuthPageState extends State<TwoFactorAuthPage> {
                 ),
               ),
               const SizedBox(height: 40),
-              // 2FA code input field
+
               TextField(
                 controller: _codeController,
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
-                maxLength: 6, // Typically 6 digits for 2FA
+                maxLength: 6,
                 decoration: InputDecoration(
                   hintText: '------',
                   border: OutlineInputBorder(
@@ -71,13 +70,12 @@ class _TwoFactorAuthPageState extends State<TwoFactorAuthPage> {
                 style: const TextStyle(fontSize: 24, letterSpacing: 10),
               ),
               const SizedBox(height: 30),
-              // "Verify" button
+
               ElevatedButton(
                 onPressed: () {
                   // 2FA verification logic
                   print('Code 2FA: ${_codeController.text}');
-                  // If 2FA verified, navigate to the main application page
-                  Navigator.pushReplacementNamed(context, AppRoutes.home); // Main page
+                  Navigator.pushReplacementNamed(context, AppRoutes.home);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueAccent,
@@ -93,14 +91,13 @@ class _TwoFactorAuthPageState extends State<TwoFactorAuthPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              // "Problem with 2FA?" link
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   const Text("Problème avec 2FA ? "),
                   GestureDetector(
                     onTap: () {
-                      // 2FA help logic (e.g., recovery options)
                       print('Problème 2FA');
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Veuillez contacter le support pour l\'aide 2FA.')),

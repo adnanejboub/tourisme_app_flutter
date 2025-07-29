@@ -1,21 +1,29 @@
-// main.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Nécessaire pour SystemChrome
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'config/routes/app_routes.dart';
 import 'config/theme/app_theme.dart';
-// Note: SplashScreen n'est plus importé ici directement car il est géré par AppRoutes.generateRoute
-// et n'est pas utilisé via la propriété 'home'.
+import '/shared/widgets/global_localization_widget.dart';
+import '/core/services/localization_service.dart';
+import '/core/providers/theme_provider.dart';
 
 void main() {
-  // Assurez-vous que les bindings Flutter sont initialisés avant de configurer le style de la barre système
   WidgetsFlutterBinding.ensureInitialized();
-  // Configuration de la barre de statut pour un look moderne et transparent
+
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent, // Rendre la barre de statut transparente
-    statusBarIconBrightness: Brightness.dark, // Icônes sombres pour un fond clair
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
   ));
 
-  runApp(const TourismApp()); // Utilisation de TourismApp comme défini par l'utilisateur
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => LocalizationService()),
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+      ],
+      child: const TourismApp(),
+    ),
+  );
 }
 
 class TourismApp extends StatelessWidget {
@@ -23,16 +31,18 @@ class TourismApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Morocco Tourism', // Titre de l'application
-      debugShowCheckedModeBanner: false, // Masquer la bannière de débogage
-      theme: AppTheme.lightTheme, // Thème clair par défaut
-      darkTheme: AppTheme.darkTheme, // Thème sombre
-      themeMode: ThemeMode.system, // Utiliser le thème du système (clair/sombre)
-      initialRoute: AppRoutes.splash, // Démarrer avec l'écran de splash
-      onGenerateRoute: AppRoutes.generateRoute, // Utiliser la méthode de génération de route
-      // IMPORTANT: La propriété 'home' est supprimée car elle est redondante
-      // avec 'initialRoute' et 'onGenerateRoute', ce qui causait le problème.
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'Morocco Tourism',
+          debugShowCheckedModeBanner: false,
+          theme: themeProvider.lightTheme,
+          darkTheme: themeProvider.darkTheme,
+          themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          initialRoute: AppRoutes.welcome,
+          onGenerateRoute: AppRoutes.generateRoute,
+        );
+      },
     );
   }
 }

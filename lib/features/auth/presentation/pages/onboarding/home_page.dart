@@ -1,4 +1,3 @@
-// lib/features/home/presentation/pages/home_page.dart
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -74,7 +73,7 @@ class _HomePageState extends State<HomePage> {
               _buildRecommendationsNearYou(),
               _buildTrendingDestinations(),
               _buildSeasonalHighlights(),
-              SizedBox(height: 100), // Space for bottom navigation
+              SizedBox(height: 100),
             ],
           ),
         ),

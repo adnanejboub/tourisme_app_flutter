@@ -1,6 +1,6 @@
-// lib/features/auth/presentation/pages/reset_password_confirmation_page.dart
 import 'package:flutter/material.dart';
 import 'package:tourisme_app_flutter/config/routes/app_routes.dart';
+import 'package:tourisme_app_flutter/core/services/localization_service.dart'; // Import ajouté
 
 class ResetPasswordConfirmationPage extends StatelessWidget {
   const ResetPasswordConfirmationPage({super.key});
@@ -32,7 +32,7 @@ class ResetPasswordConfirmationPage extends StatelessWidget {
               ),
               const SizedBox(height: 30),
               Text(
-                'Reset link sent !',
+                LocalizationService().translate('reset_link_sent'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,
@@ -42,7 +42,7 @@ class ResetPasswordConfirmationPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                'Please check your inbox mail and follow the instructions for the password reset link.',
+                LocalizationService().translate('reset_link_instructions'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -66,9 +66,9 @@ class ResetPasswordConfirmationPage extends StatelessWidget {
                   ),
                   elevation: 5,
                 ),
-                child: const Text(
-                  'Back to login',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+                child: Text(
+                  LocalizationService().translate('back_to_login'),
+                  style: const TextStyle(fontSize: 18, color: Colors.white),
                 ),
               ),
             ],

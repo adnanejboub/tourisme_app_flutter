@@ -1,7 +1,7 @@
-// lib/features/auth/presentation/pages/signup_page.dart
 import 'package:flutter/material.dart';
 import 'package:tourisme_app_flutter/config/routes/app_routes.dart';
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/verification/otp_verification_page.dart';
+import 'package:tourisme_app_flutter/core/services/localization_service.dart'; // Import ajouté
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -37,8 +37,14 @@ class _SignUpPageState extends State<SignUpPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
+              Icon(
+                Icons.person_add_alt_1_rounded,
+                size: 80,
+                color: Colors.blueAccent,
+              ),
+              const SizedBox(height: 20),
               Text(
-                'Create Account',
+                LocalizationService().translate('create_account'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 28,
@@ -47,12 +53,12 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
               ),
               const SizedBox(height: 40),
-              // Full Name field
+
               TextField(
                 controller: _fullNameController,
                 decoration: InputDecoration(
-                  labelText: 'Full Name',
-                  hintText: 'Enter your full name',
+                  labelText: LocalizationService().translate('full_name_label'),
+                  hintText: LocalizationService().translate('full_name_hint'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -63,13 +69,13 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              // Email field
+
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'Enter your email address',
+                  labelText: LocalizationService().translate('email_label'),
+                  hintText: LocalizationService().translate('forgot_password_email_hint'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -80,13 +86,13 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              // Password field
+
               TextField(
                 controller: _passwordController,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'Password',
-                  hintText: 'Enter a password',
+                  labelText: LocalizationService().translate('password_label'),
+                  hintText: LocalizationService().translate('password_hint'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -97,13 +103,13 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              // Confirm Password field
+
               TextField(
                 controller: _confirmPasswordController,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'Confirm Password',
-                  hintText: 'Confirm your password',
+                  labelText: LocalizationService().translate('confirm_password_label'),
+                  hintText: LocalizationService().translate('confirm_password_hint'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -114,17 +120,13 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
               ),
               const SizedBox(height: 30),
-              // "Sign Up" button
+
               ElevatedButton(
                 onPressed: () {
-                  // Sign up logic here
                   print('Nom complet: ${_fullNameController.text}');
                   print('Email: ${_emailController.text}');
                   print('Mot de passe: ${_passwordController.text}');
                   print('Confirmer mot de passe: ${_confirmPasswordController.text}');
-
-                  // Simulate successful registration and navigate to OTP verification
-                  // According to the requirements, Keycloak will be used for OTP and 2FA.
                   Navigator.pushNamed(context, AppRoutes.otpVerification);
                 },
                 style: ElevatedButton.styleFrom(
@@ -135,24 +137,24 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   elevation: 5,
                 ),
-                child: const Text(
-                  "Sign up",
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+                child: Text(
+                  LocalizationService().translate('sign_up'),
+                  style: const TextStyle(fontSize: 18, color: Colors.white),
                 ),
               ),
               const SizedBox(height: 20),
-              // "Already have an account?" link
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  const Text("Already have an account ? "),
+                  Text(LocalizationService().translate('already_account')),
                   GestureDetector(
                     onTap: () {
-                      Navigator.pop(context); // Go back to the login page
+                      Navigator.pop(context);
                     },
-                    child: const Text(
-                      'Log In',
-                      style: TextStyle(
+                    child: Text(
+                      LocalizationService().translate('log_in'),
+                      style: const TextStyle(
                         color: Colors.blueAccent,
                         fontWeight: FontWeight.bold,
                       ),

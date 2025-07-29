@@ -1,6 +1,6 @@
 import '../constants/constants.dart';
 class Validators {
-  // Email validation
+
   static String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Email is required';
@@ -14,7 +14,7 @@ class Validators {
     return null;
   }
 
-  // Password validation
+
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Password is required';
@@ -24,17 +24,17 @@ class Validators {
       return 'Password must be at least ${AppConstants.minPasswordLength} characters';
     }
 
-    // Check for at least one uppercase letter
+
     if (!value.contains(RegExp(r'[A-Z]'))) {
       return 'Password must contain at least one uppercase letter';
     }
 
-    // Check for at least one lowercase letter
+
     if (!value.contains(RegExp(r'[a-z]'))) {
       return 'Password must contain at least one lowercase letter';
     }
 
-    // Check for at least one digit
+
     if (!value.contains(RegExp(r'[0-9]'))) {
       return 'Password must contain at least one number';
     }
@@ -42,7 +42,7 @@ class Validators {
     return null;
   }
 
-  // Confirm password validation
+
   static String? validateConfirmPassword(String? value, String? originalPassword) {
     if (value == null || value.isEmpty) {
       return 'Please confirm your password';
@@ -55,7 +55,7 @@ class Validators {
     return null;
   }
 
-  // Full name validation
+
   static String? validateFullName(String? value) {
     if (value == null || value.isEmpty) {
       return 'Full name is required';
@@ -65,12 +65,12 @@ class Validators {
       return 'Full name must be at least 2 characters';
     }
 
-    // Check for at least one space (first and last name)
+
     if (!value.trim().contains(' ')) {
       return 'Please enter your full name (first and last name)';
     }
 
-    // Check for valid characters (letters, spaces, hyphens, apostrophes)
+
     final nameRegex = RegExp(r"^[a-zA-ZÀ-ÿ\s\-']+$");
     if (!nameRegex.hasMatch(value)) {
       return 'Full name can only contain letters, spaces, hyphens, and apostrophes';
@@ -79,7 +79,7 @@ class Validators {
     return null;
   }
 
-  // Phone number validation (Moroccan format)
+
   static String? validatePhone(String? value) {
     if (value == null || value.isEmpty) {
       return 'Phone number is required';
@@ -93,7 +93,7 @@ class Validators {
     return null;
   }
 
-  // OTP validation
+
   static String? validateOTP(String? value) {
     if (value == null || value.isEmpty) {
       return 'OTP is required';
@@ -111,7 +111,7 @@ class Validators {
     return null;
   }
 
-  // General required field validation
+
   static String? validateRequired(String? value, String fieldName) {
     if (value == null || value.trim().isEmpty) {
       return '$fieldName is required';
@@ -119,7 +119,6 @@ class Validators {
     return null;
   }
 
-  // Age validation
   static String? validateAge(String? value) {
     if (value == null || value.isEmpty) {
       return 'Age is required';
@@ -141,7 +140,7 @@ class Validators {
     return null;
   }
 
-  // Budget validation
+
   static String? validateBudget(String? value) {
     if (value == null || value.isEmpty) {
       return 'Budget is required';
@@ -159,7 +158,6 @@ class Validators {
     return null;
   }
 
-  // URL validation
   static String? validateURL(String? value) {
     if (value == null || value.isEmpty) {
       return null; // URL is optional in most cases
@@ -177,7 +175,7 @@ class Validators {
     return null;
   }
 
-  // Date validation
+
   static String? validateDate(DateTime? value) {
     if (value == null) {
       return 'Date is required';
@@ -191,7 +189,7 @@ class Validators {
     return null;
   }
 
-  // Trip duration validation
+
   static String? validateTripDuration(int? days) {
     if (days == null || days <= 0) {
       return 'Please select a valid trip duration';
@@ -204,7 +202,6 @@ class Validators {
     return null;
   }
 
-  // File size validation
   static String? validateFileSize(int? sizeInBytes) {
     if (sizeInBytes == null) {
       return 'Invalid file';
@@ -218,7 +215,7 @@ class Validators {
     return null;
   }
 
-  // Multiple selection validation
+
   static String? validateMultipleSelection(List<dynamic>? values, String fieldName, {int minSelection = 1}) {
     if (values == null || values.isEmpty) {
       return 'Please select at least one $fieldName';
@@ -231,53 +228,52 @@ class Validators {
     return null;
   }
 
-  // Clean input helper
   static String cleanInput(String input) {
     return input.trim().replaceAll(RegExp(r'\s+'), ' ');
   }
 
-  // Format phone number for display
+
   static String formatPhoneNumber(String phone) {
-    // Remove all non-digits
+
     String cleaned = phone.replaceAll(RegExp(r'[^\d]'), '');
 
-    // Add Morocco country code if not present
+
     if (cleaned.length == 9) {
       cleaned = '212$cleaned';
     } else if (cleaned.startsWith('0')) {
       cleaned = '212${cleaned.substring(1)}';
     }
 
-    // Format as +212 6XX XX XX XX
+
     if (cleaned.length == 12 && cleaned.startsWith('212')) {
       return '+${cleaned.substring(0, 3)} ${cleaned.substring(3, 4)}${cleaned.substring(4, 6)} ${cleaned.substring(6, 8)} ${cleaned.substring(8, 10)} ${cleaned.substring(10, 12)}';
     }
 
-    return phone; // Return original if formatting fails
+    return phone;
   }
 
-  // Check if email is valid (without error message)
+
   static bool isValidEmail(String email) {
     return RegExp(AppConstants.emailPattern).hasMatch(email);
   }
 
-  // Check if password is strong
+
   static bool isStrongPassword(String password) {
     return RegExp(AppConstants.passwordPattern).hasMatch(password);
   }
 
-  // Password strength indicator
+
   static PasswordStrength getPasswordStrength(String password) {
     if (password.isEmpty) return PasswordStrength.empty;
     if (password.length < 6) return PasswordStrength.weak;
 
     int score = 0;
 
-    // Length bonus
+
     if (password.length >= 8) score++;
     if (password.length >= 12) score++;
 
-    // Character variety
+
     if (password.contains(RegExp(r'[a-z]'))) score++;
     if (password.contains(RegExp(r'[A-Z]'))) score++;
     if (password.contains(RegExp(r'[0-9]'))) score++;
