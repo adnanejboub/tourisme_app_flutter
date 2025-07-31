@@ -19,8 +19,37 @@ class SocialLoginButtonsWidget extends StatelessWidget {
     this.showFacebook = true,
   }) : super(key: key);
 
+  double _getScaleFactor(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width < 360) return 0.85;
+    if (width < 414) return 0.95;
+    return 1.0;
+  }
+
+  double _getTextScaleFactor(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+
+    if (height < 600) return 0.8;
+    if (height < 700) return 0.9;
+    if (width < 360) return 0.85;
+    if (width < 414) return 0.95;
+    return 1.0;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final scaleFactor = _getScaleFactor(context);
+    final textScaleFactor = _getTextScaleFactor(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Use compact buttons on very small screens
+    if (screenWidth < 350 || screenHeight < 600) {
+      return _buildCompactButtons(context, isDark);
+    }
+
     return ListenableBuilder(
       listenable: LocalizationService(),
       builder: (context, child) {
@@ -28,17 +57,16 @@ class SocialLoginButtonsWidget extends StatelessWidget {
 
         return Column(
           children: [
-
-            _buildGoogleButton(localizationService),
+            _buildGoogleButton(localizationService, scaleFactor, textScaleFactor, isDark),
 
             if (showApple) ...[
-              SizedBox(height: 12),
-              _buildAppleButton(localizationService),
+              SizedBox(height: 12 * scaleFactor),
+              _buildAppleButton(localizationService, scaleFactor, textScaleFactor, isDark),
             ],
 
             if (showFacebook) ...[
-              SizedBox(height: 12),
-              _buildFacebookButton(localizationService),
+              SizedBox(height: 12 * scaleFactor),
+              _buildFacebookButton(localizationService, scaleFactor, textScaleFactor, isDark),
             ],
           ],
         );
@@ -46,94 +74,180 @@ class SocialLoginButtonsWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildGoogleButton(LocalizationService localizationService) {
+  Widget _buildGoogleButton(LocalizationService localizationService, double scaleFactor, double textScaleFactor, bool isDark) {
     return SizedBox(
       width: double.infinity,
-      height: 56,
+      height: 56 * scaleFactor,
       child: OutlinedButton.icon(
         onPressed: onGooglePressed,
         icon: _buildGoogleIcon(),
-        label: Text(
-          localizationService.translate('sign_up_google'),
-          style: TextStyle(
-            color: AppTheme.textPrimaryColor,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
+        label: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            localizationService.translate('sign_up_google'),
+            style: TextStyle(
+              color: isDark ? Colors.white : AppTheme.textPrimaryColor,
+              fontSize: 16 * textScaleFactor,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: AppTheme.borderColor),
+          side: BorderSide(
+            color: isDark ? Colors.grey[700]! : AppTheme.borderColor,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? Color(0xFF1E1E1E) : Colors.white,
           elevation: 2,
           shadowColor: Colors.black.withOpacity(0.1),
+          padding: EdgeInsets.symmetric(horizontal: 16 * scaleFactor),
         ),
       ),
     );
   }
 
-  Widget _buildAppleButton(LocalizationService localizationService) {
+  Widget _buildAppleButton(LocalizationService localizationService, double scaleFactor, double textScaleFactor, bool isDark) {
     return SizedBox(
       width: double.infinity,
-      height: 56,
+      height: 56 * scaleFactor,
       child: OutlinedButton.icon(
         onPressed: onApplePressed,
         icon: Icon(
           Icons.apple,
-          color: Colors.black,
-          size: 24,
+          color: isDark ? Colors.white : Colors.black,
+          size: 24 * scaleFactor,
         ),
-        label: Text(
-          localizationService.translate('sign_up_apple'),
-          style: TextStyle(
-            color: AppTheme.textPrimaryColor,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
+        label: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            localizationService.translate('sign_up_apple'),
+            style: TextStyle(
+              color: isDark ? Colors.white : AppTheme.textPrimaryColor,
+              fontSize: 16 * textScaleFactor,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: AppTheme.borderColor),
+          side: BorderSide(
+            color: isDark ? Colors.grey[700]! : AppTheme.borderColor,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? Color(0xFF1E1E1E) : Colors.white,
           elevation: 2,
           shadowColor: Colors.black.withOpacity(0.1),
+          padding: EdgeInsets.symmetric(horizontal: 16 * scaleFactor),
         ),
       ),
     );
   }
 
-  Widget _buildFacebookButton(LocalizationService localizationService) {
+  Widget _buildFacebookButton(LocalizationService localizationService, double scaleFactor, double textScaleFactor, bool isDark) {
     return SizedBox(
       width: double.infinity,
-      height: 56,
+      height: 56 * scaleFactor,
       child: OutlinedButton.icon(
         onPressed: onFacebookPressed,
         icon: Icon(
           Icons.facebook,
           color: Color(0xFF1877F2),
-          size: 24,
+          size: 24 * scaleFactor,
         ),
-        label: Text(
-          localizationService.translate('sign_up_facebook'),
-          style: TextStyle(
-            color: AppTheme.textPrimaryColor,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
+        label: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            localizationService.translate('sign_up_facebook'),
+            style: TextStyle(
+              color: isDark ? Colors.white : AppTheme.textPrimaryColor,
+              fontSize: 16 * textScaleFactor,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: AppTheme.borderColor),
+          side: BorderSide(
+            color: isDark ? Colors.grey[700]! : AppTheme.borderColor,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? Color(0xFF1E1E1E) : Colors.white,
           elevation: 2,
           shadowColor: Colors.black.withOpacity(0.1),
+          padding: EdgeInsets.symmetric(horizontal: 16 * scaleFactor),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCompactButtons(BuildContext context, bool isDark) {
+    final scaleFactor = _getScaleFactor(context);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildCompactButton(
+          icon: _buildGoogleIcon(),
+          onPressed: onGooglePressed,
+          scaleFactor: scaleFactor,
+          isDark: isDark,
+        ),
+        if (showApple) ...[
+          SizedBox(width: 16 * scaleFactor),
+          _buildCompactButton(
+            icon: Icon(
+              Icons.apple,
+              size: 24 * scaleFactor,
+              color: isDark ? Colors.white : Colors.black,
+            ),
+            onPressed: onApplePressed,
+            scaleFactor: scaleFactor,
+            isDark: isDark,
+          ),
+        ],
+        if (showFacebook) ...[
+          SizedBox(width: 16 * scaleFactor),
+          _buildCompactButton(
+            icon: Icon(
+              Icons.facebook,
+              size: 24 * scaleFactor,
+              color: Color(0xFF1877F2),
+            ),
+            onPressed: onFacebookPressed,
+            scaleFactor: scaleFactor,
+            isDark: isDark,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildCompactButton({
+    required Widget icon,
+    VoidCallback? onPressed,
+    required double scaleFactor,
+    required bool isDark,
+  }) {
+    return Container(
+      width: 60 * scaleFactor,
+      height: 60 * scaleFactor,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(
+            color: isDark ? Colors.grey[700]! : AppTheme.borderColor,
+          ),
+          shape: CircleBorder(),
+          backgroundColor: isDark ? Color(0xFF1E1E1E) : Colors.white,
+          elevation: 2,
+          shadowColor: Colors.black.withOpacity(0.1),
+          padding: EdgeInsets.zero,
+        ),
+        child: icon,
       ),
     );
   }
@@ -193,22 +307,46 @@ class CompactSocialButtons extends StatelessWidget {
     this.onFacebookPressed,
   }) : super(key: key);
 
+  double _getScaleFactor(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width < 360) return 0.85;
+    if (width < 414) return 0.95;
+    return 1.0;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final scaleFactor = _getScaleFactor(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _buildCompactButton(
           icon: _buildGoogleIcon(),
           onPressed: onGooglePressed,
+          scaleFactor: scaleFactor,
+          isDark: isDark,
         ),
         _buildCompactButton(
-          icon: Icon(Icons.apple, size: 24, color: Colors.black),
+          icon: Icon(
+            Icons.apple,
+            size: 24 * scaleFactor,
+            color: isDark ? Colors.white : Colors.black,
+          ),
           onPressed: onApplePressed,
+          scaleFactor: scaleFactor,
+          isDark: isDark,
         ),
         _buildCompactButton(
-          icon: Icon(Icons.facebook, size: 24, color: Color(0xFF1877F2)),
+          icon: Icon(
+            Icons.facebook,
+            size: 24 * scaleFactor,
+            color: Color(0xFF1877F2),
+          ),
           onPressed: onFacebookPressed,
+          scaleFactor: scaleFactor,
+          isDark: isDark,
         ),
       ],
     );
@@ -217,16 +355,20 @@ class CompactSocialButtons extends StatelessWidget {
   Widget _buildCompactButton({
     required Widget icon,
     VoidCallback? onPressed,
+    required double scaleFactor,
+    required bool isDark,
   }) {
     return Container(
-      width: 60,
-      height: 60,
+      width: 60 * scaleFactor,
+      height: 60 * scaleFactor,
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: AppTheme.borderColor),
+          side: BorderSide(
+            color: isDark ? Colors.grey[700]! : AppTheme.borderColor,
+          ),
           shape: CircleBorder(),
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? Color(0xFF1E1E1E) : Colors.white,
           elevation: 2,
           shadowColor: Colors.black.withOpacity(0.1),
           padding: EdgeInsets.zero,

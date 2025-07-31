@@ -69,10 +69,35 @@ class _LoginScreenState extends State<LoginScreen>
     _animationController.forward();
   }
 
+  double _getScaleFactor(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width < 360) return 0.85;
+    if (width < 414) return 0.95;
+    if (width < 480) return 1.0;
+    return 1.1;
+  }
+
+  double _getTextScaleFactor(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+
+    if (height < 600) return 0.8;
+    if (height < 700) return 0.9;
+    if (width < 360) return 0.85;
+    if (width < 414) return 0.95;
+    return 1.0;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final scaleFactor = _getScaleFactor(context);
+    final textScaleFactor = _getTextScaleFactor(context);
+    final padding = EdgeInsets.all(24.0 * scaleFactor);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: _buildAppBar(),
       body: SafeArea(
         child: AnimatedBuilder(
@@ -83,42 +108,47 @@ class _LoginScreenState extends State<LoginScreen>
               child: SlideTransition(
                 position: _slideAnimation,
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 20),
+                  padding: padding,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: screenHeight - MediaQuery.of(context).padding.top - kToolbarHeight - padding.vertical,
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 20 * scaleFactor),
 
-                        _buildHeader(),
-                        const SizedBox(height: 32),
+                          _buildHeader(textScaleFactor),
+                          SizedBox(height: 32 * scaleFactor),
 
-                        _buildEmailField(),
-                        const SizedBox(height: 20),
+                          _buildEmailField(),
+                          SizedBox(height: 20 * scaleFactor),
 
-                        _buildPasswordField(),
-                        const SizedBox(height: 16),
+                          _buildPasswordField(),
+                          SizedBox(height: 16 * scaleFactor),
 
-                        _buildRememberMeRow(),
-                        const SizedBox(height: 32),
+                          _buildRememberMeRow(textScaleFactor),
+                          SizedBox(height: 32 * scaleFactor),
 
-                        _buildLoginButton(),
-                        const SizedBox(height: 32),
+                          _buildLoginButton(),
+                          SizedBox(height: 32 * scaleFactor),
 
-                        _buildDivider(),
-                        const SizedBox(height: 24),
+                          _buildDivider(textScaleFactor),
+                          SizedBox(height: 24 * scaleFactor),
 
-                        SocialLoginButtonsWidget(
-                          onGooglePressed: _handleGoogleLogin,
-                          onApplePressed: _handleAppleLogin,
-                          onFacebookPressed: _handleFacebookLogin,
-                        ),
+                          SocialLoginButtonsWidget(
+                            onGooglePressed: _handleGoogleLogin,
+                            onApplePressed: _handleAppleLogin,
+                            onFacebookPressed: _handleFacebookLogin,
+                          ),
 
-                        const SizedBox(height: 40),
+                          SizedBox(height: 40 * scaleFactor),
 
-                        _buildSignUpLink(),
-                      ],
+                          _buildSignUpLink(textScaleFactor),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -135,33 +165,53 @@ class _LoginScreenState extends State<LoginScreen>
       backgroundColor: Colors.transparent,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(
+        icon: Icon(
           Icons.arrow_back_ios,
-          color: AppTheme.textPrimaryColor,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : AppTheme.textPrimaryColor,
           size: 20,
         ),
         onPressed: () => AppRoutes.goBack(context),
       ),
-      systemOverlayStyle: SystemUiOverlayStyle.dark,
+      systemOverlayStyle: Theme.of(context).brightness == Brightness.dark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(double textScaleFactor) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final titleSize = screenWidth < 360 ? 28.0 : 32.0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          _localizationService.translate('login_title'),
-          style: Theme.of(context).textTheme.displayLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: AppTheme.textPrimaryColor,
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: screenWidth * 0.9),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              _localizationService.translate('login_title'),
+              style: TextStyle(
+                fontSize: titleSize * textScaleFactor,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : AppTheme.textPrimaryColor,
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 8),
         Text(
           _localizationService.translate('login_subtitle'),
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: AppTheme.textSecondaryColor,
+          style: TextStyle(
+            fontSize: 16 * textScaleFactor,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey[400]
+                : AppTheme.textSecondaryColor,
           ),
         ),
       ],
@@ -215,46 +265,56 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildRememberMeRow() {
+  Widget _buildRememberMeRow(double textScaleFactor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: Checkbox(
-                value: _rememberMe,
-                onChanged: (value) {
-                  setState(() {
-                    _rememberMe = value!;
-                  });
-                },
-                activeColor: AppTheme.primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
+        Flexible(
+          child: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: Checkbox(
+                  value: _rememberMe,
+                  onChanged: (value) {
+                    setState(() {
+                      _rememberMe = value!;
+                    });
+                  },
+                  activeColor: AppTheme.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              _localizationService.translate('remember_me'),
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppTheme.textSecondaryColor,
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  _localizationService.translate('remember_me'),
+                  style: TextStyle(
+                    fontSize: 14 * textScaleFactor,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[400]
+                        : AppTheme.textSecondaryColor,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        TextButton(
-          onPressed: () => AppRoutes.navigateToForgotPassword(context),
-          child: Text(
-            _localizationService.translate('forgot_password'),
-            style: TextStyle(
-              color: AppTheme.primaryColor,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+        Flexible(
+          child: TextButton(
+            onPressed: () => AppRoutes.navigateToForgotPassword(context),
+            child: Text(
+              _localizationService.translate('forgot_password'),
+              style: TextStyle(
+                color: AppTheme.primaryColor,
+                fontSize: 14 * textScaleFactor,
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ),
@@ -271,26 +331,42 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildDivider() {
+  Widget _buildDivider(double textScaleFactor) {
     return Row(
       children: [
-        const Expanded(child: Divider(color: AppTheme.dividerColor, thickness: 1)),
+        Expanded(
+          child: Divider(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey[800]
+                : AppTheme.dividerColor,
+            thickness: 1,
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             _localizationService.translate('or_continue_with'),
-            style: const TextStyle(
-              color: AppTheme.textSecondaryColor,
-              fontSize: 14,
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[400]
+                  : AppTheme.textSecondaryColor,
+              fontSize: 14 * textScaleFactor,
             ),
           ),
         ),
-        const Expanded(child: Divider(color: AppTheme.dividerColor, thickness: 1)),
+        Expanded(
+          child: Divider(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey[800]
+                : AppTheme.dividerColor,
+            thickness: 1,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildSignUpLink() {
+  Widget _buildSignUpLink(double textScaleFactor) {
     return Center(
       child: TextButton(
         onPressed: () => AppRoutes.navigateToSignup(context),
@@ -298,8 +374,10 @@ class _LoginScreenState extends State<LoginScreen>
           text: TextSpan(
             text: _localizationService.translate('no_account'),
             style: TextStyle(
-              color: AppTheme.textSecondaryColor,
-              fontSize: 14,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[400]
+                  : AppTheme.textSecondaryColor,
+              fontSize: 14 * textScaleFactor,
             ),
             children: [
               TextSpan(
@@ -317,7 +395,6 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _handleLogin() async {
-
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -327,7 +404,6 @@ class _LoginScreenState extends State<LoginScreen>
     });
 
     try {
-
       await Future.delayed(const Duration(seconds: 2));
 
       if (!mounted) return;

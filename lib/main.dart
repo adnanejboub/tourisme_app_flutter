@@ -6,6 +6,7 @@ import 'config/theme/app_theme.dart';
 import '/shared/widgets/global_localization_widget.dart';
 import '/core/services/localization_service.dart';
 import '/core/providers/theme_provider.dart';
+import 'features/auth/presentation/pages/onboarding/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,15 +35,16 @@ class TourismApp extends StatelessWidget {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return MaterialApp(
-          title: 'Morocco Tourism',
+          title: 'Marhaba Explorer',
           debugShowCheckedModeBanner: false,
           theme: themeProvider.lightTheme,
           darkTheme: themeProvider.darkTheme,
           themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-          initialRoute: AppRoutes.welcome,
+          home: SplashScreen(),
           onGenerateRoute: AppRoutes.generateRoute,
         );
       },
     );
   }
 }
+

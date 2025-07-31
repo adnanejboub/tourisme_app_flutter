@@ -235,7 +235,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         SizedBox(
-          height: 200,
+          height: 250,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: 16),
@@ -281,7 +281,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildRecommendationCard(Map<String, dynamic> recommendation) {
     return Container(
       width: 280,
-      margin: EdgeInsets.only(right: 16),
+      margin: EdgeInsets.only(right: 16 , bottom: 16 ),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -297,7 +297,7 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            height: 120,
+            height: 80,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               image: DecorationImage(

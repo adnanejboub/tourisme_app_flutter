@@ -60,10 +60,104 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     _animationController.forward();
   }
 
+  // Méthode pour déterminer le type d'appareil
+  DeviceType _getDeviceType(BuildContext context) {
+    final MediaQueryData data = MediaQuery.of(context);
+    final double shortSide = data.size.shortestSide;
+    final double longestSide = data.size.longestSide;
+    final double aspectRatio = longestSide / shortSide;
+
+    // Système de voiture (écran très large)
+    if (aspectRatio > 2.5 && shortSide > 400) {
+      return DeviceType.car;
+    }
+    // Tablette
+    else if (shortSide >= 600) {
+      return DeviceType.tablet;
+    }
+    // Desktop/PC
+    else if (shortSide >= 400 && aspectRatio < 1.5) {
+      return DeviceType.desktop;
+    }
+    // Téléphone
+    else {
+      return DeviceType.phone;
+    }
+  }
+
+  // Méthode pour obtenir les dimensions responsives
+  ResponsiveDimensions _getResponsiveDimensions(BuildContext context) {
+    final deviceType = _getDeviceType(context);
+    final size = MediaQuery.of(context).size;
+    final shortSide = size.shortestSide;
+    final isLandscape = size.width > size.height;
+
+    switch (deviceType) {
+      case DeviceType.phone:
+        return ResponsiveDimensions(
+          horizontalPadding: shortSide * 0.06, // 6% de la largeur
+          titleFontSize: shortSide * 0.07, // 7% pour le titre
+          subtitleFontSize: shortSide * 0.04, // 4% pour le sous-titre
+          bodyFontSize: shortSide * 0.035, // 3.5% pour le texte normal
+          heroImageSize: shortSide * 0.35, // 35% de la largeur
+          buttonFontSize: shortSide * 0.04,
+          spacingSmall: shortSide * 0.02,
+          spacingMedium: shortSide * 0.04,
+          spacingLarge: shortSide * 0.06,
+          maxWidth: double.infinity,
+        );
+
+      case DeviceType.tablet:
+        return ResponsiveDimensions(
+          horizontalPadding: isLandscape ? size.width * 0.1 : shortSide * 0.08,
+          titleFontSize: shortSide * 0.05,
+          subtitleFontSize: shortSide * 0.03,
+          bodyFontSize: shortSide * 0.025,
+          heroImageSize: shortSide * 0.25,
+          buttonFontSize: shortSide * 0.03,
+          spacingSmall: shortSide * 0.015,
+          spacingMedium: shortSide * 0.03,
+          spacingLarge: shortSide * 0.05,
+          maxWidth: isLandscape ? size.width * 0.8 : double.infinity,
+        );
+
+      case DeviceType.desktop:
+        return ResponsiveDimensions(
+          horizontalPadding: 80,
+          titleFontSize: 32,
+          subtitleFontSize: 18,
+          bodyFontSize: 16,
+          heroImageSize: 200,
+          buttonFontSize: 16,
+          spacingSmall: 12,
+          spacingMedium: 24,
+          spacingLarge: 40,
+          maxWidth: 800,
+        );
+
+      case DeviceType.car:
+        return ResponsiveDimensions(
+          horizontalPadding: size.width * 0.05,
+          titleFontSize: shortSide * 0.06,
+          subtitleFontSize: shortSide * 0.035,
+          bodyFontSize: shortSide * 0.03,
+          heroImageSize: shortSide * 0.3,
+          buttonFontSize: shortSide * 0.035,
+          spacingSmall: shortSide * 0.02,
+          spacingMedium: shortSide * 0.04,
+          spacingLarge: shortSide * 0.06,
+          maxWidth: size.width * 0.9,
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
+    final dimensions = _getResponsiveDimensions(context);
+    final deviceType = _getDeviceType(context);
+    final isLandscape = MediaQuery.of(context).size.width > MediaQuery.of(context).size.height;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -72,77 +166,158 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           gradient: _getBackgroundGradient(isDarkMode),
         ),
         child: SafeArea(
-          child: Column(
-            children: [
-              // Header avec boutons
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 0.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ThemeToggleButton(),
-                    TextButton(
-                      onPressed: () => AppRoutes.navigateToLogin(context),
-                      child: Text(
-                        _localizationService.translate('skip'),
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: dimensions.maxWidth,
               ),
-
-              // Contenu principal
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: MediaQuery.of(context).size.height -
-                          MediaQuery.of(context).padding.top -
-                          MediaQuery.of(context).padding.bottom - 170,
-                    ),
-                    child: AnimatedBuilder(
-                      animation: _animationController,
-                      builder: (context, child) {
-                        return FadeTransition(
-                          opacity: _fadeAnimation,
-                          child: SlideTransition(
-                            position: _slideAnimation,
-                            child: IntrinsicHeight(
-                              child: Column(
-                                children: [
-                                  const Flexible(child: SizedBox(height: 20)),
-                                  _buildHeroImage(isDarkMode),
-                                  const SizedBox(height: 40),
-                                  _buildWelcomeText(),
-                                  const SizedBox(height: 40),
-                                  _buildLanguageSelector(),
-                                  const Flexible(child: SizedBox(height: 40)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-
-              // Boutons d'action
-              Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: _buildActionButtons(),
-              ),
-            ],
+              child: _buildResponsiveLayout(context, dimensions, deviceType, isDarkMode, isLandscape),
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildResponsiveLayout(BuildContext context, ResponsiveDimensions dimensions,
+      DeviceType deviceType, bool isDarkMode, bool isLandscape) {
+
+    // Layout spécial pour les systèmes de voiture et paysage
+    if (deviceType == DeviceType.car || (isLandscape && deviceType == DeviceType.tablet)) {
+      return _buildLandscapeLayout(dimensions, isDarkMode);
+    }
+
+    // Layout vertical standard
+    return _buildPortraitLayout(dimensions, isDarkMode);
+  }
+
+  Widget _buildLandscapeLayout(ResponsiveDimensions dimensions, bool isDarkMode) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: dimensions.horizontalPadding),
+      child: Column(
+        children: [
+          // Header
+          _buildHeader(dimensions, isDarkMode),
+
+          // Contenu principal en landscape
+          Expanded(
+            child: AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                return FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: Row(
+                      children: [
+                        // Image et titre à gauche
+                        Expanded(
+                          flex: 1,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildHeroImage(isDarkMode, dimensions),
+                              SizedBox(height: dimensions.spacingMedium),
+                              _buildWelcomeText(dimensions),
+                            ],
+                          ),
+                        ),
+
+                        SizedBox(width: dimensions.spacingLarge),
+
+                        // Sélecteur de langue et boutons à droite
+                        Expanded(
+                          flex: 1,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildLanguageSelector(dimensions),
+                              SizedBox(height: dimensions.spacingLarge),
+                              _buildActionButtons(dimensions, isDarkMode),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPortraitLayout(ResponsiveDimensions dimensions, bool isDarkMode) {
+    return Column(
+      children: [
+        // Header
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+              dimensions.horizontalPadding,
+              dimensions.spacingMedium,
+              dimensions.horizontalPadding,
+              0
+          ),
+          child: _buildHeader(dimensions, isDarkMode),
+        ),
+
+        // Contenu principal
+        Expanded(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: dimensions.horizontalPadding),
+            child: AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                return FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: Column(
+                      children: [
+                        SizedBox(height: dimensions.spacingLarge),
+                        _buildHeroImage(isDarkMode, dimensions),
+                        SizedBox(height: dimensions.spacingLarge),
+                        _buildWelcomeText(dimensions),
+                        SizedBox(height: dimensions.spacingLarge),
+                        _buildLanguageSelector(dimensions),
+                        SizedBox(height: dimensions.spacingLarge),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+
+        // Boutons d'action
+        Padding(
+          padding: EdgeInsets.all(dimensions.horizontalPadding),
+          child: _buildActionButtons(dimensions, isDarkMode),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeader(ResponsiveDimensions dimensions, bool isDarkMode) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        ThemeToggleButton(),
+        TextButton(
+          onPressed: () => AppRoutes.navigateToLogin(context),
+          child: Text(
+            _localizationService.translate('skip'),
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+              fontSize: dimensions.bodyFontSize,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -162,14 +337,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     }
   }
 
-  Widget _buildHeroImage(bool isDarkMode) {
+  Widget _buildHeroImage(bool isDarkMode, ResponsiveDimensions dimensions) {
     return Hero(
       tag: 'welcome_image',
       child: Container(
-        width: 160,
-        height: 160,
+        width: dimensions.heroImageSize,
+        height: dimensions.heroImageSize,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(dimensions.heroImageSize * 0.15),
           gradient: _getPrimaryGradient(isDarkMode),
           boxShadow: [
             BoxShadow(
@@ -181,7 +356,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(dimensions.heroImageSize * 0.15),
           child: Stack(
             children: [
               Container(
@@ -213,17 +388,17 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.explore,
-                        size: 48,
+                        size: dimensions.heroImageSize * 0.3,
                         color: Colors.white,
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: dimensions.spacingSmall),
                       Text(
                         _localizationService.translate('morocco'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 16,
+                          fontSize: dimensions.bodyFontSize,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -238,34 +413,40 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
-  Widget _buildWelcomeText() {
+  Widget _buildWelcomeText(ResponsiveDimensions dimensions) {
     return Column(
       children: [
         Text(
           _localizationService.translate('welcome_title'),
-          style: Theme.of(context).textTheme.displayMedium?.copyWith(
+          style: TextStyle(
+            fontSize: dimensions.titleFontSize,
             fontWeight: FontWeight.bold,
             color: Theme.of(context).colorScheme.onBackground,
           ),
           textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: dimensions.spacingMedium),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: EdgeInsets.symmetric(horizontal: dimensions.spacingMedium),
           child: Text(
             _localizationService.translate('welcome_subtitle'),
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            style: TextStyle(
+              fontSize: dimensions.subtitleFontSize,
               color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
-              height: 1.6,
+              height: 1.4,
             ),
             textAlign: TextAlign.center,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildLanguageSelector() {
+  Widget _buildLanguageSelector(ResponsiveDimensions dimensions) {
     return SizedBox(
       width: double.infinity,
       child: Column(
@@ -274,12 +455,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         children: [
           Text(
             _localizationService.translate('select_language'),
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            style: TextStyle(
+              fontSize: dimensions.bodyFontSize * 1.1,
               fontWeight: FontWeight.w600,
               color: Theme.of(context).colorScheme.onBackground,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: dimensions.spacingSmall),
           LanguageSelectorWidget(
             selectedLanguage: selectedLanguage,
             onLanguageChanged: (String newLanguage) {
@@ -294,19 +476,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
-  Widget _buildActionButtons() {
-    final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
-
+  Widget _buildActionButtons(ResponsiveDimensions dimensions, bool isDarkMode) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        CustomButtonWidget(
-          text: _localizationService.translate('get_started'),
-          onPressed: () => AppRoutes.navigateToLogin(context),
-          isLoading: false,
-          buttonType: ButtonType.primary,
+        SizedBox(
+          width: double.infinity,
+          child: CustomButtonWidget(
+            text: _localizationService.translate('get_started'),
+            onPressed: () => AppRoutes.navigateToLogin(context),
+            isLoading: false,
+            buttonType: ButtonType.primary,
+          ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: dimensions.spacingMedium),
         TextButton(
           onPressed: () => AppRoutes.navigateToLogin(context),
           child: RichText(
@@ -314,14 +497,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               text: _localizationService.translate('already_account'),
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
-                fontSize: 14,
+                fontSize: dimensions.bodyFontSize * 0.9,
               ),
               children: [
                 TextSpan(
-                  text: _localizationService.translate('log_in'),
+                  text: ' ${_localizationService.translate('log_in')}',
                   style: TextStyle(
                     color: _getPrimaryColor(isDarkMode),
                     fontWeight: FontWeight.w600,
+                    fontSize: dimensions.bodyFontSize * 0.9,
                   ),
                 ),
               ],
@@ -368,4 +552,39 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     _animationController.dispose();
     super.dispose();
   }
+}
+
+// Énumération pour les types d'appareils
+enum DeviceType {
+  phone,
+  tablet,
+  desktop,
+  car,
+}
+
+// Classe pour gérer les dimensions responsives
+class ResponsiveDimensions {
+  final double horizontalPadding;
+  final double titleFontSize;
+  final double subtitleFontSize;
+  final double bodyFontSize;
+  final double heroImageSize;
+  final double buttonFontSize;
+  final double spacingSmall;
+  final double spacingMedium;
+  final double spacingLarge;
+  final double maxWidth;
+
+  ResponsiveDimensions({
+    required this.horizontalPadding,
+    required this.titleFontSize,
+    required this.subtitleFontSize,
+    required this.bodyFontSize,
+    required this.heroImageSize,
+    required this.buttonFontSize,
+    required this.spacingSmall,
+    required this.spacingMedium,
+    required this.spacingLarge,
+    required this.maxWidth,
+  });
 }

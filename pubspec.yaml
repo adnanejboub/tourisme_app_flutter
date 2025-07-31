@@ -75,7 +75,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - assets/logos/applogo/Marhaba_Explorer_logo_512p.png
+    - assets/logos/applogo/
 
 
   fonts:
@@ -88,10 +88,10 @@ flutter:
           weight: 300
 
 flutter_launcher_icons:
-      android: true
-      ios: true
-      image_path: "assets/logos/applogo/Marhaba_Explorer_logo_512p.png"
-      min_sdk_android: 21
+  android: true
+  ios: true
+  image_path: "assets/logos/applogo/Marhaba_Explorer_logo_512p.png"
+  min_sdk_android: 21
 
 
 
