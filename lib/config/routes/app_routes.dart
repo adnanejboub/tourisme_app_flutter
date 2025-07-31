@@ -13,6 +13,11 @@ import 'package:tourisme_app_flutter/features/auth/presentation/pages/onboarding
 import 'package:tourisme_app_flutter/features/home/presentation/pages/main_navigation_page.dart';
 import 'package:tourisme_app_flutter/features/home/presentation/pages/home_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/explore_page.dart';
+import 'package:tourisme_app_flutter/features/explore/presentation/pages/details_explore.dart';
+import 'package:tourisme_app_flutter/features/explore/presentation/pages/search_explore_page.dart';
+import 'package:tourisme_app_flutter/features/explore/presentation/pages/filter_explore_page.dart';
+import 'package:tourisme_app_flutter/features/explore/presentation/pages/events_explore_page.dart';
+import 'package:tourisme_app_flutter/features/explore/presentation/pages/itinerary_planning_page.dart';
 import 'package:tourisme_app_flutter/features/products/presentation/pages/products_page.dart';
 import 'package:tourisme_app_flutter/features/saved/presentation/pages/saved_page.dart';
 import 'package:tourisme_app_flutter/features/profile/presentation/pages/profile_page.dart';
@@ -33,6 +38,11 @@ class AppRoutes {
   static const String home = '/home';
   static const String mainNavigation = '/main-navigation';
   static const String explore = '/explore';
+  static const String detailsExplore = '/details-explore';
+  static const String searchExplore = '/search-explore';
+  static const String filterExplore = '/filter-explore';
+  static const String eventsExplore = '/events-explore';
+  static const String itineraryPlanning = '/itinerary-planning';
   static const String products = '/products';
   static const String saved = '/saved';
   static const String profile = '/profile';
@@ -85,6 +95,31 @@ class AppRoutes {
 
       case explore:
         return _buildRoute(const ExplorePage(), settings);
+
+      case detailsExplore:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final destination = args?['destination'] as Map<String, dynamic>? ?? {};
+        return _buildRoute(DetailsExplorePage(destination: destination), settings);
+
+      case searchExplore:
+        return _buildRoute(const SearchExplorePage(), settings);
+
+      case filterExplore:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final currentFilters = args?['currentFilters'] as Map<String, dynamic>?;
+        final onFiltersApplied = args?['onFiltersApplied'] as Function(Map<String, dynamic>)?;
+        return _buildRoute(FilterExplorePage(
+          currentFilters: currentFilters,
+          onFiltersApplied: onFiltersApplied ?? (filters) {},
+        ), settings);
+
+      case eventsExplore:
+        return _buildRoute(const EventsExplorePage(), settings);
+
+      case itineraryPlanning:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final destination = args?['destination'] as Map<String, dynamic>?;
+        return _buildRoute(ItineraryPlanningPage(destination: destination), settings);
 
       case products:
         return _buildRoute(const ProductsPage(), settings);

@@ -208,7 +208,7 @@ class _HomePageState extends State<HomePage> {
           ),
           SizedBox(height: 8),
           Text(
-            '${localizationService.translate('home_welcome')}, Nasreddine Bikikre',
+            '${localizationService.translate('home_welcome')}, Adnane Jboub',
             style: TextStyle(
               fontSize: subtitleSize,
               fontWeight: FontWeight.w600,

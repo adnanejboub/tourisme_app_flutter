@@ -2,34 +2,115 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
+import 'details_explore.dart';
+import 'search_explore_page.dart';
+import 'filter_explore_page.dart';
+import 'events_explore_page.dart';
 
-class ExplorePage extends StatelessWidget {
+class ExplorePage extends StatefulWidget {
   const ExplorePage({Key? key}) : super(key: key);
+
+  @override
+  State<ExplorePage> createState() => _ExplorePageState();
+}
+
+class _ExplorePageState extends State<ExplorePage> {
+  String _selectedCategory = 'cities';
+  Map<String, dynamic>? _currentFilters;
+
+  final List<Map<String, dynamic>> _popularCities = [
+    {
+      'id': 1,
+      'name': 'Marrakech',
+      'arabicName': 'مراكش',
+      'description': 'The Red City, known for its vibrant souks, and historic palaces.',
+      'image': 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5',
+    },
+    {
+      'id': 2,
+      'name': 'Fes',
+      'arabicName': 'فاس',
+      'description': 'Home to the world\'s oldest university and a labyrinthine medina.',
+      'image': 'https://images.unsplash.com/photo-1570191913384-b786dde7d9b4',
+    },
+    {
+      'id': 3,
+      'name': 'Chefchaouen',
+      'arabicName': 'شفشاون',
+      'description': 'The famous Blue Pearl of Morocco, nestled in the Rif Mountains.',
+      'image': 'https://images.unsplash.com/photo-1590736969955-71cc94901144',
+    },
+  ];
+
+  final List<Map<String, dynamic>> _recommendedActivities = [
+    {
+      'id': 1,
+      'title': 'Sahara Desert Safari',
+      'location': 'Marrakech',
+      'image': 'https://images.unsplash.com/photo-1591414646028-7b60c18c6f14',
+    },
+    {
+      'id': 2,
+      'title': 'Marrakech Medina Tour',
+      'location': 'Marrakech',
+      'image': 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5',
+    },
+    {
+      'id': 3,
+      'title': 'Moroccan Cooking Class',
+      'location': 'Fes',
+      'image': 'https://images.unsplash.com/photo-1570191913384-b786dde7d9b4',
+    },
+  ];
+
+  final List<Map<String, dynamic>> _upcomingEvents = [
+    {
+      'id': 1,
+      'title': 'Cinema World Music Festival',
+      'date': 'June 10-15',
+      'location': 'Essaouira',
+      'image': 'https://images.unsplash.com/photo-1591414646028-7b60c18c6f14',
+    },
+    {
+      'id': 2,
+      'title': 'Rose Festival',
+      'date': 'May 10-12',
+      'location': 'Kelaat M\'Gouna',
+      'image': 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5',
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Consumer<LocalizationService>(
       builder: (context, localizationService, child) {
         return Scaffold(
-          backgroundColor: Colors.grey[50],
+          backgroundColor: Colors.white,
           body: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final screenWidth = constraints.maxWidth;
-                final screenHeight = constraints.maxHeight;
-                final isTablet = screenWidth > 600;
-                final isDesktop = screenWidth > 900;
-                final isLandscape = screenWidth > screenHeight;
-
-                return Column(
-                  children: [
-                    _buildHeader(localizationService, screenWidth, isTablet, isDesktop),
-                    Expanded(
-                      child: _buildContent(localizationService, screenWidth, screenHeight, isTablet, isDesktop, isLandscape),
+            child: Column(
+              children: [
+                _buildHeader(),
+                _buildSearchBar(),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 24),
+                        _buildCategoriesSection(),
+                        SizedBox(height: 32),
+                        _buildPopularCitiesSection(),
+                        SizedBox(height: 32),
+                        _buildRecommendedActivitiesSection(),
+                        SizedBox(height: 32),
+                        _buildUpcomingEventsSection(),
+                        SizedBox(height: 32),
+                      ],
                     ),
-                  ],
-                );
-              },
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -37,16 +118,151 @@ class ExplorePage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(LocalizationService localizationService, double screenWidth, bool isTablet, bool isDesktop) {
-    final titleSize = isDesktop ? 32.0 : (isTablet ? 30.0 : 28.0);
-    final iconSize = isDesktop ? 28.0 : (isTablet ? 26.0 : 24.0);
-    final padding = isDesktop ? 32.0 : (isTablet ? 28.0 : 24.0);
-
+  Widget _buildHeader() {
     return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(padding),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Row(
+        children: [
+          IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black87),
+            onPressed: () => Navigator.pop(context),
+          ),
+          Expanded(
+            child: Text(
+              'Explore Morocco',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.filter_list, color: Colors.black87),
+            onPressed: () => _openFilters(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: InkWell(
+        onTap: () => _openSearch(),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Row(
+            children: [
+              Icon(Icons.search, color: Colors.grey[600]),
+              SizedBox(width: 12),
+              Text(
+                'Search cities, activities...',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoriesSection() {
+    final categories = [
+      {'id': 'cities', 'name': 'Cities', 'icon': Icons.location_city},
+      {'id': 'culture', 'name': 'Culture', 'icon': Icons.book},
+      {'id': 'nature', 'name': 'Nature', 'icon': Icons.landscape},
+      {'id': 'adventure', 'name': 'Adventure', 'icon': Icons.directions_bike},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Categories',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        SizedBox(height: 16),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: categories.map((category) {
+              final isSelected = _selectedCategory == category['id'];
+              return Container(
+                margin: EdgeInsets.only(right: 12),
+                child: FilterChip(
+                  avatar: Icon(
+                    category['icon'] as IconData,
+                    color: isSelected ? Colors.white : Colors.grey[600],
+                    size: 18,
+                  ),
+                  label: Text(
+                    category['name'] as String,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.black87,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      _selectedCategory = selected ? category['id'] as String : _selectedCategory;
+                    });
+                  },
+                  backgroundColor: Colors.white,
+                  selectedColor: Color(AppConstants.primaryColor),
+                  checkmarkColor: Colors.white,
+                  side: BorderSide(
+                    color: isSelected ? Color(AppConstants.primaryColor) : Colors.grey[300]!,
+                    width: 1,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPopularCitiesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Popular Cities',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        SizedBox(height: 16),
+        ..._popularCities.map((city) => _buildCityCard(city)).toList(),
+      ],
+    );
+  }
+
+  Widget _buildCityCard(Map<String, dynamic> city) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -55,155 +271,331 @@ class ExplorePage extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                localizationService.translate('nav_explore'),
-                style: TextStyle(
-                  fontSize: titleSize,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+      child: InkWell(
+        onTap: () => _openCityDetails(city),
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+              child: Image.network(
+                city['image'] as String,
+                width: double.infinity,
+                height: 200,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: double.infinity,
+                    height: 200,
+                    color: Colors.grey[300],
+                    child: Icon(Icons.image, size: 64, color: Colors.grey[600]),
+                  );
+                },
               ),
             ),
-          ),
-          SizedBox(width: isDesktop ? 20 : 16),
-          IconButton(
-            icon: Icon(
-              Icons.map_outlined,
-              color: Colors.grey[600],
-              size: iconSize,
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    city['name'] as String,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    city['description'] as String,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            onPressed: () {},
-            padding: EdgeInsets.all(isDesktop ? 12 : 8),
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.filter_list,
-              color: Colors.grey[600],
-              size: iconSize,
-            ),
-            onPressed: () {},
-            padding: EdgeInsets.all(isDesktop ? 12 : 8),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildContent(
-      LocalizationService localizationService,
-      double screenWidth,
-      double screenHeight,
-      bool isTablet,
-      bool isDesktop,
-      bool isLandscape,
-      ) {
-    final iconSize = isDesktop ? 80.0 : (isTablet ? 72.0 : 64.0);
-    final titleSize = isDesktop ? 28.0 : (isTablet ? 26.0 : 24.0);
-    final subtitleSize = isDesktop ? 18.0 : (isTablet ? 17.0 : 16.0);
-    final spacing = isDesktop ? 24.0 : (isTablet ? 20.0 : 16.0);
-    final maxWidth = isDesktop ? 600.0 : (isTablet ? 500.0 : screenWidth * 0.85);
-
-    if (isLandscape && !isDesktop) {
-      return Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: Center(
-              child: Icon(
-                Icons.explore,
-                size: iconSize * 0.8,
-                color: Color(AppConstants.primaryColor),
-              ),
-            ),
+  Widget _buildRecommendedActivitiesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Recommended Activities',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
           ),
-          Expanded(
-            flex: 3,
-            child: Center(
-              child: Container(
-                constraints: BoxConstraints(maxWidth: maxWidth),
+        ),
+        SizedBox(height: 16),
+        ..._recommendedActivities.map((activity) => _buildActivityCard(activity)).toList(),
+      ],
+    );
+  }
+
+  Widget _buildActivityCard(Map<String, dynamic> activity) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: () => _openActivityDetails(activity),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  activity['image']!,
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 60,
+                      height: 60,
+                      color: Colors.grey[300],
+                      child: Icon(Icons.image, color: Colors.grey[600]),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(width: 16),
+              Expanded(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        localizationService.translate('explore_title'),
-                        style: TextStyle(
-                          fontSize: titleSize,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
+                    Text(
+                      activity['title']!,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
                       ),
                     ),
-                    SizedBox(height: spacing * 0.5),
+                    SizedBox(height: 4),
                     Text(
-                      localizationService.translate('explore_subtitle'),
+                      activity['location']!,
                       style: TextStyle(
+                        fontSize: 14,
                         color: Colors.grey[600],
-                        fontSize: subtitleSize,
                       ),
-                      textAlign: TextAlign.center,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    return Center(
-      child: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(
-          horizontal: isDesktop ? 48 : (isTablet ? 32 : 24),
-          vertical: isDesktop ? 32 : (isTablet ? 24 : 16),
-        ),
-        child: Container(
-          constraints: BoxConstraints(maxWidth: maxWidth),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.explore,
-                size: iconSize,
-                color: Color(AppConstants.primaryColor),
-              ),
-              SizedBox(height: spacing),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  localizationService.translate('explore_title'),
-                  style: TextStyle(
-                    fontSize: titleSize,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              SizedBox(height: spacing * 0.5),
-              Text(
-                localizationService.translate('explore_subtitle'),
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: subtitleSize,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildUpcomingEventsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Upcoming Events',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            TextButton(
+              onPressed: () => _openEventsPage(),
+              child: Text(
+                'View All',
+                style: TextStyle(
+                  color: Color(AppConstants.primaryColor),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 16),
+        ..._upcomingEvents.map((event) => _buildEventCard(event)).toList(),
+      ],
+    );
+  }
+
+  Widget _buildEventCard(Map<String, dynamic> event) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: () => _openEventDetails(event),
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+              child: Image.network(
+                event['image']!,
+                width: double.infinity,
+                height: 200,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: double.infinity,
+                    height: 200,
+                    color: Colors.grey[300],
+                    child: Icon(Icons.image, size: 64, color: Colors.grey[600]),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event['title']!,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: Colors.grey[600],
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        event['date']!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 16,
+                        color: Colors.grey[600],
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        event['location']!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openSearch() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SearchExplorePage(),
+      ),
+    );
+  }
+
+  void _openFilters() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FilterExplorePage(
+          currentFilters: _currentFilters,
+          onFiltersApplied: (filters) {
+            setState(() {
+              _currentFilters = filters;
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  void _openCityDetails(Map<String, dynamic> city) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailsExplorePage(destination: city),
+      ),
+    );
+  }
+
+  void _openActivityDetails(Map<String, dynamic> activity) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailsExplorePage(destination: activity),
+      ),
+    );
+  }
+
+  void _openEventDetails(Map<String, dynamic> event) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailsExplorePage(destination: event),
+      ),
+    );
+  }
+
+  void _openEventsPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EventsExplorePage(),
       ),
     );
   }
