@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/services/localization_service.dart'; // Assurez-vous que le chemin est correct
+import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
 
 class HomePage extends StatefulWidget {
@@ -109,29 +109,55 @@ class _HomePageState extends State<HomePage> {
           resizeToAvoidBottomInset: true,
           backgroundColor: Colors.grey[50],
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(localizationService),
-                  _buildSearchBar(localizationService),
-                  _buildSection(
-                      localizationService.translate('home_recommendations_title'),
-                      recommendationsNearYou,
-                      _buildRecommendationCard),
-                  _buildSection(
-                      localizationService.translate('home_trending_title'),
-                      trendingDestinations,
-                          (item) => _buildTrendingDestinationCard(item, localizationService)),
-                  _buildSection(
-                      localizationService.translate('home_seasonal_title'),
-                      seasonalHighlights,
-                      _buildSeasonalHighlightCard),
-                  _buildFeaturedCities(localizationService, featuredCities),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final screenWidth = constraints.maxWidth;
+                final screenHeight = constraints.maxHeight;
+                final isTablet = screenWidth > 600;
+                final isDesktop = screenWidth > 900;
+                final isLandscape = screenWidth > screenHeight;
 
-                ],
-              ),
+                return SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isDesktop ? 24 : (isTablet ? 20 : 16),
+                    vertical: 8,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(localizationService, screenWidth, isTablet, isDesktop),
+                      SizedBox(height: isDesktop ? 24 : 16),
+                      _buildSearchBar(localizationService, screenWidth, isTablet, isDesktop),
+                      SizedBox(height: isDesktop ? 24 : 16),
+                      _buildSection(
+                        localizationService.translate('home_recommendations_title'),
+                        recommendationsNearYou,
+                            (item) => _buildRecommendationCard(item, screenWidth, isTablet, isDesktop),
+                        screenWidth,
+                        isTablet,
+                        isDesktop,
+                      ),
+                      _buildSection(
+                        localizationService.translate('home_trending_title'),
+                        trendingDestinations,
+                            (item) => _buildTrendingDestinationCard(item, localizationService, screenWidth, isTablet, isDesktop),
+                        screenWidth,
+                        isTablet,
+                        isDesktop,
+                      ),
+                      _buildSection(
+                        localizationService.translate('home_seasonal_title'),
+                        seasonalHighlights,
+                            (item) => _buildSeasonalHighlightCard(item, screenWidth, isTablet, isDesktop),
+                        screenWidth,
+                        isTablet,
+                        isDesktop,
+                      ),
+                      _buildFeaturedCities(localizationService, featuredCities, screenWidth, isTablet, isDesktop),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         );
@@ -139,11 +165,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildHeader(LocalizationService localizationService) {
+  Widget _buildHeader(LocalizationService localizationService, double screenWidth, bool isTablet, bool isDesktop) {
+    final titleSize = isDesktop ? 28.0 : (isTablet ? 26.0 : 24.0);
+    final subtitleSize = isDesktop ? 22.0 : (isTablet ? 21.0 : 20.0);
+    final iconSize = isDesktop ? 32.0 : (isTablet ? 30.0 : 28.0);
+
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(isDesktop ? 20 : 16),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -158,18 +189,20 @@ class _HomePageState extends State<HomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                localizationService.translate('home_title'),
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+              Flexible(
+                child: Text(
+                  localizationService.translate('home_title'),
+                  style: TextStyle(
+                    fontSize: titleSize,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
               Icon(
                 Icons.notifications_outlined,
                 color: Colors.grey[600],
-                size: 28,
+                size: iconSize,
               ),
             ],
           ),
@@ -177,7 +210,7 @@ class _HomePageState extends State<HomePage> {
           Text(
             '${localizationService.translate('home_welcome')}, Nasreddine Bikikre',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: subtitleSize,
               fontWeight: FontWeight.w600,
               color: Colors.black87,
             ),
@@ -187,101 +220,146 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildSearchBar(LocalizationService localizationService) {
-    return Padding(
-      padding: EdgeInsets.all(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 15,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: TextField(
-          decoration: InputDecoration(
-            hintText: localizationService.translate('home_search_hint'),
-            hintStyle: TextStyle(color: Colors.grey[500]),
-            prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+  Widget _buildSearchBar(LocalizationService localizationService, double screenWidth, bool isTablet, bool isDesktop) {
+    final fontSize = isDesktop ? 16.0 : (isTablet ? 15.0 : 14.0);
+    final iconSize = isDesktop ? 24.0 : (isTablet ? 22.0 : 20.0);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 15,
+            offset: Offset(0, 4),
           ),
-          onTap: () {
-            Navigator.pushNamed(context, '/search');
-          },
+        ],
+      ),
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: localizationService.translate('home_search_hint'),
+          hintStyle: TextStyle(color: Colors.grey[500], fontSize: fontSize),
+          prefixIcon: Icon(Icons.search, color: Colors.grey[600], size: iconSize),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: isDesktop ? 20 : 16,
+            vertical: isDesktop ? 16 : 12,
+          ),
         ),
+        onTap: () {
+          Navigator.pushNamed(context, '/search');
+        },
       ),
     );
   }
 
-  Widget _buildSection(String title, List<Map<String, dynamic>> items,
-      Widget Function(Map<String, dynamic>) cardBuilder) {
+  Widget _buildSection(
+      String title,
+      List<Map<String, dynamic>> items,
+      Widget Function(Map<String, dynamic>) cardBuilder,
+      double screenWidth,
+      bool isTablet,
+      bool isDesktop,
+      ) {
+    final titleSize = isDesktop ? 22.0 : (isTablet ? 21.0 : 20.0);
+    final cardHeight = isDesktop ? 280.0 : (isTablet ? 260.0 : 250.0);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.fromLTRB(0, 16, 0, 8),
+          padding: EdgeInsets.fromLTRB(0, isDesktop ? 20 : 16, 0, isDesktop ? 12 : 8),
           child: Text(
             title,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: titleSize,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
           ),
         ),
         SizedBox(
-          height: 250,
+          height: cardHeight,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.only(left: isDesktop ? 4 : 0),
             itemCount: items.length,
             itemBuilder: (context, index) {
-              return cardBuilder(items[index]);
+              return Padding(
+                padding: EdgeInsets.only(right: isDesktop ? 20 : 16),
+                child: cardBuilder(items[index]),
+              );
             },
           ),
         ),
+        SizedBox(height: isDesktop ? 20 : 16),
       ],
     );
   }
 
-  Widget _buildFeaturedCities(LocalizationService localizationService,
-      List<Map<String, dynamic>> cities) {
+  Widget _buildFeaturedCities(
+      LocalizationService localizationService,
+      List<Map<String, dynamic>> cities,
+      double screenWidth,
+      bool isTablet,
+      bool isDesktop,
+      ) {
+    final titleSize = isDesktop ? 22.0 : (isTablet ? 21.0 : 20.0);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.fromLTRB(0, 16, 0, 8),
+          padding: EdgeInsets.fromLTRB(0, isDesktop ? 20 : 16, 0, isDesktop ? 12 : 8),
           child: Text(
             localizationService.translate('home_featured_cities_title'),
             style: TextStyle(
-              fontSize: 20,
+              fontSize: titleSize,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
           ),
         ),
-        ListView.builder(
+        isDesktop && screenWidth > 1200
+            ? GridView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.2,
+          ),
+          itemCount: cities.length,
+          itemBuilder: (context, index) {
+            return _buildFeaturedCityCard(cities[index], localizationService, screenWidth, isTablet, isDesktop);
+          },
+        )
+            : ListView.builder(
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
           itemCount: cities.length,
           itemBuilder: (context, index) {
-            return _buildFeaturedCityCard(cities[index], localizationService);
+            return Padding(
+              padding: EdgeInsets.only(bottom: isDesktop ? 16 : 12),
+              child: _buildFeaturedCityCard(cities[index], localizationService, screenWidth, isTablet, isDesktop),
+            );
           },
         ),
       ],
     );
   }
 
-  Widget _buildRecommendationCard(Map<String, dynamic> recommendation) {
+  Widget _buildRecommendationCard(Map<String, dynamic> recommendation, double screenWidth, bool isTablet, bool isDesktop) {
+    final cardWidth = isDesktop ? 320.0 : (isTablet ? 300.0 : 280.0);
+    final imageHeight = isDesktop ? 120.0 : (isTablet ? 100.0 : 80.0);
+    final titleSize = isDesktop ? 18.0 : (isTablet ? 17.0 : 16.0);
+    final subtitleSize = isDesktop ? 15.0 : (isTablet ? 14.5 : 14.0);
+
     return Container(
-      width: 280,
-      margin: EdgeInsets.only(right: 16 , bottom: 16 ),
+      width: cardWidth,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -297,7 +375,7 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            height: 80,
+            height: imageHeight,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               image: DecorationImage(
@@ -306,28 +384,34 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  recommendation['title'],
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(isDesktop ? 16 : 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    recommendation['title'],
+                    style: TextStyle(
+                      fontSize: titleSize,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  recommendation['subtitle'],
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
+                  SizedBox(height: 4),
+                  Text(
+                    recommendation['subtitle'],
+                    style: TextStyle(
+                      fontSize: subtitleSize,
+                      color: Colors.grey[600],
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -336,15 +420,24 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildTrendingDestinationCard(
-      Map<String, dynamic> destination, LocalizationService localizationService) {
+      Map<String, dynamic> destination,
+      LocalizationService localizationService,
+      double screenWidth,
+      bool isTablet,
+      bool isDesktop,
+      ) {
+    final cardWidth = isDesktop ? 180.0 : (isTablet ? 170.0 : 160.0);
+    final imageHeight = isDesktop ? 140.0 : (isTablet ? 130.0 : 120.0);
+    final titleSize = isDesktop ? 16.0 : (isTablet ? 15.0 : 14.0);
+    final subtitleSize = isDesktop ? 13.0 : (isTablet ? 12.5 : 12.0);
+
     return Container(
-      width: 160,
-      margin: EdgeInsets.only(right: 16),
+      width: cardWidth,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            height: 120,
+            height: imageHeight,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               image: DecorationImage(
@@ -366,13 +459,13 @@ class _HomePageState extends State<HomePage> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.star, color: Colors.amber, size: 12),
+                        Icon(Icons.star, color: Colors.amber, size: subtitleSize),
                         SizedBox(width: 4),
                         Text(
                           destination['rating'].toString(),
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
+                            fontSize: subtitleSize,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -383,30 +476,34 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  destination['name'],
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    destination['name'],
+                    style: TextStyle(
+                      fontSize: titleSize,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 4),
-                Text(
-                  destination['subtitle'],
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
+                  SizedBox(height: 4),
+                  Text(
+                    destination['subtitle'],
+                    style: TextStyle(
+                      fontSize: subtitleSize,
+                      color: Colors.grey[600],
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -414,10 +511,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildSeasonalHighlightCard(Map<String, dynamic> highlight) {
+  Widget _buildSeasonalHighlightCard(Map<String, dynamic> highlight, double screenWidth, bool isTablet, bool isDesktop) {
+    final cardWidth = isDesktop ? 240.0 : (isTablet ? 220.0 : 200.0);
+    final titleSize = isDesktop ? 18.0 : (isTablet ? 17.0 : 16.0);
+    final subtitleSize = isDesktop ? 13.0 : (isTablet ? 12.5 : 12.0);
+
     return Container(
-      width: 200,
-      margin: EdgeInsets.only(right: 16),
+      width: cardWidth,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         image: DecorationImage(
@@ -435,7 +535,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         child: Padding(
-          padding: EdgeInsets.all(12),
+          padding: EdgeInsets.all(isDesktop ? 16 : 12),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -443,18 +543,22 @@ class _HomePageState extends State<HomePage> {
               Text(
                 highlight['title'],
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: titleSize,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
               SizedBox(height: 4),
               Text(
                 highlight['subtitle'],
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: subtitleSize,
                   color: Colors.white.withOpacity(0.9),
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -464,9 +568,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildFeaturedCityCard(
-      Map<String, dynamic> city, LocalizationService localizationService) {
+      Map<String, dynamic> city,
+      LocalizationService localizationService,
+      double screenWidth,
+      bool isTablet,
+      bool isDesktop,
+      ) {
+    final imageHeight = isDesktop ? 200.0 : (isTablet ? 190.0 : 180.0);
+    final titleSize = isDesktop ? 20.0 : (isTablet ? 19.0 : 18.0);
+    final ratingSize = isDesktop ? 15.0 : (isTablet ? 14.5 : 14.0);
+    final reviewSize = isDesktop ? 13.0 : (isTablet ? 12.5 : 12.0);
+    final tagSize = isDesktop ? 13.0 : (isTablet ? 12.5 : 12.0);
+    final iconSize = isDesktop ? 22.0 : (isTablet ? 21.0 : 20.0);
+
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -482,7 +597,7 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            height: 180,
+            height: imageHeight,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               image: DecorationImage(
@@ -496,19 +611,16 @@ class _HomePageState extends State<HomePage> {
                   top: 12,
                   right: 12,
                   child: Container(
-                    width: 36,
-                    height: 36,
+                    width: isDesktop ? 40 : 36,
+                    height: isDesktop ? 40 : 36,
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.9),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      city['isFavorite']
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color:
-                      city['isFavorite'] ? Colors.red : Colors.grey[600],
-                      size: 20,
+                      city['isFavorite'] ? Icons.favorite : Icons.favorite_border,
+                      color: city['isFavorite'] ? Colors.red : Colors.grey[600],
+                      size: iconSize,
                     ),
                   ),
                 ),
@@ -516,7 +628,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(12),
+            padding: EdgeInsets.all(isDesktop ? 16 : 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -527,7 +639,7 @@ class _HomePageState extends State<HomePage> {
                       child: Text(
                         city['name'],
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: titleSize,
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,
                         ),
@@ -535,12 +647,12 @@ class _HomePageState extends State<HomePage> {
                     ),
                     Row(
                       children: [
-                        Icon(Icons.star, color: Colors.amber, size: 16),
+                        Icon(Icons.star, color: Colors.amber, size: ratingSize + 1),
                         SizedBox(width: 4),
                         Text(
                           city['rating'].toString(),
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: ratingSize,
                             fontWeight: FontWeight.w600,
                             color: Colors.black87,
                           ),
@@ -549,7 +661,7 @@ class _HomePageState extends State<HomePage> {
                         Text(
                           '(${city['reviews']} ${localizationService.translate('reviews_label')})',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: reviewSize,
                             color: Colors.grey[600],
                           ),
                         ),
@@ -563,8 +675,10 @@ class _HomePageState extends State<HomePage> {
                   runSpacing: 4,
                   children: (city['tags'] as List<String>).map((tag) {
                     return Container(
-                      padding:
-                      EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isDesktop ? 14 : 12,
+                        vertical: isDesktop ? 8 : 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Color(AppConstants.primaryColor).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(16),
@@ -572,7 +686,7 @@ class _HomePageState extends State<HomePage> {
                       child: Text(
                         tag,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: tagSize,
                           color: Color(AppConstants.primaryColor),
                           fontWeight: FontWeight.w500,
                         ),

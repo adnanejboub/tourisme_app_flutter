@@ -77,7 +77,7 @@ class LocalizationService extends ChangeNotifier {
       'transportation_question_title': 'Transportation Preference',
       'multiple_choice_instruction': 'Select all the options that interest you',
       'Next': 'Next',
-      'finish_button': 'Finish',
+      'finish': 'Finish',
       'skip_button': 'Skip for later',
       'preferences_saved': '✅ Preferences saved successfully!',
       'preferences_saved_success': 'Preferences saved successfully!',
@@ -171,7 +171,7 @@ class LocalizationService extends ChangeNotifier {
       'saved_subtitle': 'Places, activities and products you saved',
       'profile_name': 'Nasreddine Bikikre',
       'profile_subtitle': 'Manage your profile and preferences',
-      'of': 'of', // Added for progress indicator
+      'of': 'of',
     },
     'Français': {
       'skip': 'Passer',
@@ -232,7 +232,7 @@ class LocalizationService extends ChangeNotifier {
       'transportation_question_title': 'Préférence de transport',
       'multiple_choice_instruction': 'Sélectionnez toutes les options qui vous intéressent',
       'Next': 'Suivant',
-      'finish_button': 'Terminer',
+      'finish': 'Terminer',
       'skip_button': 'Passer pour plus tard',
       'preferences_saved': '✅ Préférences enregistrées avec succès !',
       'preferences_saved_success': 'Préférences enregistrées avec succès !',
@@ -326,7 +326,7 @@ class LocalizationService extends ChangeNotifier {
       'saved_subtitle': 'Lieux, activités et produits que vous avez enregistrés',
       'profile_name': 'Nasreddine Bikikre',
       'profile_subtitle': 'Gérez votre profil et vos préférences',
-      'of': 'de', // Added for progress indicator
+      'of': 'de'
     },
     'العربية': {
       'skip': 'تخطي',
@@ -387,7 +387,7 @@ class LocalizationService extends ChangeNotifier {
       'transportation_question_title': 'تفضيل النقل',
       'multiple_choice_instruction': 'اختر جميع الخيارات التي تهمك',
       'Next': 'التالي',
-      'finish_button': 'إنهاء',
+      'finish': 'إنهاء',
       'skip_button': 'تأجيل لاحقًا',
       'preferences_saved': '✅ تم حفظ التفضيلات بنجاح!',
       'preferences_saved_success': 'تم حفظ التفضيلات بنجاح!',
@@ -542,7 +542,7 @@ class LocalizationService extends ChangeNotifier {
       'transportation_question_title': 'Preferencia de transporte',
       'multiple_choice_instruction': 'Selecciona todas las opciones que te interesen',
       'Next': 'Siguiente',
-      'finish_button': 'Finalizar',
+      'finish': 'Finalizar',
       'skip_button': 'Omitir para más tarde',
       'preferences_saved': '✅ ¡Preferencias guardadas con éxito!',
       'preferences_saved_success': '¡Preferencias guardadas con éxito!',
