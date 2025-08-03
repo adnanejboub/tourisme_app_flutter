@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tourisme_app_flutter/features/marketplace/home/pages/home.dart';
 import 'home_page.dart';
 import '../../../explore/presentation/pages/explore_page.dart';
 import '../../../products/presentation/pages/products_page.dart';
@@ -21,7 +22,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
   final List<Widget> pages = [
     HomePage(),
     ExplorePage(),
-    ProductsPage(),
+    MarketplacePage(),
     SavedPage(),
     ProfilePage(),
   ];
