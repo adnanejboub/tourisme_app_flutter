@@ -43,8 +43,8 @@ class ProfilePage extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 48,
-                        backgroundImage: AssetImage('assets/images/profile_default.jpg'), // Replace with user image if available
                         backgroundColor: Colors.grey[200],
+                        child: const Icon(Icons.person, size: 60, color: Colors.grey),
                       ),
                       Positioned(
                         bottom: 0,
@@ -90,7 +90,7 @@ class ProfilePage extends StatelessWidget {
                   style: TextStyle(color: Colors.black87, fontSize: 15),
                 ),
                 const SizedBox(height: 16),
-                // City & website
+                // City
                 Row(
                   children: const [
                     Icon(Icons.location_on, color: Colors.grey, size: 20),
@@ -98,8 +98,6 @@ class ProfilePage extends StatelessWidget {
                     Text('No city selected.', style: TextStyle(color: Colors.grey)),
                   ],
                 ),
-                const SizedBox(height: 8),
-                // (Website removed)
                 const SizedBox(height: 28),
                 // Accomplishments
                 Container(

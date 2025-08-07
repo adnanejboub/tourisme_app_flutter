@@ -1,7 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import '../../../../core/constants/constants.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({Key? key}) : super(key: key);
@@ -12,9 +12,18 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController(text: 'adnane');
+  final _firstNameController = TextEditingController(text: 'Adnane');
+  final _lastNameController = TextEditingController();
+  final _airportController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _address2Controller = TextEditingController();
   final _cityController = TextEditingController();
-  final _aboutController = TextEditingController();
+  final _regionController = TextEditingController();
+  final _postalCodeController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
+  String _selectedCountry = 'France';
   XFile? _pickedImage;
 
   Future<void> _pickImage() async {
@@ -55,9 +64,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _airportController.dispose();
+    _emailController.dispose();
+    _addressController.dispose();
+    _address2Controller.dispose();
     _cityController.dispose();
-    _aboutController.dispose();
+    _regionController.dispose();
+    _postalCodeController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -65,98 +82,149 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: theme.appBarTheme.backgroundColor,
+        backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: theme.appBarTheme.iconTheme,
-        title: const Text('Edit Profile'),
+        iconTheme: const IconThemeData(color: Colors.black87),
+        title: const Text('Account Information', style: TextStyle(color: Colors.black87)),
         centerTitle: true,
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                Center(
-                  child: Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      CircleAvatar(
-                        radius: 48,
-                        backgroundImage: _pickedImage != null ? FileImage(File(_pickedImage!.path)) : AssetImage('assets/images/profile_default.jpg') as ImageProvider,
-                        backgroundColor: Colors.grey[800],
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: GestureDetector(
-                          onTap: _pickImage,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 4,
-                                ),
-                              ],
+        child: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          children: [
+            Center(
+              child: Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  CircleAvatar(
+                    radius: 48,
+                    backgroundColor: Colors.grey[200],
+                    backgroundImage: _pickedImage != null ? FileImage(File(_pickedImage!.path)) : null,
+                    child: _pickedImage == null
+                        ? const Icon(Icons.person, size: 60, color: Colors.grey)
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
                             ),
-                            padding: const EdgeInsets.all(6),
-                            child: const Icon(Icons.camera_alt, size: 20, color: Colors.black),
-                          ),
+                          ],
                         ),
+                        padding: const EdgeInsets.all(6),
+                        child: Icon(Icons.camera_alt, size: 20, color: Color(AppConstants.primaryColor)),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Expanded(
-                  child: ListView(
-                    children: [
-                      _buildTextField(_nameController, 'Name', hint: 'Enter your name'),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        _cityController,
-                        'Current City',
-                        hint: 'Search',
-                        prefixIcon: Icons.search,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(_aboutController, 'About you', hint: 'Add some details about you', maxLines: 4),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(32),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                    ),
-                    onPressed: () {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        // TODO: Save profile changes
-                        Navigator.pop(context);
-                      }
-                    },
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            const SizedBox(height: 24),
+            Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(child: _buildTextField(_firstNameController, 'First Name', hint: 'Enter your first name')),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildTextField(_lastNameController, 'Last Name', hint: 'Enter your last name')),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(_airportController, 'Home Airport', hint: 'e.g. Casablanca, Morocco - All airports'),
+                  const SizedBox(height: 16),
+                  _buildTextField(_emailController, 'E-mail', hint: 'Enter your email', keyboardType: TextInputType.emailAddress),
+                  const SizedBox(height: 16),
+                  _buildTextField(_addressController, 'Full Address', hint: 'Enter your address'),
+                  const SizedBox(height: 16),
+                  _buildTextField(_address2Controller, 'Address (suite)', hint: 'Additional address info'),
+                  const SizedBox(height: 16),
+                  _buildTextField(_cityController, 'City', hint: 'Enter your city'),
+                  const SizedBox(height: 16),
+                  _buildTextField(_regionController, 'State/Region/Province', hint: 'Enter your region'),
+                  const SizedBox(height: 16),
+                  _buildTextField(_postalCodeController, 'Postal Code', hint: 'Enter your postal code'),
+                  const SizedBox(height: 16),
+                  // Country dropdown
+                  DropdownButtonFormField<String>(
+                    value: _selectedCountry,
+                    decoration: InputDecoration(
+                      labelText: 'Country',
+                      hintText: 'Select your country',
+                      labelStyle: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.grey, width: 1),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Color(AppConstants.primaryColor), width: 1.5),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'France', child: Text('France')),
+                      DropdownMenuItem(value: 'Morocco', child: Text('Morocco')),
+                      DropdownMenuItem(value: 'Spain', child: Text('Spain')),
+                      DropdownMenuItem(value: 'USA', child: Text('USA')),
+                    ],
+                    onChanged: (val) => setState(() => _selectedCountry = val!),
+                  ),
+                  const SizedBox(height: 16),
+                  // Phone
+                  _buildTextField(_phoneController, 'Phone Number', hint: '+212...', keyboardType: TextInputType.phone),
+                  const SizedBox(height: 16),
+                  // Password
+                  _buildTextField(_passwordController, 'Password', hint: '********', obscureText: true),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: () => Navigator.pushNamed(context, '/reset-password'),
+                      child: const Text('Renew your password', style: TextStyle(color: Colors.blue)),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(AppConstants.primaryColor),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(32),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                      ),
+                      onPressed: () {
+                        if (_formKey.currentState?.validate() ?? false) {
+                          // TODO: Save profile changes
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: const Text(
+                        'Save',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -166,50 +234,47 @@ class _EditProfilePageState extends State<EditProfilePage> {
     TextEditingController controller,
     String label, {
     String? hint,
-    int maxLines = 1,
-    IconData? prefixIcon,
+    TextInputType? keyboardType,
+    bool obscureText = false,
   }) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 6),
-        TextFormField(
-          controller: controller,
-          maxLines: maxLines,
-          style: theme.textTheme.bodyLarge,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
-            filled: true,
-            fillColor: theme.inputDecorationTheme.fillColor ?? Colors.grey[100],
-            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: theme.iconTheme.color) : null,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: theme.dividerColor, width: 1),
+    return Focus(
+      child: Builder(
+        builder: (context) {
+          final isFocused = Focus.of(context).hasFocus;
+          return TextFormField(
+            controller: controller,
+            keyboardType: keyboardType,
+            obscureText: obscureText,
+            style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 16),
+            decoration: InputDecoration(
+              labelText: label,
+              labelStyle: TextStyle(
+                color: isFocused ? Color(AppConstants.primaryColor) : Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+              hintText: hint,
+              hintStyle: const TextStyle(color: Colors.grey, fontWeight: FontWeight.normal),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.grey, width: 1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Color(AppConstants.primaryColor), width: 1.5),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              fillColor: Colors.white,
+              filled: true,
             ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: theme.dividerColor, width: 1),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'This field is required';
-            }
-            return null;
-          },
-        ),
-      ],
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'This field is required';
+              }
+              return null;
+            },
+          );
+        },
+      ),
     );
   }
 }
