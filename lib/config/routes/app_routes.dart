@@ -21,6 +21,9 @@ import 'package:tourisme_app_flutter/features/explore/presentation/pages/itinera
 import 'package:tourisme_app_flutter/features/products/presentation/pages/products_page.dart';
 import 'package:tourisme_app_flutter/features/saved/presentation/pages/saved_page.dart';
 import 'package:tourisme_app_flutter/features/profile/presentation/pages/profile_page.dart';
+import 'package:tourisme_app_flutter/features/profile/presentation/pages/reservations_page.dart';
+import 'package:tourisme_app_flutter/features/profile/presentation/pages/edit_profile_page.dart';
+import 'package:tourisme_app_flutter/features/profile/presentation/pages/preferences_page.dart';
 
 class AppRoutes {
 
@@ -46,6 +49,9 @@ class AppRoutes {
   static const String products = '/products';
   static const String saved = '/saved';
   static const String profile = '/profile';
+  static const String reservations = '/reservations';
+  static const String editProfile = '/edit_profile';
+  static const String preferences = '/preferences';
 
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -129,6 +135,13 @@ class AppRoutes {
 
       case profile:
         return _buildRoute(const ProfilePage(), settings);
+
+      case reservations:
+        return _buildRoute(const ReservationsPage(), settings);
+      case editProfile:
+        return _buildRoute(const EditProfilePage(), settings);
+      case preferences:
+        return _buildRoute(const PreferencesPage(), settings);
 
 
       default:
@@ -414,6 +427,22 @@ class AppRoutes {
 
   static void navigateToHome(BuildContext context) {
     Navigator.pushReplacementNamed(context, home);
+  }
+
+  static void navigateToProfile(BuildContext context) {
+    Navigator.pushNamed(context, profile);
+  }
+
+  static void navigateToReservations(BuildContext context) {
+    Navigator.pushNamed(context, reservations);
+  }
+
+  static void navigateToEditProfile(BuildContext context) {
+    Navigator.pushNamed(context, editProfile);
+  }
+
+  static void navigateToPreferences(BuildContext context) {
+    Navigator.pushNamed(context, preferences);
   }
 
   static void goBack(BuildContext context) {

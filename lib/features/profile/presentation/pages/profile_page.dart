@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -8,199 +6,207 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<LocalizationService>(
-      builder: (context, localizationService, child) {
-        return Scaffold(
-          backgroundColor: Colors.grey[50],
-          body: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final screenWidth = constraints.maxWidth;
-                final screenHeight = constraints.maxHeight;
-                final isTablet = screenWidth > 600;
-                final isDesktop = screenWidth > 900;
-                final isLandscape = screenWidth > screenHeight;
-
-                return Column(
+    final theme = Theme.of(context);
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 24),
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildHeader(localizationService, screenWidth, isTablet, isDesktop),
-                    Expanded(
-                      child: _buildContent(localizationService, screenWidth, screenHeight, isTablet, isDesktop, isLandscape),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildHeader(LocalizationService localizationService, double screenWidth, bool isTablet, bool isDesktop) {
-    final titleSize = isDesktop ? 32.0 : (isTablet ? 30.0 : 28.0);
-    final iconSize = isDesktop ? 28.0 : (isTablet ? 26.0 : 24.0);
-    final padding = isDesktop ? 32.0 : (isTablet ? 28.0 : 24.0);
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(padding),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                localizationService.translate('nav_profile'),
-                style: TextStyle(
-                  fontSize: titleSize,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: isDesktop ? 20 : 16),
-          IconButton(
-            icon: Icon(
-              Icons.settings_outlined,
-              color: Colors.grey[600],
-              size: iconSize,
-            ),
-            onPressed: () {},
-            padding: EdgeInsets.all(isDesktop ? 12 : 8),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContent(
-      LocalizationService localizationService,
-      double screenWidth,
-      double screenHeight,
-      bool isTablet,
-      bool isDesktop,
-      bool isLandscape,
-      ) {
-    final avatarRadius = isDesktop ? 70.0 : (isTablet ? 60.0 : 50.0);
-    final avatarIconSize = isDesktop ? 80.0 : (isTablet ? 70.0 : 60.0);
-    final titleSize = isDesktop ? 28.0 : (isTablet ? 26.0 : 24.0);
-    final subtitleSize = isDesktop ? 18.0 : (isTablet ? 17.0 : 16.0);
-    final spacing = isDesktop ? 24.0 : (isTablet ? 20.0 : 16.0);
-    final maxWidth = isDesktop ? 600.0 : (isTablet ? 500.0 : screenWidth * 0.85);
-
-    if (isLandscape && !isDesktop) {
-      return Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: Center(
-              child: CircleAvatar(
-                radius: avatarRadius * 0.8,
-                backgroundColor: Color(AppConstants.primaryColor),
-                child: Icon(
-                  Icons.person,
-                  size: avatarIconSize * 0.8,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Center(
-              child: Container(
-                constraints: BoxConstraints(maxWidth: maxWidth),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        localizationService.translate('profile_name'),
-                        style: TextStyle(
-                          fontSize: titleSize,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    SizedBox(height: spacing * 0.5),
-                    Text(
-                      localizationService.translate('profile_subtitle'),
+                    const Text(
+                      'Profile',
                       style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: subtitleSize,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
-                      textAlign: TextAlign.center,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.edit, color: Color(AppConstants.primaryColor), size: 26),
+                      onPressed: () => Navigator.pushNamed(context, '/edit_profile'),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 24),
+                // Avatar
+                Center(
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      CircleAvatar(
+                        radius: 48,
+                        backgroundImage: AssetImage('assets/images/profile_default.jpg'), // Replace with user image if available
+                        backgroundColor: Colors.grey[200],
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: () {},
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.all(6),
+                            child: Icon(Icons.camera_alt, size: 20, color: Color(AppConstants.primaryColor)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+                // Name & info
+                Center(
+                  child: Column(
+                    children: const [
+                      Text('adnane', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87)),
+                      SizedBox(height: 4),
+                      Text('Member since 2025', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                      SizedBox(height: 2),
+                      Text('0 contribution', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Description
+                const Text(
+                  'Tell other travelers a bit about yourself.',
+                  style: TextStyle(color: Colors.black87, fontSize: 15),
+                ),
+                const SizedBox(height: 16),
+                // City & website
+                Row(
+                  children: const [
+                    Icon(Icons.location_on, color: Colors.grey, size: 20),
+                    SizedBox(width: 8),
+                    Text('No city selected.', style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // (Website removed)
+                const SizedBox(height: 28),
+                // Accomplishments
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Your Achievements', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 17)),
+                          Text('Show all', style: TextStyle(color: Color(AppConstants.primaryColor), decoration: TextDecoration.underline)),
+                        ],
+                      ),
+                      const Divider(color: Colors.grey, height: 24),
+                      Row(
+                        children: const [
+                          Icon(Icons.lock, color: Colors.grey, size: 36),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Write your first review', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600)),
+                                Text('Unlock levels with reviews', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        children: const [
+                          Icon(Icons.lock, color: Colors.grey, size: 36),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Upload your first photo', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600)),
+                                Text('Unlock levels with photos', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                // ListTiles
+                _ProfileTile(
+                  icon: Icons.calendar_today,
+                  title: 'Reservations',
+                  onTap: () => Navigator.pushNamed(context, '/reservations'),
+                ),
+                const SizedBox(height: 12),
+                _ProfileTile(
+                  icon: Icons.settings,
+                  title: 'Preferences',
+                  onTap: () => Navigator.pushNamed(context, '/preferences'),
+                ),
+                const SizedBox(height: 32),
+              ],
             ),
           ),
-        ],
-      );
-    }
-
-    return Center(
-      child: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(
-          horizontal: isDesktop ? 48 : (isTablet ? 32 : 24),
-          vertical: isDesktop ? 32 : (isTablet ? 24 : 16),
         ),
-        child: Container(
-          constraints: BoxConstraints(maxWidth: maxWidth),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+      ),
+    );
+  }
+}
+
+class _ProfileTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+  const _ProfileTile({Key? key, required this.icon, required this.title, required this.onTap}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      elevation: 2,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
             children: [
-              CircleAvatar(
-                radius: avatarRadius,
-                backgroundColor: Color(AppConstants.primaryColor),
-                child: Icon(
-                  Icons.person,
-                  size: avatarIconSize,
-                  color: Colors.white,
-                ),
+              Icon(icon, color: Color(AppConstants.primaryColor), size: 24),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Text(title, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 16)),
               ),
-              SizedBox(height: spacing),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  localizationService.translate('profile_name'),
-                  style: TextStyle(
-                    fontSize: titleSize,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              SizedBox(height: spacing * 0.5),
-              Text(
-                localizationService.translate('profile_subtitle'),
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: subtitleSize,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-              ),
+              const Icon(Icons.chevron_right, color: Colors.grey, size: 24),
             ],
           ),
         ),
