@@ -79,9 +79,9 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
                   label: localizationService.translate('nav_products'),
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.bookmark_outline, size: 24),
-                  activeIcon: Icon(Icons.bookmark, size: 24),
-                  label: localizationService.translate('nav_saved'),
+                  icon: Icon(Icons.favorite_border, size: 24),
+                  activeIcon: Icon(Icons.favorite, size: 24),
+                  label: 'Wishlist',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.person_outline, size: 24),
