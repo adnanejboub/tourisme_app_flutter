@@ -8,13 +8,51 @@ class LocalizationService extends ChangeNotifier {
   String _currentLanguage = 'English';
   String get currentLanguage => _currentLanguage;
 
+  // Getter pour obtenir la liste des langues disponibles
+  List<String> get availableLanguages => _translations.keys.toList();
+
+  // Méthode pour vérifier si une langue est disponible
+  bool isLanguageSupported(String language) {
+    return _translations.containsKey(language);
+  }
+
   void changeLanguage(String language) {
-    _currentLanguage = language;
-    notifyListeners();
+    if (isLanguageSupported(language)) {
+      _currentLanguage = language;
+      notifyListeners();
+    } else {
+      debugPrint('Warning: Language "$language" is not supported. Using current language: $_currentLanguage');
+    }
   }
 
   String translate(String key) {
-    return _translations[_currentLanguage]?[key] ?? key;
+    final languageMap = _translations[_currentLanguage];
+    if (languageMap == null) {
+      debugPrint('Warning: No translations found for language: $_currentLanguage');
+      return key;
+    }
+    return languageMap[key] ?? key;
+  }
+
+  // Méthode utilitaire pour obtenir la direction du texte
+  TextDirection get textDirection {
+    return _currentLanguage == 'العربية' ? TextDirection.rtl : TextDirection.ltr;
+  }
+
+  // Méthode pour obtenir le code de langue (utile pour les APIs)
+  String get languageCode {
+    switch (_currentLanguage) {
+      case 'English':
+        return 'en';
+      case 'Français':
+        return 'fr';
+      case 'العربية':
+        return 'ar';
+      case 'Español':
+        return 'es';
+      default:
+        return 'en';
+    }
   }
 
   static const Map<String, Map<String, String>> _translations = {
@@ -178,6 +216,53 @@ class LocalizationService extends ChangeNotifier {
       'login_required_message': 'This feature requires login. Would you like to login now?',
       'cancel': 'Cancel',
       'login': 'Login',
+      'plan_your_itinerary': 'Plan Your Itinerary',
+      'trip_duration': 'Trip Duration',
+      'one_day': '1 Day',
+      'two_days': '2 Days',
+      'three_days': '3 Days',
+      'five_days': '5 Days',
+      'days': 'days',
+      'budget': 'Budget',
+      'budget_range': 'Budget Range',
+      'low_range': 'Budget',
+      'mid_range': 'Mid-Range',
+      'high_range': 'Luxury',
+      'luxury': 'Luxury',
+      'start_date': 'Start Date',
+      'select_date': 'Select Date',
+      'activities': 'Activities',
+      'activities_interests': 'Activities & Interests',
+      'select_activities': 'Select activities you\'d like to include',
+      'generate_itinerary': 'Generate Itinerary',
+      'itinerary_generated': 'Itinerary Generated!',
+      'itinerary_success': 'Your personalized itinerary has been created successfully.',
+      'ok': 'OK',
+      'activity_sightseeing': 'Sightseeing',
+      'activity_food_tour': 'Food Tour',
+      'activity_cultural_visit': 'Cultural Visit',
+      'activity_relaxation': 'Relaxation',
+      'unknown_destination': 'Unknown Destination',
+      // Filter page translations
+      'filters': 'Filters',
+      'clear': 'Clear',
+      'category': 'Category',
+      'all': 'All',
+      'cities': 'Cities',
+      'culture': 'Culture',
+      'nature': 'Nature',
+      'adventure': 'Adventure',
+      'beach': 'Beach',
+      'desert': 'Desert',
+      'all_budgets': 'All Budgets',
+      'duration': 'Duration',
+      'any_duration': 'Any Duration',
+      'weekend': 'Weekend',
+      'short_trip': 'Short Trip',
+      'one_week': 'One Week',
+      'extended': 'Extended',
+      'experience_type': 'Experience Type',
+      'apply_filters': 'Apply Filters',
     },
     'Français': {
       'skip': 'Passer',
@@ -336,9 +421,56 @@ class LocalizationService extends ChangeNotifier {
       'guest_mode_info': 'Mode invité - Fonctionnalités limitées',
       'guest_mode_description': 'Vous pouvez explorer l\'application, mais certaines fonctionnalités nécessitent une connexion',
       'login_required': 'Connexion requise',
-      'login_required_message': 'Cette fonctionnalité nécessite une connexion. Voulez-vous vous connecter maintenant ?',
+      'login_required_message': 'Cette fonctionnalité nécessite une connexion. Souhaitez-vous vous connecter maintenant ?',
       'cancel': 'Annuler',
       'login': 'Se connecter',
+      'plan_your_itinerary': 'Planifiez Votre Itinéraire',
+      'trip_duration': 'Durée du Voyage',
+      'one_day': '1 Jour',
+      'two_days': '2 Jours',
+      'three_days': '3 Jours',
+      'five_days': '5 Jours',
+      'days': 'jours',
+      'budget': 'Budget',
+      'budget_range': 'Gamme de Budget',
+      'low_range': 'Économique',
+      'mid_range': 'Moyen',
+      'high_range': 'Luxe',
+      'luxury': 'Luxe',
+      'start_date': 'Date de Début',
+      'select_date': 'Sélectionner une Date',
+      'activities': 'Activités',
+      'activities_interests': 'Activités et Intérêts',
+      'select_activities': 'Sélectionnez les activités que vous aimeriez inclure',
+      'generate_itinerary': 'Générer l\'Itinéraire',
+      'itinerary_generated': 'Itinéraire Généré !',
+      'itinerary_success': 'Votre itinéraire personnalisé a été créé avec succès.',
+      'ok': 'OK',
+      'activity_sightseeing': 'Tourisme',
+      'activity_food_tour': 'Tour Gastronomique',
+      'activity_cultural_visit': 'Visite Culturelle',
+      'activity_relaxation': 'Détente',
+      'unknown_destination': 'Destination Inconnue',
+      // Filter page translations
+      'filters': 'Filtres',
+      'clear': 'Effacer',
+      'category': 'Catégorie',
+      'all': 'Tous',
+      'cities': 'Villes',
+      'culture': 'Culture',
+      'nature': 'Nature',
+      'adventure': 'Aventure',
+      'beach': 'Plage',
+      'desert': 'Désert',
+      'all_budgets': 'Tous les Budgets',
+      'duration': 'Durée',
+      'any_duration': 'Toute Durée',
+      'weekend': 'Week-end',
+      'short_trip': 'Court Voyage',
+      'one_week': 'Une Semaine',
+      'extended': 'Prolongé',
+      'experience_type': 'Type d\'Expérience',
+      'apply_filters': 'Appliquer les Filtres',
     },
     'العربية': {
       'skip': 'تخطي',
@@ -500,6 +632,53 @@ class LocalizationService extends ChangeNotifier {
       'login_required_message': 'هذه الميزة تتطلب تسجيل الدخول. هل تريد تسجيل الدخول الآن؟',
       'cancel': 'إلغاء',
       'login': 'تسجيل الدخول',
+      'plan_your_itinerary': 'خطط رحلتك',
+      'trip_duration': 'مدة الرحلة',
+      'one_day': 'يوم واحد',
+      'two_days': 'يومان',
+      'three_days': 'ثلاثة أيام',
+      'five_days': 'خمسة أيام',
+      'days': 'أيام',
+      'budget': 'الميزانية',
+      'budget_range': 'نطاق الميزانية',
+      'low_range': 'اقتصادي',
+      'mid_range': 'متوسط',
+      'high_range': 'فاخر',
+      'luxury': 'فاخر',
+      'start_date': 'تاريخ البدء',
+      'select_date': 'اختر التاريخ',
+      'activities': 'الأنشطة',
+      'activities_interests': 'الأنشطة والاهتمامات',
+      'select_activities': 'حدد الأنشطة التي تود تضمينها',
+      'generate_itinerary': 'أنشئ رحلتك',
+      'itinerary_generated': 'تم إنشاء رحلتك!',
+      'itinerary_success': 'تم إنشاء رحلتك الشخصية بنجاح.',
+      'ok': 'موافق',
+      'activity_sightseeing': 'جولة سياحية',
+      'activity_food_tour': 'جولة طعام',
+      'activity_cultural_visit': 'زيارة ثقافية',
+      'activity_relaxation': 'استرخاء',
+      'unknown_destination': 'وجهة غير معروفة',
+      // Filter page translations
+      'filters': 'المرشحات',
+      'clear': 'مسح',
+      'category': 'الفئة',
+      'all': 'الكل',
+      'cities': 'المدن',
+      'culture': 'الثقافة',
+      'nature': 'الطبيعة',
+      'adventure': 'مغامرة',
+      'beach': 'شاطئ',
+      'desert': 'صحراء',
+      'all_budgets': 'جميع الميزانيات',
+      'duration': 'المدة',
+      'any_duration': 'أي مدة',
+      'weekend': 'عطلة نهاية الأسبوع',
+      'short_trip': 'رحلة قصيرة',
+      'one_week': 'أسبوع واحد',
+      'extended': 'ممتد',
+      'experience_type': 'نوع التجربة',
+      'apply_filters': 'تطبيق المرشحات',
     },
     'Español': {
       'skip': 'Saltar',
@@ -654,13 +833,60 @@ class LocalizationService extends ChangeNotifier {
       'saved_subtitle': 'Lugares, actividades y productos que guardaste',
       'profile_name': 'Nasreddine Bikikre',
       'profile_subtitle': 'Administra tu perfil y preferencias',
-      'of': 'de', // Added for progress indicator
+      'of': 'de',
       'guest_mode_info': 'Modo invitado - Funciones limitadas',
       'guest_mode_description': 'Puedes explorar la aplicación, pero algunas funciones requieren inicio de sesión',
       'login_required': 'Inicio de sesión requerido',
       'login_required_message': 'Esta función requiere inicio de sesión. ¿Te gustaría iniciar sesión ahora?',
       'cancel': 'Cancelar',
       'login': 'Iniciar sesión',
+      'plan_your_itinerary': 'Planifica tu Itinerario',
+      'trip_duration': 'Duración del Viaje',
+      'one_day': '1 Día',
+      'two_days': '2 Días',
+      'three_days': '3 Días',
+      'five_days': '5 Días',
+      'days': 'días',
+      'budget': 'Presupuesto',
+      'budget_range': 'Rango de Presupuesto',
+      'low_range': 'Económico',
+      'mid_range': 'Medio',
+      'high_range': 'Lujo',
+      'luxury': 'Lujo',
+      'start_date': 'Fecha de Inicio',
+      'select_date': 'Seleccionar Fecha',
+      'activities': 'Actividades',
+      'activities_interests': 'Actividades e Intereses',
+      'select_activities': 'Selecciona las actividades que te gustaría incluir',
+      'generate_itinerary': 'Generar Itinerario',
+      'itinerary_generated': '¡Itinerario Generado!',
+      'itinerary_success': 'Tu itinerario personalizado ha sido creado con éxito.',
+      'ok': 'OK',
+      'activity_sightseeing': 'Turismo',
+      'activity_food_tour': 'Tour Gastronómico',
+      'activity_cultural_visit': 'Visita Cultural',
+      'activity_relaxation': 'Relajación',
+      'unknown_destination': 'Destino Desconocido',
+      // Filter page translations
+      'filters': 'Filtros',
+      'clear': 'Limpiar',
+      'category': 'Categoría',
+      'all': 'Todos',
+      'cities': 'Ciudades',
+      'culture': 'Cultura',
+      'nature': 'Naturaleza',
+      'adventure': 'Aventura',
+      'beach': 'Playa',
+      'desert': 'Desierto',
+      'all_budgets': 'Todos los Presupuestos',
+      'duration': 'Duración',
+      'any_duration': 'Cualquier Duración',
+      'weekend': 'Fin de Semana',
+      'short_trip': 'Viaje Corto',
+      'one_week': 'Una Semana',
+      'extended': 'Extendido',
+      'experience_type': 'Tipo de Experiencia',
+      'apply_filters': 'Aplicar Filtros',
     },
   };
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:tourisme_app_flutter/core/providers/theme_provider.dart';
 
 class ThemeToggleButton extends StatefulWidget {
@@ -32,7 +33,9 @@ class _ThemeToggleButtonState extends State<ThemeToggleButton>
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = ThemeProvider();
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     if (themeProvider.isDarkMode) {
       _controller.forward();
@@ -41,16 +44,16 @@ class _ThemeToggleButtonState extends State<ThemeToggleButton>
     }
 
     return GestureDetector(
-      onTap: () {
-        themeProvider.toggleTheme();
+      onTap: () async {
+        await themeProvider.toggleTheme();
       },
       child: Container(
         width: 48,
         height: 48,
         decoration: BoxDecoration(
           color: themeProvider.isDarkMode
-              ? Color(0xFF2C2C2C)
-              : Colors.grey[200],
+              ? const Color(0xFF2C2C2C)
+              : colorScheme.surface,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(

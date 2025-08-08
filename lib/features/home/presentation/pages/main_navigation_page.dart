@@ -29,6 +29,9 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Consumer<LocalizationService>(
       builder: (context, localizationService, child) {
         return Scaffold(
@@ -38,7 +41,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
           ),
           bottomNavigationBar: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colorScheme.surface,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
@@ -53,8 +56,8 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
               type: BottomNavigationBarType.fixed,
               backgroundColor: Colors.transparent,
               elevation: 0,
-              selectedItemColor: Color(AppConstants.primaryColor),
-              unselectedItemColor: Colors.grey[400],
+              selectedItemColor: colorScheme.primary,
+              unselectedItemColor: colorScheme.onSurface.withOpacity(0.6),
               selectedLabelStyle: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 12,

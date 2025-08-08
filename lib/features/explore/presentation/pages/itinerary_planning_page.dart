@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
 
@@ -7,9 +8,9 @@ class ItineraryPlanningPage extends StatefulWidget {
   final Map<String, dynamic>? destination;
 
   const ItineraryPlanningPage({
-    Key? key,
+    super.key,
     this.destination,
-  }) : super(key: key);
+  });
 
   @override
   State<ItineraryPlanningPage> createState() => _ItineraryPlanningPageState();
@@ -19,42 +20,42 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
   int _selectedDays = 3;
   String _selectedBudget = 'mid_range';
   List<String> _selectedActivities = [];
-  DateTime _startDate = DateTime.now().add(Duration(days: 7));
+  DateTime _startDate = DateTime.now().add(const Duration(days: 7));
 
   final List<Map<String, dynamic>> _availableActivities = [
     {
       'id': 'sightseeing',
-      'name': 'Sightseeing',
+      'name': 'activity_sightseeing',
       'icon': Icons.visibility,
       'duration': '2-4 hours',
     },
     {
       'id': 'food_tour',
-      'name': 'Food Tour',
+      'name': 'activity_food_tour',
       'icon': Icons.restaurant,
       'duration': '3-4 hours',
     },
     {
       'id': 'shopping',
-      'name': 'Shopping',
+      'name': 'activity_shopping',
       'icon': Icons.shopping_bag,
       'duration': '2-3 hours',
     },
     {
       'id': 'cultural_visit',
-      'name': 'Cultural Visit',
+      'name': 'activity_cultural_visit',
       'icon': Icons.museum,
       'duration': '1-2 hours',
     },
     {
       'id': 'adventure',
-      'name': 'Adventure',
+      'name': 'activity_adventure',
       'icon': Icons.directions_bike,
       'duration': '4-6 hours',
     },
     {
       'id': 'relaxation',
-      'name': 'Relaxation',
+      'name': 'activity_relaxation',
       'icon': Icons.spa,
       'duration': '2-3 hours',
     },
@@ -62,66 +63,73 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<LocalizationService>(
-      builder: (context, localizationService, child) {
-        return Scaffold(
-          backgroundColor: Colors.white,
-          appBar: AppBar(
-            backgroundColor: Colors.white,
-            elevation: 0,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.black87),
-              onPressed: () => Navigator.pop(context),
-            ),
-            title: Text(
-              'Plan Your Itinerary',
-              style: TextStyle(
-                color: Colors.black87,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final localizationService = Provider.of<LocalizationService>(context);
+
+    return Scaffold(
+      backgroundColor: colorScheme.background,
+      appBar: AppBar(
+        backgroundColor: colorScheme.background,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: colorScheme.onBackground),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          localizationService.translate('plan_your_itinerary'),
+          style: TextStyle(
+            color: colorScheme.onBackground,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
           ),
-          body: SingleChildScrollView(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildDestinationInfo(),
-                SizedBox(height: 32),
-                _buildTripDurationSection(),
-                SizedBox(height: 32),
-                _buildBudgetSection(),
-                SizedBox(height: 32),
-                _buildStartDateSection(),
-                SizedBox(height: 32),
-                _buildActivitiesSection(),
-                SizedBox(height: 32),
-                _buildActionButton(),
-              ],
-            ),
-          ),
-        );
-      },
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildDestinationInfo(colorScheme, localizationService),
+            const SizedBox(height: 32),
+            _buildTripDurationSection(colorScheme, localizationService),
+            const SizedBox(height: 32),
+            _buildBudgetSection(colorScheme, localizationService),
+            const SizedBox(height: 32),
+            _buildStartDateSection(colorScheme, localizationService),
+            const SizedBox(height: 32),
+            _buildActivitiesSection(colorScheme, localizationService),
+            const SizedBox(height: 32),
+            _buildActionButton(colorScheme, localizationService),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildDestinationInfo() {
+  Widget _buildDestinationInfo(ColorScheme colorScheme, LocalizationService localizationService) {
     final destination = widget.destination;
-    if (destination == null) return SizedBox.shrink();
+    if (destination == null) return const SizedBox.shrink();
 
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.network(
-              destination['image'] ?? 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5',
+              destination['image'] as String? ?? 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5',
               width: 60,
               height: 60,
               fit: BoxFit.cover,
@@ -129,31 +137,43 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                 return Container(
                   width: 60,
                   height: 60,
-                  color: Colors.grey[300],
-                  child: Icon(Icons.image, color: Colors.grey[600]),
+                  color: colorScheme.surfaceVariant,
+                  child: Icon(
+                    Icons.image,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                );
+              },
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  width: 60,
+                  height: 60,
+                  color: colorScheme.surfaceVariant,
+                  child: const Center(child: CircularProgressIndicator()),
                 );
               },
             ),
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  destination['name'] ?? 'Destination',
+                  destination['name'] as String? ?? localizationService.translate('unknown_destination'),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: colorScheme.onSurface,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  destination['arabicName'] ?? '',
+                  destination['arabicName'] as String? ?? '',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: colorScheme.onSurface.withOpacity(0.7),
                   ),
                 ),
               ],
@@ -164,145 +184,159 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
     );
   }
 
-  Widget _buildTripDurationSection() {
+  Widget _buildTripDurationSection(ColorScheme colorScheme, LocalizationService localizationService) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Trip Duration',
+          localizationService.translate('trip_duration'),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: colorScheme.onSurface,
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(
-              child: _buildDurationOption(1, '1 Day'),
-            ),
-            SizedBox(width: 12),
-            Expanded(
-              child: _buildDurationOption(2, '2 Days'),
-            ),
-            SizedBox(width: 12),
-            Expanded(
-              child: _buildDurationOption(3, '3 Days'),
-            ),
-            SizedBox(width: 12),
-            Expanded(
-              child: _buildDurationOption(5, '5 Days'),
-            ),
+            _buildDurationOption(1, localizationService.translate('one_day'), colorScheme),
+            _buildDurationOption(2, localizationService.translate('two_days'), colorScheme),
+            _buildDurationOption(3, localizationService.translate('three_days'), colorScheme),
+            _buildDurationOption(5, localizationService.translate('five_days'), colorScheme),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildDurationOption(int days, String label) {
+  Widget _buildDurationOption(int days, String label, ColorScheme colorScheme) {
     final isSelected = _selectedDays == days;
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedDays = days;
-        });
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? Color(AppConstants.primaryColor) : Colors.white,
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: InkWell(
+          onTap: () {
+            setState(() {
+              _selectedDays = days;
+            });
+          },
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? Color(AppConstants.primaryColor) : Colors.grey[300]!,
-            width: 1,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: isSelected ? colorScheme.primary : colorScheme.surface,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isSelected ? colorScheme.primary : colorScheme.outline,
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.shadow.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black87,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            fontSize: 14,
-          ),
-          textAlign: TextAlign.center,
         ),
       ),
     );
   }
 
-  Widget _buildBudgetSection() {
+  Widget _buildBudgetSection(ColorScheme colorScheme, LocalizationService localizationService) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Budget Range',
+          localizationService.translate('budget_range'),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: colorScheme.onSurface,
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Wrap(
           spacing: 12,
           runSpacing: 12,
           children: [
-            _buildBudgetOption('budget', 'Budget'),
-            _buildBudgetOption('mid_range', 'Mid-range'),
-            _buildBudgetOption('luxury', 'Luxury'),
+            _buildBudgetOption('budget', localizationService.translate('budget'), colorScheme),
+            _buildBudgetOption('mid_range', localizationService.translate('mid_range'), colorScheme),
+            _buildBudgetOption('luxury', localizationService.translate('luxury'), colorScheme),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildBudgetOption(String budget, String label) {
+  Widget _buildBudgetOption(String budget, String label, ColorScheme colorScheme) {
     final isSelected = _selectedBudget == budget;
     return FilterChip(
       label: Text(
         label,
         style: TextStyle(
-          color: isSelected ? Colors.white : Colors.black87,
+          color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
         ),
       ),
       selected: isSelected,
       onSelected: (selected) {
         setState(() {
-          _selectedBudget = selected ? budget : _selectedBudget;
+          _selectedBudget = budget;
         });
       },
-      backgroundColor: Colors.grey[100],
-      selectedColor: Color(AppConstants.primaryColor),
-      checkmarkColor: Colors.white,
+      backgroundColor: colorScheme.surface,
+      selectedColor: colorScheme.primary,
+      checkmarkColor: colorScheme.onPrimary,
       side: BorderSide(
-        color: isSelected ? Color(AppConstants.primaryColor) : Colors.grey[300]!,
+        color: isSelected ? colorScheme.primary : colorScheme.outline,
         width: 1,
       ),
+      elevation: isSelected ? 2 : 0,
+      pressElevation: 4,
     );
   }
 
-  Widget _buildStartDateSection() {
+  Widget _buildStartDateSection(ColorScheme colorScheme, LocalizationService localizationService) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Start Date',
+          localizationService.translate('start_date'),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: colorScheme.onSurface,
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         InkWell(
           onTap: () async {
             final date = await showDatePicker(
               context: context,
               initialDate: _startDate,
               firstDate: DateTime.now(),
-              lastDate: DateTime.now().add(Duration(days: 365)),
+              lastDate: DateTime.now().add(const Duration(days: 365)),
+              builder: (context, child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: colorScheme,
+                    dialogBackgroundColor: colorScheme.surface,
+                  ),
+                  child: child!,
+                );
+              },
             );
             if (date != null) {
               setState(() {
@@ -310,26 +344,41 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
               });
             }
           },
+          borderRadius: BorderRadius.circular(12),
           child: Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[300]!),
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: colorScheme.outline),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.shadow.withOpacity(0.1),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Row(
               children: [
-                Icon(Icons.calendar_today, color: Colors.grey[600]),
-                SizedBox(width: 12),
+                Icon(
+                  Icons.calendar_today,
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
                 Text(
-                  '${_startDate.day}/${_startDate.month}/${_startDate.year}',
+                  DateFormat('dd/MM/yyyy').format(_startDate),
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.black87,
+                    color: colorScheme.onSurface,
                   ),
                 ),
-                Spacer(),
-                Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
+                const Spacer(),
+                Icon(
+                  Icons.arrow_drop_down,
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                ),
               ],
             ),
           ),
@@ -338,31 +387,31 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
     );
   }
 
-  Widget _buildActivitiesSection() {
+  Widget _buildActivitiesSection(ColorScheme colorScheme, LocalizationService localizationService) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Activities',
+          localizationService.translate('activities_interests'),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: colorScheme.onSurface,
           ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Text(
-          'Select activities you\'d like to include',
+          localizationService.translate('select_activities'),
           style: TextStyle(
             fontSize: 14,
-            color: Colors.grey[600],
+            color: colorScheme.onSurface.withOpacity(0.7),
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         GridView.builder(
           shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
@@ -371,31 +420,32 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
           itemCount: _availableActivities.length,
           itemBuilder: (context, index) {
             final activity = _availableActivities[index];
-            final isSelected = _selectedActivities.contains(activity['id']);
-            
+            final isSelected = _selectedActivities.contains(activity['id'] as String);
+
             return InkWell(
               onTap: () {
                 setState(() {
                   if (isSelected) {
                     _selectedActivities.remove(activity['id']);
                   } else {
-                    _selectedActivities.add(activity['id']);
+                    _selectedActivities.add(activity['id'] as String);
                   }
                 });
               },
+              borderRadius: BorderRadius.circular(12),
               child: Container(
                 decoration: BoxDecoration(
-                  color: isSelected ? Color(AppConstants.primaryColor) : Colors.white,
+                  color: isSelected ? colorScheme.primary : colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isSelected ? Color(AppConstants.primaryColor) : Colors.grey[300]!,
+                    color: isSelected ? colorScheme.primary : colorScheme.outline,
                     width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: colorScheme.shadow.withOpacity(0.1),
                       blurRadius: 5,
-                      offset: Offset(0, 2),
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
@@ -404,24 +454,24 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                   children: [
                     Icon(
                       activity['icon'] as IconData,
-                      color: isSelected ? Colors.white : Colors.grey[600],
+                      color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface.withOpacity(0.7),
                       size: 32,
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
-                      activity['name']!,
+                      localizationService.translate(activity['name'] as String),
                       style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.black87,
+                        color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      activity['duration']!,
+                      activity['duration'] as String,
                       style: TextStyle(
-                        color: isSelected ? Colors.white70 : Colors.grey[600],
+                        color: isSelected ? colorScheme.onPrimary.withOpacity(0.8) : colorScheme.onSurface.withOpacity(0.7),
                         fontSize: 12,
                       ),
                       textAlign: TextAlign.center,
@@ -436,44 +486,54 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
     );
   }
 
-  Widget _buildActionButton() {
-    return Container(
+  Widget _buildActionButton(ColorScheme colorScheme, LocalizationService localizationService) {
+    return SizedBox(
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: _selectedActivities.isEmpty ? null : _generateItinerary,
+        onPressed: _selectedActivities.isEmpty ? null : () => _generateItinerary(localizationService),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Color(AppConstants.primaryColor),
+          backgroundColor: _selectedActivities.isEmpty ? colorScheme.onSurface.withOpacity(0.4) : colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          elevation: 0,
+          elevation: _selectedActivities.isEmpty ? 0 : 2,
         ),
         child: Text(
-          'Generate Itinerary',
-          style: TextStyle(
+          localizationService.translate('generate_itinerary'),
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
           ),
         ),
       ),
     );
   }
 
-  void _generateItinerary() {
+  void _generateItinerary(LocalizationService localizationService) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Itinerary Generated!'),
-        content: Text('Your personalized itinerary has been created successfully.'),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Text(
+          localizationService.translate('itinerary_generated'),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        ),
+        content: Text(
+          localizationService.translate('itinerary_success'),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
+            child: Text(
+              localizationService.translate('ok'),
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
           ),
         ],
       ),
     );
   }
-} 
+}

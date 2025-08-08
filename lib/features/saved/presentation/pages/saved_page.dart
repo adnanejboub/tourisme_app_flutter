@@ -26,20 +26,23 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.background,
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
-            _buildTabBar(),
+            _buildHeader(colorScheme),
+            _buildTabBar(colorScheme),
             Expanded(
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildActivitiesTab(),
-                  _buildCitiesTab(),
-                  _buildProductsTab(),
+                  _buildActivitiesTab(colorScheme),
+                  _buildCitiesTab(colorScheme),
+                  _buildProductsTab(colorScheme),
                 ],
               ),
             ),
@@ -49,23 +52,23 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Text(
               'Wishlist',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: colorScheme.onBackground,
               ),
             ),
           ),
           IconButton(
-            icon: Icon(Icons.sort, color: Color(AppConstants.primaryColor), size: 24),
+            icon: Icon(Icons.sort, color: colorScheme.primary, size: 24),
             onPressed: () {},
           ),
         ],
@@ -73,17 +76,17 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _buildTabBar() {
+  Widget _buildTabBar(ColorScheme colorScheme) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       child: TabBar(
         controller: _tabController,
         indicator: UnderlineTabIndicator(
-          borderSide: BorderSide(width: 6, color: Color(AppConstants.primaryColor)),
+          borderSide: BorderSide(width: 6, color: colorScheme.primary),
           insets: EdgeInsets.zero,
         ),
-        labelColor: Color(AppConstants.primaryColor),
-        unselectedLabelColor: Colors.grey[600],
+        labelColor: colorScheme.primary,
+        unselectedLabelColor: colorScheme.onSurface.withOpacity(0.6),
         labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 14),
         tabs: const [
@@ -95,7 +98,7 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _buildActivitiesTab() {
+  Widget _buildActivitiesTab(ColorScheme colorScheme) {
     // TODO: Replace with real activities data
     final activities = <Map<String, dynamic>>[]; // Empty for now
 
@@ -106,6 +109,7 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
         subtitle: 'Start exploring and save your favorite activities',
         actionText: 'Explore Activities',
         onAction: () {},
+        colorScheme: colorScheme,
       );
     }
 
@@ -114,12 +118,12 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
       itemCount: activities.length,
       itemBuilder: (context, index) {
         final activity = activities[index];
-        return _buildActivityCard(activity);
+        return _buildActivityCard(activity, colorScheme);
       },
     );
   }
 
-  Widget _buildCitiesTab() {
+  Widget _buildCitiesTab(ColorScheme colorScheme) {
     // TODO: Replace with real cities data
     final cities = <Map<String, dynamic>>[]; // Empty for now
 
@@ -130,6 +134,7 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
         subtitle: 'Save cities you want to visit',
         actionText: 'Explore Cities',
         onAction: () {},
+        colorScheme: colorScheme,
       );
     }
 
@@ -138,12 +143,12 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
       itemCount: cities.length,
       itemBuilder: (context, index) {
         final city = cities[index];
-        return _buildCityCard(city);
+        return _buildCityCard(city, colorScheme);
       },
     );
   }
 
-  Widget _buildProductsTab() {
+  Widget _buildProductsTab(ColorScheme colorScheme) {
     // TODO: Replace with real products data
     final products = <Map<String, dynamic>>[]; // Empty for now
 
@@ -154,6 +159,7 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
         subtitle: 'Save products you want to buy',
         actionText: 'Explore Products',
         onAction: () {},
+        colorScheme: colorScheme,
       );
     }
 
@@ -162,7 +168,7 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
       itemCount: products.length,
       itemBuilder: (context, index) {
         final product = products[index];
-        return _buildProductCard(product);
+        return _buildProductCard(product, colorScheme);
       },
     );
   }
@@ -173,6 +179,7 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
     required String subtitle,
     required String actionText,
     required VoidCallback onAction,
+    required ColorScheme colorScheme,
   }) {
     return Center(
       child: Padding(
@@ -183,15 +190,15 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
             Icon(
               icon,
               size: 80,
-              color: Colors.grey[400],
+              color: colorScheme.onSurface.withOpacity(0.4),
             ),
             const SizedBox(height: 24),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: colorScheme.onBackground,
               ),
               textAlign: TextAlign.center,
             ),
@@ -200,7 +207,7 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
               subtitle,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey[600],
+                color: colorScheme.onSurface.withOpacity(0.6),
               ),
               textAlign: TextAlign.center,
             ),
@@ -209,8 +216,8 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(AppConstants.primaryColor),
-                  foregroundColor: Colors.white,
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(32),
                   ),
@@ -229,11 +236,11 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _buildActivityCard(Map<String, dynamic> activity) {
+  Widget _buildActivityCard(Map<String, dynamic> activity, ColorScheme colorScheme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -245,27 +252,33 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
       ),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: Color(AppConstants.primaryColor),
-          child: Icon(Icons.local_activity, color: Colors.white),
+          backgroundColor: colorScheme.primary,
+          child: Icon(Icons.local_activity, color: colorScheme.onPrimary),
         ),
         title: Text(
           activity['title'] ?? 'Activity',
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
+          ),
         ),
-        subtitle: Text(activity['location'] ?? 'Location'),
+        subtitle: Text(
+          activity['location'] ?? 'Location',
+          style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
+        ),
         trailing: IconButton(
-          icon: Icon(Icons.favorite, color: Color(AppConstants.primaryColor)),
+          icon: Icon(Icons.favorite, color: colorScheme.primary),
           onPressed: () {},
         ),
       ),
     );
   }
 
-  Widget _buildCityCard(Map<String, dynamic> city) {
+  Widget _buildCityCard(Map<String, dynamic> city, ColorScheme colorScheme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -277,27 +290,33 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
       ),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: Color(AppConstants.primaryColor),
-          child: Icon(Icons.location_city, color: Colors.white),
+          backgroundColor: colorScheme.primary,
+          child: Icon(Icons.location_city, color: colorScheme.onPrimary),
         ),
         title: Text(
           city['name'] ?? 'City',
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
+          ),
         ),
-        subtitle: Text(city['country'] ?? 'Country'),
+        subtitle: Text(
+          city['country'] ?? 'Country',
+          style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
+        ),
         trailing: IconButton(
-          icon: Icon(Icons.favorite, color: Color(AppConstants.primaryColor)),
+          icon: Icon(Icons.favorite, color: colorScheme.primary),
           onPressed: () {},
         ),
       ),
     );
   }
 
-  Widget _buildProductCard(Map<String, dynamic> product) {
+  Widget _buildProductCard(Map<String, dynamic> product, ColorScheme colorScheme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -309,16 +328,22 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
       ),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: Color(AppConstants.primaryColor),
-          child: Icon(Icons.shopping_bag, color: Colors.white),
+          backgroundColor: colorScheme.primary,
+          child: Icon(Icons.shopping_bag, color: colorScheme.onPrimary),
         ),
         title: Text(
           product['name'] ?? 'Product',
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
+          ),
         ),
-        subtitle: Text(product['price'] ?? 'Price'),
+        subtitle: Text(
+          product['price'] ?? 'Price',
+          style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
+        ),
         trailing: IconButton(
-          icon: Icon(Icons.favorite, color: Color(AppConstants.primaryColor)),
+          icon: Icon(Icons.favorite, color: colorScheme.primary),
           onPressed: () {},
         ),
       ),

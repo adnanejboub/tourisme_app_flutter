@@ -25,6 +25,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     // Obtenir les dimensions de l'écran
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < 600;
@@ -39,14 +42,14 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     final verticalSpacing = _getVerticalSpacing(size.width);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.background,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios,
-            color: Colors.black,
+            color: colorScheme.onBackground,
             size: isSmallScreen ? 20 : 24,
           ),
           onPressed: () {
@@ -80,7 +83,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                           style: TextStyle(
                             fontSize: titleFontSize,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blueGrey[800],
+                            color: colorScheme.onBackground,
                             height: 1.2,
                           ),
                         ),
@@ -96,10 +99,10 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                 vertical: _getEmailContainerVerticalPadding(size.width),
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.blue.shade50,
+                                color: colorScheme.primary.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: Colors.blue.shade200,
+                                  color: colorScheme.primary.withOpacity(0.3),
                                   width: 1,
                                 ),
                               ),
@@ -108,7 +111,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                 children: [
                                   Icon(
                                     Icons.email_outlined,
-                                    color: Colors.blue.shade600,
+                                    color: colorScheme.primary,
                                     size: _getEmailIconSize(size.width),
                                   ),
                                   SizedBox(width: 8),
@@ -118,7 +121,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         fontSize: emailFontSize,
-                                        color: Colors.blue.shade700,
+                                        color: colorScheme.primary,
                                         fontWeight: FontWeight.w600,
                                       ),
                                       overflow: TextOverflow.ellipsis,
@@ -139,7 +142,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: bodyFontSize,
-                              color: Colors.grey[700],
+                              color: colorScheme.onSurface.withOpacity(0.7),
                               height: 1.4,
                             ),
                           ),
@@ -155,31 +158,42 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                               TextField(
                                 controller: _newPasswordController,
                                 obscureText: true,
-                                style: TextStyle(fontSize: bodyFontSize),
+                                style: TextStyle(
+                                  fontSize: bodyFontSize,
+                                  color: colorScheme.onSurface,
+                                ),
                                 decoration: InputDecoration(
                                   labelText: 'Nouveau mot de passe',
                                   labelStyle: TextStyle(
                                     fontSize: bodyFontSize * 0.9,
-                                    color: Colors.grey[600],
+                                    color: colorScheme.onSurface.withOpacity(0.6),
                                   ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.2)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.2)),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: BorderSide(
-                                      color: Colors.blueAccent,
+                                      color: colorScheme.primary,
                                       width: 2,
                                     ),
                                   ),
                                   prefixIcon: Icon(
                                     Icons.lock_outline,
                                     size: _getFieldIconSize(size.width),
+                                    color: colorScheme.onSurface.withOpacity(0.6),
                                   ),
                                   contentPadding: EdgeInsets.symmetric(
                                     horizontal: _getFieldPadding(size.width),
                                     vertical: _getFieldVerticalPadding(size.width),
                                   ),
+                                  fillColor: colorScheme.surface,
+                                  filled: true,
                                 ),
                               ),
                               SizedBox(height: verticalSpacing * 0.8),
@@ -188,31 +202,42 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                               TextField(
                                 controller: _confirmNewPasswordController,
                                 obscureText: true,
-                                style: TextStyle(fontSize: bodyFontSize),
+                                style: TextStyle(
+                                  fontSize: bodyFontSize,
+                                  color: colorScheme.onSurface,
+                                ),
                                 decoration: InputDecoration(
                                   labelText: 'Confirmer le mot de passe',
                                   labelStyle: TextStyle(
                                     fontSize: bodyFontSize * 0.9,
-                                    color: Colors.grey[600],
+                                    color: colorScheme.onSurface.withOpacity(0.6),
                                   ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.2)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.2)),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: BorderSide(
-                                      color: Colors.blueAccent,
+                                      color: colorScheme.primary,
                                       width: 2,
                                     ),
                                   ),
                                   prefixIcon: Icon(
                                     Icons.lock_outline,
                                     size: _getFieldIconSize(size.width),
+                                    color: colorScheme.onSurface.withOpacity(0.6),
                                   ),
                                   contentPadding: EdgeInsets.symmetric(
                                     horizontal: _getFieldPadding(size.width),
                                     vertical: _getFieldVerticalPadding(size.width),
                                   ),
+                                  fillColor: colorScheme.surface,
+                                  filled: true,
                                 ),
                               ),
                               SizedBox(height: verticalSpacing * 1.5),
@@ -226,7 +251,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                     _resetPassword();
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blueAccent,
+                                    backgroundColor: colorScheme.primary,
+                                    foregroundColor: colorScheme.onPrimary,
                                     padding: EdgeInsets.symmetric(
                                       horizontal: _getButtonHorizontalPadding(size.width),
                                       vertical: _getButtonVerticalPadding(size.width),
@@ -240,7 +266,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                     'Réinitialiser',
                                     style: TextStyle(
                                       fontSize: _getButtonFontSize(size.width),
-                                      color: Colors.white,
+                                      color: colorScheme.onPrimary,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),

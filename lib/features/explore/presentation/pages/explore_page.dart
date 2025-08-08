@@ -82,15 +82,18 @@ class _ExplorePageState extends State<ExplorePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Consumer<LocalizationService>(
       builder: (context, localizationService, child) {
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: colorScheme.background,
           body: SafeArea(
             child: Column(
               children: [
-                _buildHeader(),
-                _buildSearchBar(),
+                _buildHeader(colorScheme),
+                _buildSearchBar(colorScheme),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.symmetric(horizontal: 16),
@@ -98,13 +101,13 @@ class _ExplorePageState extends State<ExplorePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 24),
-                        _buildCategoriesSection(),
+                        _buildCategoriesSection(colorScheme),
                         SizedBox(height: 32),
-                        _buildPopularCitiesSection(),
+                        _buildPopularCitiesSection(colorScheme),
                         SizedBox(height: 32),
-                        _buildRecommendedActivitiesSection(),
+                        _buildRecommendedActivitiesSection(colorScheme),
                         SizedBox(height: 32),
-                        _buildUpcomingEventsSection(),
+                        _buildUpcomingEventsSection(colorScheme),
                         SizedBox(height: 32),
                       ],
                     ),
@@ -118,13 +121,13 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(ColorScheme colorScheme) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.black87),
+            icon: Icon(Icons.arrow_back, color: colorScheme.onBackground),
             onPressed: () => Navigator.pop(context),
           ),
           Expanded(
@@ -133,13 +136,13 @@ class _ExplorePageState extends State<ExplorePage> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: colorScheme.onBackground,
               ),
               textAlign: TextAlign.center,
             ),
           ),
           IconButton(
-            icon: Icon(Icons.filter_list, color: Colors.black87),
+            icon: Icon(Icons.filter_list, color: colorScheme.onBackground),
             onPressed: () => _openFilters(),
           ),
         ],
@@ -147,12 +150,13 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(ColorScheme colorScheme) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.onSurface.withOpacity(0.1)),
       ),
       child: InkWell(
         onTap: () => _openSearch(),
@@ -161,12 +165,12 @@ class _ExplorePageState extends State<ExplorePage> {
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Row(
             children: [
-              Icon(Icons.search, color: Colors.grey[600]),
+              Icon(Icons.search, color: colorScheme.onSurface.withOpacity(0.6)),
               SizedBox(width: 12),
               Text(
                 'Search cities, activities...',
                 style: TextStyle(
-                  color: Colors.grey[600],
+                  color: colorScheme.onSurface.withOpacity(0.6),
                   fontSize: 16,
                 ),
               ),
@@ -177,7 +181,7 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildCategoriesSection() {
+  Widget _buildCategoriesSection(ColorScheme colorScheme) {
     final categories = [
       {'id': 'cities', 'name': 'Cities', 'icon': Icons.location_city},
       {'id': 'culture', 'name': 'Culture', 'icon': Icons.book},
@@ -193,7 +197,7 @@ class _ExplorePageState extends State<ExplorePage> {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: colorScheme.onBackground,
           ),
         ),
         SizedBox(height: 16),
@@ -207,13 +211,13 @@ class _ExplorePageState extends State<ExplorePage> {
                 child: FilterChip(
                   avatar: Icon(
                     category['icon'] as IconData,
-                    color: isSelected ? Colors.white : Colors.grey[600],
+                    color: isSelected ? Colors.white : colorScheme.onSurface.withOpacity(0.6),
                     size: 18,
                   ),
                   label: Text(
                     category['name'] as String,
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.black87,
+                      color: isSelected ? Colors.white : colorScheme.onSurface,
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
@@ -223,11 +227,11 @@ class _ExplorePageState extends State<ExplorePage> {
                       _selectedCategory = selected ? category['id'] as String : _selectedCategory;
                     });
                   },
-                  backgroundColor: Colors.white,
-                  selectedColor: Color(AppConstants.primaryColor),
+                  backgroundColor: colorScheme.surface,
+                  selectedColor: colorScheme.primary,
                   checkmarkColor: Colors.white,
                   side: BorderSide(
-                    color: isSelected ? Color(AppConstants.primaryColor) : Colors.grey[300]!,
+                    color: isSelected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.2),
                     width: 1,
                   ),
                 ),
@@ -239,7 +243,7 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildPopularCitiesSection() {
+  Widget _buildPopularCitiesSection(ColorScheme colorScheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -248,20 +252,20 @@ class _ExplorePageState extends State<ExplorePage> {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: colorScheme.onBackground,
           ),
         ),
         SizedBox(height: 16),
-        ..._popularCities.map((city) => _buildCityCard(city)).toList(),
+        ..._popularCities.map((city) => _buildCityCard(city, colorScheme)).toList(),
       ],
     );
   }
 
-  Widget _buildCityCard(Map<String, dynamic> city) {
+  Widget _buildCityCard(Map<String, dynamic> city, ColorScheme colorScheme) {
     return Container(
       margin: EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -288,8 +292,8 @@ class _ExplorePageState extends State<ExplorePage> {
                   return Container(
                     width: double.infinity,
                     height: 200,
-                    color: Colors.grey[300],
-                    child: Icon(Icons.image, size: 64, color: Colors.grey[600]),
+                    color: colorScheme.onSurface.withOpacity(0.1),
+                    child: Icon(Icons.image, size: 64, color: colorScheme.onSurface.withOpacity(0.6)),
                   );
                 },
               ),
@@ -304,7 +308,7 @@ class _ExplorePageState extends State<ExplorePage> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   SizedBox(height: 8),
@@ -312,7 +316,7 @@ class _ExplorePageState extends State<ExplorePage> {
                     city['description'] as String,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[700],
+                      color: colorScheme.onSurface.withOpacity(0.7),
                     ),
                   ),
                 ],
@@ -324,7 +328,7 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildRecommendedActivitiesSection() {
+  Widget _buildRecommendedActivitiesSection(ColorScheme colorScheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -333,20 +337,20 @@ class _ExplorePageState extends State<ExplorePage> {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: colorScheme.onBackground,
           ),
         ),
         SizedBox(height: 16),
-        ..._recommendedActivities.map((activity) => _buildActivityCard(activity)).toList(),
+        ..._recommendedActivities.map((activity) => _buildActivityCard(activity, colorScheme)).toList(),
       ],
     );
   }
 
-  Widget _buildActivityCard(Map<String, dynamic> activity) {
+  Widget _buildActivityCard(Map<String, dynamic> activity, ColorScheme colorScheme) {
     return Container(
       margin: EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -374,8 +378,8 @@ class _ExplorePageState extends State<ExplorePage> {
                     return Container(
                       width: 60,
                       height: 60,
-                      color: Colors.grey[300],
-                      child: Icon(Icons.image, color: Colors.grey[600]),
+                      color: colorScheme.onSurface.withOpacity(0.1),
+                      child: Icon(Icons.image, color: colorScheme.onSurface.withOpacity(0.6)),
                     );
                   },
                 ),
@@ -390,7 +394,7 @@ class _ExplorePageState extends State<ExplorePage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     SizedBox(height: 4),
@@ -398,7 +402,7 @@ class _ExplorePageState extends State<ExplorePage> {
                       activity['location']!,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                   ],
@@ -411,7 +415,7 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildUpcomingEventsSection() {
+  Widget _buildUpcomingEventsSection(ColorScheme colorScheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -423,7 +427,7 @@ class _ExplorePageState extends State<ExplorePage> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: colorScheme.onBackground,
               ),
             ),
             TextButton(
@@ -431,7 +435,7 @@ class _ExplorePageState extends State<ExplorePage> {
               child: Text(
                 'View All',
                 style: TextStyle(
-                  color: Color(AppConstants.primaryColor),
+                  color: colorScheme.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -439,16 +443,16 @@ class _ExplorePageState extends State<ExplorePage> {
           ],
         ),
         SizedBox(height: 16),
-        ..._upcomingEvents.map((event) => _buildEventCard(event)).toList(),
+        ..._upcomingEvents.map((event) => _buildEventCard(event, colorScheme)).toList(),
       ],
     );
   }
 
-  Widget _buildEventCard(Map<String, dynamic> event) {
+  Widget _buildEventCard(Map<String, dynamic> event, ColorScheme colorScheme) {
     return Container(
       margin: EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -475,8 +479,8 @@ class _ExplorePageState extends State<ExplorePage> {
                   return Container(
                     width: double.infinity,
                     height: 200,
-                    color: Colors.grey[300],
-                    child: Icon(Icons.image, size: 64, color: Colors.grey[600]),
+                    color: colorScheme.onSurface.withOpacity(0.1),
+                    child: Icon(Icons.image, size: 64, color: colorScheme.onSurface.withOpacity(0.6)),
                   );
                 },
               ),
@@ -491,7 +495,7 @@ class _ExplorePageState extends State<ExplorePage> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   SizedBox(height: 8),
@@ -500,14 +504,14 @@ class _ExplorePageState extends State<ExplorePage> {
                       Icon(
                         Icons.calendar_today,
                         size: 16,
-                        color: Colors.grey[600],
+                        color: colorScheme.onSurface.withOpacity(0.6),
                       ),
                       SizedBox(width: 8),
                       Text(
                         event['date']!,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[600],
+                          color: colorScheme.onSurface.withOpacity(0.6),
                         ),
                       ),
                     ],
@@ -518,14 +522,14 @@ class _ExplorePageState extends State<ExplorePage> {
                       Icon(
                         Icons.location_on,
                         size: 16,
-                        color: Colors.grey[600],
+                        color: colorScheme.onSurface.withOpacity(0.6),
                       ),
                       SizedBox(width: 8),
                       Text(
                         event['location']!,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[600],
+                          color: colorScheme.onSurface.withOpacity(0.6),
                         ),
                       ),
                     ],

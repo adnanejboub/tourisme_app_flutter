@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/constants.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../../../../shared/widgets/guest_mode_mixin.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -13,8 +15,10 @@ class _ProfilePageState extends State<ProfilePage> with GuestModeMixin {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.background,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -27,16 +31,16 @@ class _ProfilePageState extends State<ProfilePage> with GuestModeMixin {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Profile',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: colorScheme.onBackground,
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.edit, color: Color(AppConstants.primaryColor), size: 26),
+                      icon: Icon(Icons.edit, color: colorScheme.primary, size: 26),
                       onPressed: () => executeWithGuestCheck('edit_profile', () {
                         Navigator.pushNamed(context, '/edit_profile');
                       }),
@@ -51,8 +55,8 @@ class _ProfilePageState extends State<ProfilePage> with GuestModeMixin {
                     children: [
                       CircleAvatar(
                         radius: 48,
-                        backgroundColor: Colors.grey[200],
-                        child: const Icon(Icons.person, size: 60, color: Colors.grey),
+                        backgroundColor: colorScheme.surface,
+                        child: Icon(Icons.person, size: 60, color: colorScheme.onSurface.withOpacity(0.6)),
                       ),
                       Positioned(
                         bottom: 0,
@@ -61,7 +65,7 @@ class _ProfilePageState extends State<ProfilePage> with GuestModeMixin {
                           onTap: () {},
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: colorScheme.surface,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
@@ -71,7 +75,7 @@ class _ProfilePageState extends State<ProfilePage> with GuestModeMixin {
                               ],
                             ),
                             padding: const EdgeInsets.all(6),
-                            child: Icon(Icons.camera_alt, size: 20, color: Color(AppConstants.primaryColor)),
+                            child: Icon(Icons.camera_alt, size: 20, color: colorScheme.primary),
                           ),
                         ),
                       ),
@@ -82,35 +86,35 @@ class _ProfilePageState extends State<ProfilePage> with GuestModeMixin {
                 // Name & info
                 Center(
                   child: Column(
-                    children: const [
-                      Text('adnane', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87)),
-                      SizedBox(height: 4),
-                      Text('Member since 2025', style: TextStyle(fontSize: 16, color: Colors.grey)),
-                      SizedBox(height: 2),
-                      Text('0 contribution', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    children: [
+                      Text('adnane', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colorScheme.onBackground)),
+                      const SizedBox(height: 4),
+                      Text('Member since 2025', style: TextStyle(fontSize: 16, color: colorScheme.onBackground.withOpacity(0.6))),
+                      const SizedBox(height: 2),
+                      Text('0 contribution', style: TextStyle(fontSize: 14, color: colorScheme.onBackground.withOpacity(0.6))),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
                 // Description
-                const Text(
+                Text(
                   'Tell other travelers a bit about yourself.',
-                  style: TextStyle(color: Colors.black87, fontSize: 15),
+                  style: TextStyle(color: colorScheme.onBackground, fontSize: 15),
                 ),
                 const SizedBox(height: 16),
                 // City
                 Row(
-                  children: const [
-                    Icon(Icons.location_on, color: Colors.grey, size: 20),
-                    SizedBox(width: 8),
-                    Text('No city selected.', style: TextStyle(color: Colors.grey)),
+                  children: [
+                    Icon(Icons.location_on, color: colorScheme.onBackground.withOpacity(0.6), size: 20),
+                    const SizedBox(width: 8),
+                    Text('No city selected.', style: TextStyle(color: colorScheme.onBackground.withOpacity(0.6))),
                   ],
                 ),
                 const SizedBox(height: 28),
                 // Accomplishments
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: colorScheme.surface,
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [
                       BoxShadow(
@@ -127,21 +131,21 @@ class _ProfilePageState extends State<ProfilePage> with GuestModeMixin {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Your Achievements', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 17)),
-                          Text('Show all', style: TextStyle(color: Color(AppConstants.primaryColor), decoration: TextDecoration.underline)),
+                          Text('Your Achievements', style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 17)),
+                          Text('Show all', style: TextStyle(color: colorScheme.primary, decoration: TextDecoration.underline)),
                         ],
                       ),
-                      const Divider(color: Colors.grey, height: 24),
+                      Divider(color: colorScheme.onSurface.withOpacity(0.2), height: 24),
                       Row(
-                        children: const [
-                          Icon(Icons.lock, color: Colors.grey, size: 36),
-                          SizedBox(width: 12),
+                        children: [
+                          Icon(Icons.lock, color: colorScheme.onSurface.withOpacity(0.6), size: 36),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Write your first review', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600)),
-                                Text('Unlock levels with reviews', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                                Text('Write your first review', style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.w600)),
+                                Text('Unlock levels with reviews', style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 13)),
                               ],
                             ),
                           ),
@@ -149,15 +153,15 @@ class _ProfilePageState extends State<ProfilePage> with GuestModeMixin {
                       ),
                       const SizedBox(height: 18),
                       Row(
-                        children: const [
-                          Icon(Icons.lock, color: Colors.grey, size: 36),
-                          SizedBox(width: 12),
+                        children: [
+                          Icon(Icons.lock, color: colorScheme.onSurface.withOpacity(0.6), size: 36),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Upload your first photo', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600)),
-                                Text('Unlock levels with photos', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                                Text('Upload your first photo', style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.w600)),
+                                Text('Unlock levels with photos', style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 13)),
                               ],
                             ),
                           ),
@@ -185,6 +189,8 @@ class _ProfilePageState extends State<ProfilePage> with GuestModeMixin {
                   }),
                   isRestricted: isFeatureRestricted('modify_preferences'),
                 ),
+                const SizedBox(height: 12),
+                _ThemeSelectorTile(),
                 const SizedBox(height: 32),
               ],
             ),
@@ -211,8 +217,11 @@ class _ProfileTile extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Material(
-      color: Colors.white,
+      color: colorScheme.surface,
       borderRadius: BorderRadius.circular(14),
       elevation: 2,
       child: InkWell(
@@ -224,7 +233,7 @@ class _ProfileTile extends StatelessWidget {
             children: [
               Icon(
                 icon, 
-                color: isRestricted ? Colors.grey : Color(AppConstants.primaryColor), 
+                color: isRestricted ? colorScheme.onSurface.withOpacity(0.6) : colorScheme.primary, 
                 size: 24
               ),
               const SizedBox(width: 18),
@@ -232,7 +241,7 @@ class _ProfileTile extends StatelessWidget {
                 child: Text(
                   title, 
                   style: TextStyle(
-                    color: isRestricted ? Colors.grey : Colors.black87, 
+                    color: isRestricted ? colorScheme.onSurface.withOpacity(0.6) : colorScheme.onSurface, 
                     fontWeight: FontWeight.w500, 
                     fontSize: 16
                   )
@@ -240,9 +249,214 @@ class _ProfileTile extends StatelessWidget {
               ),
               Icon(
                 isRestricted ? Icons.lock : Icons.chevron_right, 
-                color: isRestricted ? Colors.grey : Colors.grey, 
+                color: isRestricted ? colorScheme.onSurface.withOpacity(0.6) : colorScheme.onSurface.withOpacity(0.6), 
                 size: 24
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeSelectorTile extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return Material(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          elevation: 2,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () {
+              _showThemeDialog(context, themeProvider);
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.palette, 
+                    color: colorScheme.primary, 
+                    size: 24
+                  ),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: Text(
+                      'Theme', 
+                      style: TextStyle(
+                        color: colorScheme.onSurface, 
+                        fontWeight: FontWeight.w500, 
+                        fontSize: 16
+                      )
+                    ),
+                  ),
+                  Text(
+                    _getThemeModeText(themeProvider.themeMode),
+                    style: TextStyle(
+                      color: colorScheme.onSurface.withOpacity(0.6),
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.chevron_right, 
+                    color: colorScheme.onSurface.withOpacity(0.6), 
+                    size: 24
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _getThemeModeText(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return 'Light';
+      case ThemeMode.dark:
+        return 'Dark';
+      case ThemeMode.system:
+        return 'System';
+    }
+  }
+
+  void _showThemeDialog(BuildContext context, ThemeProvider themeProvider) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: colorScheme.surface,
+          title: Text(
+            'Choose Theme',
+            style: TextStyle(color: colorScheme.onSurface),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _ThemeOptionTile(
+                title: 'Light',
+                subtitle: 'Always use light theme',
+                icon: Icons.wb_sunny,
+                isSelected: themeProvider.themeMode == ThemeMode.light,
+                onTap: () {
+                  themeProvider.setThemeMode(ThemeMode.light);
+                  Navigator.of(context).pop();
+                },
+              ),
+              const SizedBox(height: 8),
+              _ThemeOptionTile(
+                title: 'Dark',
+                subtitle: 'Always use dark theme',
+                icon: Icons.nightlight_round,
+                isSelected: themeProvider.themeMode == ThemeMode.dark,
+                onTap: () {
+                  themeProvider.setThemeMode(ThemeMode.dark);
+                  Navigator.of(context).pop();
+                },
+              ),
+              const SizedBox(height: 8),
+              _ThemeOptionTile(
+                title: 'System',
+                subtitle: 'Follow system theme',
+                icon: Icons.settings_system_daydream,
+                isSelected: themeProvider.themeMode == ThemeMode.system,
+                onTap: () {
+                  themeProvider.setThemeMode(ThemeMode.system);
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ThemeOptionTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ThemeOptionTile({
+    Key? key,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.2),
+              width: 2,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.6),
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: colorScheme.onSurface.withOpacity(0.6),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isSelected)
+                Icon(
+                  Icons.check_circle,
+                  color: colorScheme.primary,
+                  size: 24,
+                ),
             ],
           ),
         ),

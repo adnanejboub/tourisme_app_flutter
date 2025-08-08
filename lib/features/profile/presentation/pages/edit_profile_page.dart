@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -26,7 +28,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   String _selectedCountry = 'France';
   XFile? _pickedImage;
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImage(LocalizationService localizationService) async {
     final picker = ImagePicker();
     final picked = await showModalBottomSheet<XFile?>(
       context: context,
@@ -39,7 +41,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Choose from gallery'),
+              title: Text(localizationService.translate('choose_from_gallery')),
               onTap: () async {
                 final img = await picker.pickImage(source: ImageSource.gallery);
                 Navigator.pop(context, img);
@@ -47,7 +49,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('Take a photo'),
+              title: Text(localizationService.translate('take_photo')),
               onTap: () async {
                 final img = await picker.pickImage(source: ImageSource.camera);
                 Navigator.pop(context, img);
@@ -81,162 +83,260 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        title: const Text('Account Information', style: TextStyle(color: Colors.black87)),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          children: [
-            Center(
-              child: Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  CircleAvatar(
-                    radius: 48,
-                    backgroundColor: Colors.grey[200],
-                    backgroundImage: _pickedImage != null ? FileImage(File(_pickedImage!.path)) : null,
-                    child: _pickedImage == null
-                        ? const Icon(Icons.person, size: 60, color: Colors.grey)
-                        : null,
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 4,
+    final colorScheme = theme.colorScheme;
+
+    return Consumer<LocalizationService>(
+      builder: (context, localizationService, child) {
+        return Scaffold(
+          backgroundColor: colorScheme.background,
+          appBar: AppBar(
+            backgroundColor: colorScheme.background,
+            elevation: 0,
+            iconTheme: IconThemeData(color: colorScheme.onBackground),
+            title: Text(
+              localizationService.translate('account_information'),
+              style: TextStyle(color: colorScheme.onBackground),
+            ),
+            centerTitle: true,
+          ),
+          body: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              children: [
+                Center(
+                  child: GestureDetector(
+                    onTap: () => _pickImage(localizationService),
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        CircleAvatar(
+                          radius: 48,
+                          backgroundColor: colorScheme.surfaceVariant,
+                          backgroundImage: _pickedImage != null ? FileImage(File(_pickedImage!.path)) : null,
+                          child: _pickedImage == null
+                              ? Icon(Icons.person, size: 60, color: colorScheme.onSurfaceVariant)
+                              : null,
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary,
+                              shape: BoxShape.circle,
                             ),
-                          ],
+                            child: Icon(Icons.camera_alt, color: colorScheme.onPrimary, size: 16),
+                          ),
                         ),
-                        padding: const EdgeInsets.all(6),
-                        child: Icon(Icons.camera_alt, size: 20, color: Color(AppConstants.primaryColor)),
-                      ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  Row(
+                ),
+                const SizedBox(height: 24),
+                Form(
+                  key: _formKey,
+                  child: Column(
                     children: [
-                      Expanded(child: _buildTextField(_firstNameController, 'First Name', hint: 'Enter your first name')),
-                      const SizedBox(width: 12),
-                      Expanded(child: _buildTextField(_lastNameController, 'Last Name', hint: 'Enter your last name')),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(_airportController, 'Home Airport', hint: 'e.g. Casablanca, Morocco - All airports'),
-                  const SizedBox(height: 16),
-                  _buildTextField(_emailController, 'E-mail', hint: 'Enter your email', keyboardType: TextInputType.emailAddress),
-                  const SizedBox(height: 16),
-                  _buildTextField(_addressController, 'Full Address', hint: 'Enter your address'),
-                  const SizedBox(height: 16),
-                  _buildTextField(_address2Controller, 'Address (suite)', hint: 'Additional address info'),
-                  const SizedBox(height: 16),
-                  _buildTextField(_cityController, 'City', hint: 'Enter your city'),
-                  const SizedBox(height: 16),
-                  _buildTextField(_regionController, 'State/Region/Province', hint: 'Enter your region'),
-                  const SizedBox(height: 16),
-                  _buildTextField(_postalCodeController, 'Postal Code', hint: 'Enter your postal code'),
-                  const SizedBox(height: 16),
-                  // Country dropdown
-                  DropdownButtonFormField<String>(
-                    value: _selectedCountry,
-                    decoration: InputDecoration(
-                      labelText: 'Country',
-                      hintText: 'Select your country',
-                      labelStyle: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.grey, width: 1),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextField(
+                              _firstNameController,
+                              localizationService.translate('first_name'),
+                              colorScheme,
+                              localizationService,
+                              hint: localizationService.translate('enter_first_name'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildTextField(
+                              _lastNameController,
+                              localizationService.translate('last_name'),
+                              colorScheme,
+                              localizationService,
+                              hint: localizationService.translate('enter_last_name'),
+                            ),
+                          ),
+                        ],
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Color(AppConstants.primaryColor), width: 1.5),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        _airportController,
+                        localizationService.translate('home_airport'),
+                        colorScheme,
+                        localizationService,
+                        hint: localizationService.translate('airport_hint'),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 'France', child: Text('France')),
-                      DropdownMenuItem(value: 'Morocco', child: Text('Morocco')),
-                      DropdownMenuItem(value: 'Spain', child: Text('Spain')),
-                      DropdownMenuItem(value: 'USA', child: Text('USA')),
-                    ],
-                    onChanged: (val) => setState(() => _selectedCountry = val!),
-                  ),
-                  const SizedBox(height: 16),
-                  // Phone
-                  _buildTextField(_phoneController, 'Phone Number', hint: '+212...', keyboardType: TextInputType.phone),
-                  const SizedBox(height: 16),
-                  // Password
-                  _buildTextField(_passwordController, 'Password', hint: '********', obscureText: true),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/reset-password'),
-                      child: const Text('Renew your password', style: TextStyle(color: Colors.blue)),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(AppConstants.primaryColor),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(32),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        _emailController,
+                        localizationService.translate('email_label'),
+                        colorScheme,
+                        localizationService,
+                        hint: localizationService.translate('enter_email'),
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        _addressController,
+                        localizationService.translate('full_address'),
+                        colorScheme,
+                        localizationService,
+                        hint: localizationService.translate('enter_address'),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        _address2Controller,
+                        localizationService.translate('address_suite'),
+                        colorScheme,
+                        localizationService,
+                        hint: localizationService.translate('additional_address_info'),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        _cityController,
+                        localizationService.translate('city'),
+                        colorScheme,
+                        localizationService,
+                        hint: localizationService.translate('enter_city'),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        _regionController,
+                        localizationService.translate('state_region_province'),
+                        colorScheme,
+                        localizationService,
+                        hint: localizationService.translate('enter_region'),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        _postalCodeController,
+                        localizationService.translate('postal_code'),
+                        colorScheme,
+                        localizationService,
+                        hint: localizationService.translate('enter_postal_code'),
+                      ),
+                      const SizedBox(height: 16),
+                      // Country dropdown
+                      DropdownButtonFormField<String>(
+                        value: _selectedCountry,
+                        decoration: InputDecoration(
+                          labelText: localizationService.translate('country'),
+                          hintText: localizationService.translate('select_country'),
+                          labelStyle: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),
+                          hintStyle: TextStyle(color: colorScheme.onSurface),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.grey, width: 1),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        items: [
+                          DropdownMenuItem(
+                            value: 'France',
+                            child: Text(localizationService.translate('france')),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Morocco',
+                            child: Text(localizationService.translate('morocco')),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Spain',
+                            child: Text(localizationService.translate('spain')),
+                          ),
+                          DropdownMenuItem(
+                            value: 'USA',
+                            child: Text(localizationService.translate('usa')),
+                          ),
+                        ],
+                        onChanged: (val) => setState(() => _selectedCountry = val!),
                       ),
-                      onPressed: () {
-                        if (_formKey.currentState?.validate() ?? false) {
-                          // TODO: Save profile changes
-                          Navigator.pop(context);
-                        }
-                      },
-                      child: const Text(
-                        'Save',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      const SizedBox(height: 16),
+                      // Phone
+                      _buildTextField(
+                        _phoneController,
+                        localizationService.translate('phone_number'),
+                        colorScheme,
+                        localizationService,
+                        hint: '+212...',
+                        keyboardType: TextInputType.phone,
                       ),
-                    ),
+                      const SizedBox(height: 16),
+                      // Password
+                      _buildTextField(
+                        _passwordController,
+                        localizationService.translate('password_label'),
+                        colorScheme,
+                        localizationService,
+                        hint: '********',
+                        obscureText: true,
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
+                          onPressed: () => Navigator.pushNamed(context, '/reset-password'),
+                          child: Text(
+                            localizationService.translate('renew_password'),
+                            style: TextStyle(color: colorScheme.primary),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: colorScheme.onPrimary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(32),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                          ),
+                          onPressed: () {
+                            if (_formKey.currentState?.validate() ?? false) {
+                              // TODO: Save profile changes
+                              _showSuccessMessage(context, localizationService);
+                            }
+                          },
+                          child: Text(
+                            localizationService.translate('save'),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildTextField(
-    TextEditingController controller,
-    String label, {
-    String? hint,
-    TextInputType? keyboardType,
-    bool obscureText = false,
-  }) {
+      TextEditingController controller,
+      String label,
+      ColorScheme colorScheme,
+      LocalizationService localizationService, {
+        String? hint,
+        TextInputType? keyboardType,
+        bool obscureText = false,
+      }) {
     return Focus(
       child: Builder(
         builder: (context) {
@@ -245,30 +345,37 @@ class _EditProfilePageState extends State<EditProfilePage> {
             controller: controller,
             keyboardType: keyboardType,
             obscureText: obscureText,
-            style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 16),
+            style: TextStyle(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w500,
+              fontSize: 16,
+            ),
             decoration: InputDecoration(
               labelText: label,
               labelStyle: TextStyle(
-                color: isFocused ? Color(AppConstants.primaryColor) : Colors.grey,
+                color: isFocused ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.6),
                 fontWeight: FontWeight.w500,
               ),
               hintText: hint,
-              hintStyle: const TextStyle(color: Colors.grey, fontWeight: FontWeight.normal),
+              hintStyle: TextStyle(
+                color: colorScheme.onSurface.withOpacity(0.6),
+                fontWeight: FontWeight.normal,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.grey, width: 1),
+                borderSide: BorderSide(color: colorScheme.outline, width: 1),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Color(AppConstants.primaryColor), width: 1.5),
+                borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
               ),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              fillColor: Colors.white,
+              fillColor: colorScheme.surface,
               filled: true,
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'This field is required';
+                return localizationService.translate('field_required');
               }
               return null;
             },
@@ -276,5 +383,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
         },
       ),
     );
+  }
+
+  void _showSuccessMessage(BuildContext context, LocalizationService localizationService) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(localizationService.translate('profile_updated_success')),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+    Navigator.pop(context);
   }
 }

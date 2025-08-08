@@ -65,21 +65,24 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Consumer<LocalizationService>(
       builder: (context, localizationService, child) {
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: colorScheme.background,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: colorScheme.background,
             elevation: 0,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.black87),
+              icon: Icon(Icons.arrow_back, color: colorScheme.onBackground),
               onPressed: () => Navigator.pop(context),
             ),
             title: Text(
               'Search Morocco',
               style: TextStyle(
-                color: Colors.black87,
+                color: colorScheme.onBackground,
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
               ),
@@ -87,9 +90,9 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
           ),
           body: Column(
             children: [
-              _buildSearchBar(),
+              _buildSearchBar(colorScheme),
               Expanded(
-                child: _buildSearchResults(),
+                child: _buildSearchResults(colorScheme),
               ),
             ],
           ),
@@ -98,42 +101,46 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(ColorScheme colorScheme) {
     return Container(
       margin: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.onSurface.withOpacity(0.1)),
       ),
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
           hintText: 'Search cities, activities...',
-          hintStyle: TextStyle(color: Colors.grey[600]),
-          prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+          hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
+          prefixIcon: Icon(Icons.search, color: colorScheme.onSurface.withOpacity(0.6)),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
-        style: TextStyle(fontSize: 16),
+        style: TextStyle(
+          fontSize: 16,
+          color: colorScheme.onSurface,
+        ),
       ),
     );
   }
 
-  Widget _buildSearchResults() {
+  Widget _buildSearchResults(ColorScheme colorScheme) {
     if (_isSearching) {
       return Center(
         child: CircularProgressIndicator(
-          color: Color(AppConstants.primaryColor),
+          color: colorScheme.primary,
         ),
       );
     }
 
     if (_searchQuery.isEmpty) {
-      return _buildEmptyState();
+      return _buildEmptyState(colorScheme);
     }
 
     if (_searchResults.isEmpty) {
-      return _buildNoResults();
+      return _buildNoResults(colorScheme);
     }
 
     return ListView.builder(
@@ -141,12 +148,12 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
       itemCount: _searchResults.length,
       itemBuilder: (context, index) {
         final city = _searchResults[index];
-        return _buildSearchResultCard(city);
+        return _buildSearchResultCard(city, colorScheme);
       },
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(ColorScheme colorScheme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -154,14 +161,14 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
           Icon(
             Icons.search,
             size: 64,
-            color: Colors.grey[400],
+            color: colorScheme.onSurface.withOpacity(0.4),
           ),
           SizedBox(height: 16),
           Text(
             'Search for cities, activities, or attractions',
             style: TextStyle(
               fontSize: 18,
-              color: Colors.grey[600],
+              color: colorScheme.onSurface.withOpacity(0.6),
             ),
             textAlign: TextAlign.center,
           ),
@@ -170,7 +177,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
     );
   }
 
-  Widget _buildNoResults() {
+  Widget _buildNoResults(ColorScheme colorScheme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -178,14 +185,14 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
           Icon(
             Icons.search_off,
             size: 64,
-            color: Colors.grey[400],
+            color: colorScheme.onSurface.withOpacity(0.4),
           ),
           SizedBox(height: 16),
           Text(
             'No results found for "$_searchQuery"',
             style: TextStyle(
               fontSize: 18,
-              color: Colors.grey[600],
+              color: colorScheme.onSurface.withOpacity(0.6),
             ),
             textAlign: TextAlign.center,
           ),
@@ -194,7 +201,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
             'Try different keywords or check spelling',
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[500],
+              color: colorScheme.onSurface.withOpacity(0.5),
             ),
             textAlign: TextAlign.center,
           ),
@@ -203,11 +210,11 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
     );
   }
 
-  Widget _buildSearchResultCard(Map<String, dynamic> city) {
+  Widget _buildSearchResultCard(Map<String, dynamic> city, ColorScheme colorScheme) {
     return Container(
       margin: EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -242,8 +249,8 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
                     return Container(
                       width: 80,
                       height: 80,
-                      color: Colors.grey[300],
-                      child: Icon(Icons.image, color: Colors.grey[600]),
+                      color: colorScheme.onSurface.withOpacity(0.1),
+                      child: Icon(Icons.image, color: colorScheme.onSurface.withOpacity(0.6)),
                     );
                   },
                 ),
@@ -258,7 +265,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     SizedBox(height: 4),
@@ -266,7 +273,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
                       city['arabicName'] ?? '',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                     SizedBox(height: 8),
@@ -274,7 +281,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
                       city['description'] ?? '',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[700],
+                        color: colorScheme.onSurface.withOpacity(0.7),
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -284,7 +291,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
               ),
               Icon(
                 Icons.arrow_forward_ios,
-                color: Colors.grey[400],
+                color: colorScheme.onSurface.withOpacity(0.4),
                 size: 16,
               ),
             ],

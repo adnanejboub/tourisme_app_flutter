@@ -36,21 +36,24 @@ class _FilterExplorePageState extends State<FilterExplorePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Consumer<LocalizationService>(
       builder: (context, localizationService, child) {
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: colorScheme.background,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: colorScheme.background,
             elevation: 0,
             leading: IconButton(
-              icon: Icon(Icons.close, color: Colors.black87),
+              icon: Icon(Icons.close, color: colorScheme.onBackground),
               onPressed: () => Navigator.pop(context),
             ),
             title: Text(
-              'Filters',
+              localizationService.translate('filters'),
               style: TextStyle(
-                color: Colors.black87,
+                color: colorScheme.onBackground,
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
               ),
@@ -59,9 +62,9 @@ class _FilterExplorePageState extends State<FilterExplorePage> {
               TextButton(
                 onPressed: _clearFilters,
                 child: Text(
-                  'Clear',
+                  localizationService.translate('clear'),
                   style: TextStyle(
-                    color: Color(AppConstants.primaryColor),
+                    color: colorScheme.primary,
                     fontSize: 16,
                   ),
                 ),
@@ -72,22 +75,22 @@ class _FilterExplorePageState extends State<FilterExplorePage> {
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildCategorySection(),
-                      SizedBox(height: 32),
-                      _buildBudgetSection(),
-                      SizedBox(height: 32),
-                      _buildDurationSection(),
-                      SizedBox(height: 32),
-                      _buildTypeSection(),
+                      _buildCategorySection(colorScheme, localizationService),
+                      const SizedBox(height: 32),
+                      _buildBudgetSection(colorScheme, localizationService),
+                      const SizedBox(height: 32),
+                      _buildDurationSection(colorScheme, localizationService),
+                      const SizedBox(height: 32),
+                      _buildTypeSection(colorScheme, localizationService),
                     ],
                   ),
                 ),
               ),
-              _buildActionButtons(),
+              _buildActionButtons(colorScheme, localizationService),
             ],
           ),
         );
@@ -95,104 +98,104 @@ class _FilterExplorePageState extends State<FilterExplorePage> {
     );
   }
 
-  Widget _buildCategorySection() {
+  Widget _buildCategorySection(ColorScheme colorScheme, LocalizationService localizationService) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Category',
+          localizationService.translate('category'),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: colorScheme.onBackground,
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Wrap(
           spacing: 12,
           runSpacing: 12,
           children: [
-            _buildFilterChip('all', 'All', _selectedCategory == 'all'),
-            _buildFilterChip('cities', 'Cities', _selectedCategory == 'cities'),
-            _buildFilterChip('culture', 'Culture', _selectedCategory == 'culture'),
-            _buildFilterChip('nature', 'Nature', _selectedCategory == 'nature'),
-            _buildFilterChip('adventure', 'Adventure', _selectedCategory == 'adventure'),
-            _buildFilterChip('beach', 'Beach', _selectedCategory == 'beach'),
-            _buildFilterChip('desert', 'Desert', _selectedCategory == 'desert'),
+            _buildFilterChip('all', localizationService.translate('all'), _selectedCategory == 'all', colorScheme),
+            _buildFilterChip('cities', localizationService.translate('cities'), _selectedCategory == 'cities', colorScheme),
+            _buildFilterChip('culture', localizationService.translate('culture'), _selectedCategory == 'culture', colorScheme),
+            _buildFilterChip('nature', localizationService.translate('nature'), _selectedCategory == 'nature', colorScheme),
+            _buildFilterChip('adventure', localizationService.translate('adventure'), _selectedCategory == 'adventure', colorScheme),
+            _buildFilterChip('beach', localizationService.translate('beach'), _selectedCategory == 'beach', colorScheme),
+            _buildFilterChip('desert', localizationService.translate('desert'), _selectedCategory == 'desert', colorScheme),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildBudgetSection() {
+  Widget _buildBudgetSection(ColorScheme colorScheme, LocalizationService localizationService) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Budget Range',
+          localizationService.translate('budget'),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: colorScheme.onBackground,
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Wrap(
           spacing: 12,
           runSpacing: 12,
           children: [
-            _buildFilterChip('all', 'All Budgets', _selectedBudget == 'all'),
-            _buildFilterChip('budget', 'Budget', _selectedBudget == 'budget'),
-            _buildFilterChip('mid_range', 'Mid-range', _selectedBudget == 'mid_range'),
-            _buildFilterChip('luxury', 'Luxury', _selectedBudget == 'luxury'),
+            _buildFilterChip('all', localizationService.translate('all_budgets'), _selectedBudget == 'all', colorScheme),
+            _buildFilterChip('budget', localizationService.translate('budget_friendly'), _selectedBudget == 'budget', colorScheme),
+            _buildFilterChip('mid_range', localizationService.translate('mid_range'), _selectedBudget == 'mid_range', colorScheme),
+            _buildFilterChip('luxury', localizationService.translate('luxury'), _selectedBudget == 'luxury', colorScheme),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildDurationSection() {
+  Widget _buildDurationSection(ColorScheme colorScheme, LocalizationService localizationService) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Trip Duration',
+          localizationService.translate('duration'),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: colorScheme.onBackground,
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Wrap(
           spacing: 12,
           runSpacing: 12,
           children: [
-            _buildFilterChip('all', 'Any Duration', _selectedDuration == 'all'),
-            _buildFilterChip('weekend', 'Weekend', _selectedDuration == 'weekend'),
-            _buildFilterChip('short', 'Short Trip', _selectedDuration == 'short'),
-            _buildFilterChip('week', 'One Week', _selectedDuration == 'week'),
-            _buildFilterChip('extended', 'Extended', _selectedDuration == 'extended'),
+            _buildFilterChip('all', localizationService.translate('any_duration'), _selectedDuration == 'all', colorScheme),
+            _buildFilterChip('weekend', localizationService.translate('weekend'), _selectedDuration == 'weekend', colorScheme),
+            _buildFilterChip('short', localizationService.translate('short_trip'), _selectedDuration == 'short', colorScheme),
+            _buildFilterChip('week', localizationService.translate('one_week'), _selectedDuration == 'week', colorScheme),
+            _buildFilterChip('extended', localizationService.translate('extended'), _selectedDuration == 'extended', colorScheme),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildTypeSection() {
+  Widget _buildTypeSection(ColorScheme colorScheme, LocalizationService localizationService) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Experience Type',
+          localizationService.translate('experience_type'),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: colorScheme.onBackground,
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Wrap(
           spacing: 12,
           runSpacing: 12,
@@ -200,8 +203,9 @@ class _FilterExplorePageState extends State<FilterExplorePage> {
             final isSelected = _selectedTypes.contains(type['id'] as String);
             return _buildFilterChip(
               type['id'] as String,
-              type['name'] as String,
+              localizationService.translate(type['name'] as String),
               isSelected,
+              colorScheme,
               isMultiSelect: true,
             );
           }).toList(),
@@ -210,12 +214,12 @@ class _FilterExplorePageState extends State<FilterExplorePage> {
     );
   }
 
-  Widget _buildFilterChip(String value, String label, bool isSelected, {bool isMultiSelect = false}) {
+  Widget _buildFilterChip(String value, String label, bool isSelected, ColorScheme colorScheme, {bool isMultiSelect = false}) {
     return FilterChip(
       label: Text(
         label,
         style: TextStyle(
-          color: isSelected ? Colors.white : Colors.black87,
+          color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
         ),
       ),
@@ -233,9 +237,9 @@ class _FilterExplorePageState extends State<FilterExplorePage> {
               _selectedCategory = selected ? 'all' : _selectedCategory;
               _selectedBudget = selected ? 'all' : _selectedBudget;
               _selectedDuration = selected ? 'all' : _selectedDuration;
-            } else if (label.contains('Budget')) {
+            } else if (_isBudgetFilter(value)) {
               _selectedBudget = selected ? value : 'all';
-            } else if (label.contains('Duration') || label.contains('Weekend') || label.contains('Short') || label.contains('Week') || label.contains('Extended')) {
+            } else if (_isDurationFilter(value)) {
               _selectedDuration = selected ? value : 'all';
             } else {
               _selectedCategory = selected ? value : 'all';
@@ -243,26 +247,34 @@ class _FilterExplorePageState extends State<FilterExplorePage> {
           }
         });
       },
-      backgroundColor: Colors.grey[100],
-      selectedColor: Color(AppConstants.primaryColor),
-      checkmarkColor: Colors.white,
+      backgroundColor: colorScheme.surface,
+      selectedColor: colorScheme.primary,
+      checkmarkColor: colorScheme.onPrimary,
       side: BorderSide(
-        color: isSelected ? Color(AppConstants.primaryColor) : Colors.grey[300]!,
+        color: isSelected ? colorScheme.primary : colorScheme.outline,
         width: 1,
       ),
     );
   }
 
-  Widget _buildActionButtons() {
+  bool _isBudgetFilter(String value) {
+    return ['budget', 'mid_range', 'luxury'].contains(value);
+  }
+
+  bool _isDurationFilter(String value) {
+    return ['weekend', 'short', 'week', 'extended'].contains(value);
+  }
+
+  Widget _buildActionButtons(ColorScheme colorScheme, LocalizationService localizationService) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: colorScheme.shadow.withOpacity(0.1),
             blurRadius: 10,
-            offset: Offset(0, -2),
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -272,38 +284,38 @@ class _FilterExplorePageState extends State<FilterExplorePage> {
             child: OutlinedButton(
               onPressed: () => Navigator.pop(context),
               style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Colors.grey[300]!),
+                side: BorderSide(color: colorScheme.outline),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               child: Text(
-                'Cancel',
+                localizationService.translate('cancel'),
                 style: TextStyle(
-                  color: Colors.grey[700],
+                  color: colorScheme.onSurface,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Expanded(
             child: ElevatedButton(
               onPressed: _applyFilters,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(AppConstants.primaryColor),
+                backgroundColor: colorScheme.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 elevation: 0,
               ),
               child: Text(
-                'Apply Filters',
+                localizationService.translate('apply_filters'),
                 style: TextStyle(
-                  color: Colors.white,
+                  color: colorScheme.onPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -331,8 +343,8 @@ class _FilterExplorePageState extends State<FilterExplorePage> {
       'duration': _selectedDuration,
       'types': _selectedTypes,
     };
-    
+
     widget.onFiltersApplied(filters);
     Navigator.pop(context);
   }
-} 
+}

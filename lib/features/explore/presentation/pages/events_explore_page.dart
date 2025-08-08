@@ -63,21 +63,24 @@ class _EventsExplorePageState extends State<EventsExplorePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Consumer<LocalizationService>(
       builder: (context, localizationService, child) {
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: colorScheme.background,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: colorScheme.background,
             elevation: 0,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.black87),
+              icon: Icon(Icons.arrow_back, color: colorScheme.onBackground),
               onPressed: () => Navigator.pop(context),
             ),
             title: Text(
               'Upcoming Events',
               style: TextStyle(
-                color: Colors.black87,
+                color: colorScheme.onBackground,
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
               ),
@@ -85,9 +88,9 @@ class _EventsExplorePageState extends State<EventsExplorePage> {
           ),
           body: Column(
             children: [
-              _buildCategoryFilter(),
+              _buildCategoryFilter(colorScheme),
               Expanded(
-                child: _buildEventsList(),
+                child: _buildEventsList(colorScheme),
               ),
             ],
           ),
@@ -96,56 +99,59 @@ class _EventsExplorePageState extends State<EventsExplorePage> {
     );
   }
 
-  Widget _buildCategoryFilter() {
+  Widget _buildCategoryFilter(ColorScheme colorScheme) {
     final categories = [
       {'id': 'all', 'name': 'All Events'},
       {'id': 'music', 'name': 'Music'},
       {'id': 'culture', 'name': 'Culture'},
       {'id': 'film', 'name': 'Film'},
-      {'id': 'food', 'name': 'Food & Drink'},
+      {'id': 'food', 'name': 'Food & Wine'},
     ];
 
     return Container(
-      height: 60,
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: ListView.builder(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          final isSelected = _selectedCategory == category['id'];
-          
-          return Container(
-            margin: EdgeInsets.only(right: 12),
-            child: FilterChip(
-                               label: Text(
-                   category['name'] as String,
-                   style: TextStyle(
-                     color: isSelected ? Colors.white : Colors.black87,
-                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                   ),
-                 ),
-              selected: isSelected,
-              onSelected: (selected) {
-                                 setState(() {
-                   _selectedCategory = selected ? category['id'] as String : 'all';
-                 });
-              },
-              backgroundColor: Colors.grey[100],
-              selectedColor: Color(AppConstants.primaryColor),
-              checkmarkColor: Colors.white,
-              side: BorderSide(
-                color: isSelected ? Color(AppConstants.primaryColor) : Colors.grey[300]!,
-                width: 1,
+        child: Row(
+          children: categories.map((category) {
+            final isSelected = _selectedCategory == category['id'];
+            return Container(
+              margin: EdgeInsets.only(right: 12),
+              child: FilterChip(
+                avatar: isSelected ? Icon(
+                  Icons.check,
+                  color: Colors.white,
+                  size: 16,
+                ) : null,
+                label: Text(
+                  category['name'] as String,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : colorScheme.onSurface,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+                selected: isSelected,
+                onSelected: (selected) {
+                  setState(() {
+                    _selectedCategory = selected ? category['id'] as String : 'all';
+                  });
+                },
+                backgroundColor: colorScheme.surface,
+                selectedColor: colorScheme.primary,
+                checkmarkColor: Colors.white,
+                side: BorderSide(
+                  color: isSelected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.2),
+                  width: 1,
+                ),
               ),
-            ),
-          );
-        },
+            );
+          }).toList(),
+        ),
       ),
     );
   }
 
-  Widget _buildEventsList() {
+  Widget _buildEventsList(ColorScheme colorScheme) {
     final filteredEvents = _selectedCategory == 'all'
         ? _events
         : _events.where((event) => event['category'] == _selectedCategory).toList();
@@ -158,14 +164,14 @@ class _EventsExplorePageState extends State<EventsExplorePage> {
             Icon(
               Icons.event_busy,
               size: 64,
-              color: Colors.grey[400],
+              color: colorScheme.onSurface.withOpacity(0.4),
             ),
             SizedBox(height: 16),
             Text(
-              'No events found',
+              'No events found for this category',
               style: TextStyle(
                 fontSize: 18,
-                color: Colors.grey[600],
+                color: colorScheme.onSurface.withOpacity(0.6),
               ),
             ),
           ],
@@ -174,20 +180,20 @@ class _EventsExplorePageState extends State<EventsExplorePage> {
     }
 
     return ListView.builder(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(horizontal: 16),
       itemCount: filteredEvents.length,
       itemBuilder: (context, index) {
         final event = filteredEvents[index];
-        return _buildEventCard(event);
+        return _buildEventCard(event, colorScheme);
       },
     );
   }
 
-  Widget _buildEventCard(Map<String, dynamic> event) {
+  Widget _buildEventCard(Map<String, dynamic> event, ColorScheme colorScheme) {
     return Container(
       margin: EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -199,12 +205,7 @@ class _EventsExplorePageState extends State<EventsExplorePage> {
       ),
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EventDetailsPage(event: event),
-            ),
-          );
+          // Navigate to event details
         },
         borderRadius: BorderRadius.circular(12),
         child: Column(
@@ -221,8 +222,8 @@ class _EventsExplorePageState extends State<EventsExplorePage> {
                   return Container(
                     width: double.infinity,
                     height: 200,
-                    color: Colors.grey[300],
-                    child: Icon(Icons.image, size: 64, color: Colors.grey[600]),
+                    color: colorScheme.onSurface.withOpacity(0.1),
+                    child: Icon(Icons.image, size: 64, color: colorScheme.onSurface.withOpacity(0.6)),
                   );
                 },
               ),
@@ -232,59 +233,82 @@ class _EventsExplorePageState extends State<EventsExplorePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          event['category']!.toString().toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                      Spacer(),
+                      Icon(
+                        Icons.favorite_border,
+                        color: colorScheme.onSurface.withOpacity(0.6),
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 12),
                   Text(
                     event['title']!,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: colorScheme.onSurface,
                     ),
-                  ),
-                  SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today,
-                        size: 16,
-                        color: Colors.grey[600],
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        event['date']!,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 16,
-                        color: Colors.grey[600],
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        event['location']!,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
                   ),
                   SizedBox(height: 8),
                   Text(
                     event['description']!,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[700],
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                      height: 1.4,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        event['date']!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                      ),
+                      SizedBox(width: 24),
+                      Icon(
+                        Icons.location_on,
+                        size: 16,
+                        color: colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        event['location']!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -434,4 +458,5 @@ class EventDetailsPage extends StatelessWidget {
       ),
     );
   }
-} 
+}
+

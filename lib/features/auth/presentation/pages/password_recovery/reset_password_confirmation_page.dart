@@ -7,6 +7,9 @@ class ResetPasswordConfirmationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     // Obtenir les dimensions de l'écran
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < 600;
@@ -22,14 +25,14 @@ class ResetPasswordConfirmationPage extends StatelessWidget {
     final verticalSpacing = _getVerticalSpacing(size.width);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.background,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios,
-            color: Colors.black,
+            color: colorScheme.onBackground,
             size: isSmallScreen ? 20 : 24,
           ),
           onPressed: () {
@@ -71,7 +74,7 @@ class ResetPasswordConfirmationPage extends StatelessWidget {
                           style: TextStyle(
                             fontSize: titleFontSize,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blueGrey[800],
+                            color: colorScheme.onBackground,
                             height: 1.2,
                           ),
                         ),
@@ -83,7 +86,7 @@ class ResetPasswordConfirmationPage extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: bodyFontSize,
-                            color: Colors.grey[700],
+                            color: colorScheme.onSurface.withOpacity(0.7),
                             height: 1.4,
                           ),
                         ),
@@ -101,7 +104,8 @@ class ResetPasswordConfirmationPage extends StatelessWidget {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blueAccent,
+                              backgroundColor: colorScheme.primary,
+                              foregroundColor: colorScheme.onPrimary,
                               padding: EdgeInsets.symmetric(
                                 horizontal: _getButtonHorizontalPadding(size.width),
                                 vertical: _getButtonVerticalPadding(size.width),
@@ -115,7 +119,7 @@ class ResetPasswordConfirmationPage extends StatelessWidget {
                               LocalizationService().translate('back_to_login'),
                               style: TextStyle(
                                 fontSize: buttonFontSize,
-                                color: Colors.white,
+                                color: colorScheme.onPrimary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
