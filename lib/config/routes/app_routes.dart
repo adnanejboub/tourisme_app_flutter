@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/onboarding/splash_screen.dart';
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/onboarding/welcome_screen.dart';
+import 'package:tourisme_app_flutter/features/auth/presentation/pages/onboarding/enhanced_welcome_screen.dart';
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/authentification/login_screen.dart';
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/authentification/signup_page.dart';
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/password_recovery/forgot_password_page.dart';
@@ -60,7 +61,7 @@ class AppRoutes {
         return _buildRoute(SplashScreen(), settings);
 
       case welcome:
-        return _buildRoute(const WelcomeScreen(), settings);
+        return _buildRoute(const EnhancedWelcomeScreen(), settings);
 
       case login:
         return _buildRoute(const LoginScreen(), settings);

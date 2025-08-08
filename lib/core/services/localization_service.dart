@@ -99,7 +99,7 @@ class LocalizationService extends ChangeNotifier {
   static const Map<String, Map<String, String>> _translations = {
     'English': {
       'skip': 'Skip',
-      'welcome_title': 'Welcome to Our App',
+      'welcome_title': 'Welcome To Morocco',
       'welcome_subtitle': 'Discover a new way to connect and explore.\nGet started on your journey today!',
       'select_language': 'Select Language',
       'get_started': 'Get Started',
@@ -416,14 +416,21 @@ class LocalizationService extends ChangeNotifier {
       'various_locations': 'Various locations',
       'medina': 'Medina',
       'palmerale': 'Palmerale',
+      // Enhanced Welcome Screen translations
+      'choose_your_city': 'Choose your city',
+      'detecting_location': 'Detecting your location...',
+      'selected_city_info': 'City Information',
       // Reservations page translations
       'no_reservations_yet': 'No reservations yet? Let\'s fix that!',
       'book_before_you_go': 'Book before you go to discover the best on site.',
       'start_planning': 'Start planning',
+      'new_trip': 'New Trip',
+      'explore': 'Explore',
+      'logout': 'Logout',
     },
     'Français': {
       'skip': 'Passer',
-      'welcome_title': 'Bienvenue dans notre App',
+      'welcome_title': 'Bienvenue au Maroc',
       'welcome_subtitle': 'Découvrez une nouvelle façon de vous connecter et d\'explorer.\nCommencez votre voyage aujourd\'hui!',
       'select_language': 'Sélectionner la langue',
       'get_started': 'Commencer',
@@ -739,12 +746,19 @@ class LocalizationService extends ChangeNotifier {
       'various_locations': 'Divers emplacements',
       'medina': 'Médina',
       'palmerale': 'Palmeraie',
+      // Enhanced Welcome Screen translations
+      'choose_your_city': 'Choisissez votre ville',
+      'detecting_location': 'Détection de votre localisation...',
+      'selected_city_info': 'Informations sur la ville',
       // Preferences page translations
       'language': 'Langue',
       // Reservations page translations
       'no_reservations_yet': 'Pas encore de réservations ? Corrigeons cela !',
       'book_before_you_go': 'Réservez avant de partir pour découvrir le meilleur sur place.',
       'start_planning': 'Commencer à planifier',
+      'new_trip': 'Nouveau Voyage',
+      'explore': 'Explorer',
+      'logout': 'Déconnexion',
       // Wishlist translations
       'wishlist': 'Liste de souhaits',
       'currency': 'Devise',
@@ -761,7 +775,7 @@ class LocalizationService extends ChangeNotifier {
     },
     'العربية': {
       'skip': 'تخطي',
-      'welcome_title': 'مرحباً بك في تطبيقنا',
+      'welcome_title': 'مرحباً بك في المغرب',
       'welcome_subtitle': 'اكتشف طريقة جديدة للتواصل والاستكشاف.\nابدأ رحلتك اليوم!',
       'select_language': 'اختر اللغة',
       'get_started': 'ابدأ',
@@ -1078,12 +1092,19 @@ class LocalizationService extends ChangeNotifier {
       'various_locations': 'مواقع مختلفة',
       'medina': 'المدينة القديمة',
       'palmerale': 'النخيل',
+      // Enhanced Welcome Screen translations
+      'choose_your_city': 'اختر مدينتك',
+      'detecting_location': 'جاري تحديد موقعك...',
+      'selected_city_info': 'معلومات المدينة',
       // Preferences page translations
       'language': 'اللغة',
       // Reservations page translations
       'no_reservations_yet': 'لا توجد حجوزات بعد؟ دعنا نصلح ذلك!',
       'book_before_you_go': 'احجز قبل الذهاب لاكتشاف الأفضل في الموقع.',
       'start_planning': 'ابدأ التخطيط',
+      'new_trip': 'رحلة جديدة',
+      'explore': 'استكشف',
+      'logout': 'تسجيل الخروج',
       // Wishlist translations
       'wishlist': 'قائمة الرغبات',
       'currency': 'العملة',
@@ -1100,7 +1121,7 @@ class LocalizationService extends ChangeNotifier {
     },
     'Español': {
       'skip': 'Saltar',
-      'welcome_title': 'Bienvenido a nuestra App',
+      'welcome_title': 'Bienvenido a Marruecos',
       'welcome_subtitle': 'Descubre una nueva forma de conectar y explorar.\n¡Comienza tu viaje hoy!',
       'select_language': 'Seleccionar idioma',
       'get_started': 'Empezar',
@@ -1418,12 +1439,19 @@ class LocalizationService extends ChangeNotifier {
       'various_locations': 'Diversas ubicaciones',
       'medina': 'Medina',
       'palmerale': 'Palmeral',
+      // Enhanced Welcome Screen translations
+      'choose_your_city': 'Elige tu ciudad',
+      'detecting_location': 'Detectando tu ubicación...',
+      'selected_city_info': 'Información de la ciudad',
       // Preferences page translations
       'language': 'Idioma',
       // Reservations page translations
       'no_reservations_yet': '¿Aún no tienes reservas? ¡Vamos a solucionarlo!',
       'book_before_you_go': 'Reserva antes de ir para descubrir lo mejor en el sitio.',
       'start_planning': 'Comenzar a planificar',
+      'new_trip': 'Nuevo Viaje',
+      'explore': 'Explorar',
+      'logout': 'Cerrar Sesión',
       // Wishlist translations
       'wishlist': 'Lista de deseos',
       'currency': 'Moneda',

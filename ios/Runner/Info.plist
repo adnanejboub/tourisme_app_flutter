@@ -7,6 +7,10 @@
   <string>We need camera access to take profile pictures.</string>
   <key>NSPhotoLibraryUsageDescription</key>
   <string>We need photo library access to select profile pictures.</string>
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>This app needs location access to suggest nearby tourist destinations.</string>
+  <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+  <string>This app needs location access to provide location-based tourism recommendations.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

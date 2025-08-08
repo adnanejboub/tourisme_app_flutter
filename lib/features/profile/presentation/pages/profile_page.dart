@@ -4,6 +4,7 @@ import '../../../../core/constants/constants.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/services/localization_service.dart';
 import '../../../../shared/widgets/guest_mode_mixin.dart';
+import '../../../../config/routes/app_routes.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -193,7 +194,9 @@ class _ProfilePageState extends State<ProfilePage> with GuestModeMixin {
                       isRestricted: isFeatureRestricted('modify_preferences'),
                     ),
                     const SizedBox(height: 12),
-                    _ThemeSelectorTile(),
+                    const _ThemeSelectorTile(),
+                    const SizedBox(height: 12),
+                    const _LogoutTile(),
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -266,6 +269,8 @@ class _ProfileTile extends StatelessWidget {
 }
 
 class _ThemeSelectorTile extends StatelessWidget {
+  const _ThemeSelectorTile({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -470,6 +475,101 @@ class _ThemeOptionTile extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _LogoutTile extends StatelessWidget {
+  const _LogoutTile({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    return Consumer<LocalizationService>(
+      builder: (context, localizationService, child) {
+        return Material(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(14),
+          elevation: 2,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => _showLogoutDialog(context, localizationService),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.logout, 
+                    color: Colors.white, 
+                    size: 24
+                  ),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: Text(
+                      localizationService.translate('logout'), 
+                      style: const TextStyle(
+                        color: Colors.white, 
+                        fontWeight: FontWeight.w500, 
+                        fontSize: 16
+                      )
+                    ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right, 
+                    color: Colors.white, 
+                    size: 24
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context, LocalizationService localizationService) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: colorScheme.surface,
+          title: Text(
+            localizationService.translate('logout'),
+            style: TextStyle(color: colorScheme.onSurface),
+          ),
+          content: Text(
+            'Are you sure you want to logout?', // Add translation if needed
+            style: TextStyle(color: colorScheme.onSurface),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel', // Add translation if needed
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Perform logout
+                Navigator.of(context).pop();
+                Navigator.pushReplacementNamed(context, AppRoutes.welcome);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(localizationService.translate('logout')),
+            ),
+          ],
+        );
+      },
     );
   }
 }
