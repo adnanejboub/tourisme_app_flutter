@@ -9,7 +9,7 @@ import '/core/services/localization_service.dart';
 import '/core/providers/theme_provider.dart';
 import 'features/auth/presentation/pages/onboarding/splash_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -17,10 +17,14 @@ void main() {
     statusBarIconBrightness: Brightness.dark,
   ));
 
+  // Initialiser le service de localisation
+  final localizationService = LocalizationService();
+  await localizationService.initializeLanguage();
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => LocalizationService()),
+        ChangeNotifierProvider.value(value: localizationService),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
       ],
       child: const TourismApp(),
@@ -33,8 +37,8 @@ class TourismApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
+    return Consumer2<ThemeProvider, LocalizationService>(
+      builder: (context, themeProvider, localizationService, child) {
         return ThemeAwareWidget(
           child: MaterialApp(
             title: 'Marhaba Explorer',
@@ -44,6 +48,13 @@ class TourismApp extends StatelessWidget {
             themeMode: themeProvider.themeMode,
             home: SplashScreen(),
             onGenerateRoute: AppRoutes.generateRoute,
+            // Ajouter la direction du texte basée sur la langue
+            builder: (context, child) {
+              return Directionality(
+                textDirection: localizationService.textDirection,
+                child: child!,
+              );
+            },
           ),
         );
       },

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
 import '../../../auth/presentation/widgets/language_selector_widget.dart';
+import '../../../../shared/widgets/global_localization_widget.dart';
 
 class PreferencesPage extends StatefulWidget {
   const PreferencesPage({Key? key}) : super(key: key);
@@ -12,7 +13,6 @@ class PreferencesPage extends StatefulWidget {
 }
 
 class _PreferencesPageState extends State<PreferencesPage> {
-  String _selectedLanguage = AppConstants.supportedLanguages.first['name']!;
   String _selectedCurrency = 'Euro';
   final _cardNumberController = TextEditingController();
   final _expiryController = TextEditingController();
@@ -68,9 +68,50 @@ class _PreferencesPageState extends State<PreferencesPage> {
                 ),
               ),
               const SizedBox(height: 8),
+              // Afficher la langue actuelle
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: colorScheme.outline),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.shadow.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    CurrentLanguageDisplay(),
+                    const Spacer(),
+                    Icon(
+                      Icons.language,
+                      color: colorScheme.primary,
+                      size: 24,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
               LanguageSelectorWidget(
-                selectedLanguage: _selectedLanguage,
-                onLanguageChanged: (lang) => setState(() => _selectedLanguage = lang),
+                selectedLanguage: localizationService.currentLanguage,
+                onLanguageChanged: (lang) async {
+                  await localizationService.changeLanguage(lang);
+                  // Afficher un message de confirmation
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${localizationService.translate('language')} ${localizationService.translate('save')}'),
+                        backgroundColor: colorScheme.primary,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    );
+                  }
+                },
               ),
               const SizedBox(height: 24),
               // Currency

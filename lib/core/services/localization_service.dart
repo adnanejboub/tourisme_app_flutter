@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../constants/constants.dart';
 
 class LocalizationService extends ChangeNotifier {
   static final LocalizationService _instance = LocalizationService._internal();
@@ -16,9 +18,32 @@ class LocalizationService extends ChangeNotifier {
     return _translations.containsKey(language);
   }
 
-  void changeLanguage(String language) {
+  // Méthode pour initialiser la langue depuis les préférences
+  Future<void> initializeLanguage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedLanguage = prefs.getString(AppConstants.languageKey);
+      if (savedLanguage != null && isLanguageSupported(savedLanguage)) {
+        _currentLanguage = savedLanguage;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error loading saved language: $e');
+    }
+  }
+
+  Future<void> changeLanguage(String language) async {
     if (isLanguageSupported(language)) {
       _currentLanguage = language;
+      
+      // Sauvegarder la langue dans les préférences
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(AppConstants.languageKey, language);
+      } catch (e) {
+        debugPrint('Error saving language preference: $e');
+      }
+      
       notifyListeners();
     } else {
       debugPrint('Warning: Language "$language" is not supported. Using current language: $_currentLanguage');
@@ -52,6 +77,22 @@ class LocalizationService extends ChangeNotifier {
         return 'es';
       default:
         return 'en';
+    }
+  }
+
+  // Méthode pour obtenir le nom natif de la langue
+  String get nativeLanguageName {
+    switch (_currentLanguage) {
+      case 'English':
+        return 'English';
+      case 'Français':
+        return 'Français';
+      case 'العربية':
+        return 'العربية';
+      case 'Español':
+        return 'Español';
+      default:
+        return 'English';
     }
   }
 
@@ -375,6 +416,10 @@ class LocalizationService extends ChangeNotifier {
       'various_locations': 'Various locations',
       'medina': 'Medina',
       'palmerale': 'Palmerale',
+      // Reservations page translations
+      'no_reservations_yet': 'No reservations yet? Let\'s fix that!',
+      'book_before_you_go': 'Book before you go to discover the best on site.',
+      'start_planning': 'Start planning',
     },
     'Français': {
       'skip': 'Passer',
@@ -638,7 +683,6 @@ class LocalizationService extends ChangeNotifier {
       'choose_from_gallery': 'Choisir depuis la Galerie',
       'take_photo': 'Prendre une Photo',
       // Wishlist/Saved page translations
-      'wishlist': 'Liste de Souhaits',
       'products': 'Produits',
       'no_activities_saved': 'Aucune activité sauvegardée pour le moment',
       'start_exploring_activities': 'Commencez à explorer et sauvegardez vos activités préférées',
@@ -695,6 +739,25 @@ class LocalizationService extends ChangeNotifier {
       'various_locations': 'Divers emplacements',
       'medina': 'Médina',
       'palmerale': 'Palmeraie',
+      // Preferences page translations
+      'language': 'Langue',
+      // Reservations page translations
+      'no_reservations_yet': 'Pas encore de réservations ? Corrigeons cela !',
+      'book_before_you_go': 'Réservez avant de partir pour découvrir le meilleur sur place.',
+      'start_planning': 'Commencer à planifier',
+      // Wishlist translations
+      'wishlist': 'Liste de souhaits',
+      'currency': 'Devise',
+      'payment_method': 'Méthode de paiement',
+      'card_number': 'Numéro de carte',
+      'expiry': 'Expiration',
+      'cvc': 'CVC',
+      'cardholder_name': 'Nom du titulaire',
+      'name_on_card': 'Nom sur la carte',
+      'payment_info_saved': 'Informations de paiement sauvegardées !',
+      'euro': 'Euro',
+      'mad': 'Dirham marocain',
+      'dollar': 'Dollar américain',
     },
     'العربية': {
       'skip': 'تخطي',
@@ -958,7 +1021,6 @@ class LocalizationService extends ChangeNotifier {
       'choose_from_gallery': 'اختر من المعرض',
       'take_photo': 'التقاط صورة',
       // Wishlist/Saved page translations
-      'wishlist': 'قائمة الرغبات',
       'products': 'المنتجات',
       'no_activities_saved': 'لا توجد أنشطة محفوظة بعد',
       'start_exploring_activities': 'ابدأ الاستكشاف واحفظ أنشطتك المفضلة',
@@ -1016,6 +1078,25 @@ class LocalizationService extends ChangeNotifier {
       'various_locations': 'مواقع مختلفة',
       'medina': 'المدينة القديمة',
       'palmerale': 'النخيل',
+      // Preferences page translations
+      'language': 'اللغة',
+      // Reservations page translations
+      'no_reservations_yet': 'لا توجد حجوزات بعد؟ دعنا نصلح ذلك!',
+      'book_before_you_go': 'احجز قبل الذهاب لاكتشاف الأفضل في الموقع.',
+      'start_planning': 'ابدأ التخطيط',
+      // Wishlist translations
+      'wishlist': 'قائمة الرغبات',
+      'currency': 'العملة',
+      'payment_method': 'طريقة الدفع',
+      'card_number': 'رقم البطاقة',
+      'expiry': 'تاريخ الانتهاء',
+      'cvc': 'رمز الأمان',
+      'cardholder_name': 'اسم حامل البطاقة',
+      'name_on_card': 'الاسم على البطاقة',
+      'payment_info_saved': 'تم حفظ معلومات الدفع !',
+      'euro': 'يورو',
+      'mad': 'درهم مغربي',
+      'dollar': 'دولار أمريكي',
     },
     'Español': {
       'skip': 'Saltar',
@@ -1279,7 +1360,6 @@ class LocalizationService extends ChangeNotifier {
       'choose_from_gallery': 'Elegir de la Galería',
       'take_photo': 'Tomar Foto',
       // Wishlist/Saved page translations
-      'wishlist': 'Lista de Deseos',
       'products': 'Productos',
       'no_activities_saved': 'No hay actividades guardadas aún',
       'start_exploring_activities': 'Comienza a explorar y guarda tus actividades favoritas',
@@ -1338,6 +1418,25 @@ class LocalizationService extends ChangeNotifier {
       'various_locations': 'Diversas ubicaciones',
       'medina': 'Medina',
       'palmerale': 'Palmeral',
+      // Preferences page translations
+      'language': 'Idioma',
+      // Reservations page translations
+      'no_reservations_yet': '¿Aún no tienes reservas? ¡Vamos a solucionarlo!',
+      'book_before_you_go': 'Reserva antes de ir para descubrir lo mejor en el sitio.',
+      'start_planning': 'Comenzar a planificar',
+      // Wishlist translations
+      'wishlist': 'Lista de deseos',
+      'currency': 'Moneda',
+      'payment_method': 'Método de pago',
+      'card_number': 'Número de tarjeta',
+      'expiry': 'Vencimiento',
+      'cvc': 'CVC',
+      'cardholder_name': 'Nombre del titular',
+      'name_on_card': 'Nombre en la tarjeta',
+      'payment_info_saved': '¡Información de pago guardada!',
+      'euro': 'Euro',
+      'mad': 'Dirham marroquí',
+      'dollar': 'Dólar estadounidense',
     },
   };
 }
