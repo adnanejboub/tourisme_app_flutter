@@ -4,9 +4,9 @@ import '../../../../../config/routes/app_routes.dart';
 import '../../../../../config/theme/app_theme.dart';
 import '../../widgets/language_selector_widget.dart';
 import '../../widgets/custom_button_widget.dart';
-import '../../widgets/theme_toggle_button.dart';
 import '../../../../../core/services/localization_service.dart';
 import '../../../../../core/providers/theme_provider.dart';
+import '../../../../../core/services/guest_mode_service.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -23,6 +23,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
   String selectedLanguage = 'English';
   final LocalizationService _localizationService = LocalizationService();
+  final GuestModeService _guestModeService = GuestModeService();
 
   @override
   void initState() {
@@ -303,11 +304,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
   Widget _buildHeader(ResponsiveDimensions dimensions, bool isDarkMode) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        ThemeToggleButton(),
         TextButton(
-          onPressed: () => AppRoutes.navigateToLogin(context),
+          onPressed: _handleSkip,
           child: Text(
             _localizationService.translate('skip'),
             style: TextStyle(
@@ -544,6 +544,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     } else {
       return AppTheme.primaryColor.withOpacity(0.3);
     }
+  }
+
+  Future<void> _handleSkip() async {
+    // Activer le mode invité
+    _guestModeService.enableGuestMode();
+    
+    // Afficher un message informatif
+    if (!mounted) return;
+    
+    _guestModeService.showGuestModeInfo(context);
+
+    // Naviguer vers la page principale en mode invité
+    if (!mounted) return;
+    AppRoutes.navigateToHome(context);
   }
 
   @override

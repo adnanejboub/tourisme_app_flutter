@@ -172,6 +172,12 @@ class LocalizationService extends ChangeNotifier {
       'profile_name': 'Nasreddine Bikikre',
       'profile_subtitle': 'Manage your profile and preferences',
       'of': 'of',
+      'guest_mode_info': 'Guest mode - Limited features',
+      'guest_mode_description': 'You can explore the app, but some features require login',
+      'login_required': 'Login Required',
+      'login_required_message': 'This feature requires login. Would you like to login now?',
+      'cancel': 'Cancel',
+      'login': 'Login',
     },
     'Français': {
       'skip': 'Passer',
@@ -326,7 +332,13 @@ class LocalizationService extends ChangeNotifier {
       'saved_subtitle': 'Lieux, activités et produits que vous avez enregistrés',
       'profile_name': 'Nasreddine Bikikre',
       'profile_subtitle': 'Gérez votre profil et vos préférences',
-      'of': 'de'
+      'of': 'de',
+      'guest_mode_info': 'Mode invité - Fonctionnalités limitées',
+      'guest_mode_description': 'Vous pouvez explorer l\'application, mais certaines fonctionnalités nécessitent une connexion',
+      'login_required': 'Connexion requise',
+      'login_required_message': 'Cette fonctionnalité nécessite une connexion. Voulez-vous vous connecter maintenant ?',
+      'cancel': 'Annuler',
+      'login': 'Se connecter',
     },
     'العربية': {
       'skip': 'تخطي',
@@ -482,6 +494,12 @@ class LocalizationService extends ChangeNotifier {
       'profile_name': 'Nasreddine Bikikre',
       'profile_subtitle': 'إدارة ملفك الشخصي وتفضيلاتك',
       'of': 'من',
+      'guest_mode_info': 'الوضع الضيف - ميزات محدودة',
+      'guest_mode_description': 'يمكنك استكشاف التطبيق، لكن بعض الميزات تتطلب تسجيل الدخول',
+      'login_required': 'تسجيل الدخول مطلوب',
+      'login_required_message': 'هذه الميزة تتطلب تسجيل الدخول. هل تريد تسجيل الدخول الآن؟',
+      'cancel': 'إلغاء',
+      'login': 'تسجيل الدخول',
     },
     'Español': {
       'skip': 'Saltar',
@@ -637,6 +655,12 @@ class LocalizationService extends ChangeNotifier {
       'profile_name': 'Nasreddine Bikikre',
       'profile_subtitle': 'Administra tu perfil y preferencias',
       'of': 'de', // Added for progress indicator
+      'guest_mode_info': 'Modo invitado - Funciones limitadas',
+      'guest_mode_description': 'Puedes explorar la aplicación, pero algunas funciones requieren inicio de sesión',
+      'login_required': 'Inicio de sesión requerido',
+      'login_required_message': 'Esta función requiere inicio de sesión. ¿Te gustaría iniciar sesión ahora?',
+      'cancel': 'Cancelar',
+      'login': 'Iniciar sesión',
     },
   };
 }

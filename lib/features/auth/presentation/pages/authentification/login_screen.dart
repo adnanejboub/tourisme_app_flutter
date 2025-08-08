@@ -9,6 +9,7 @@ import '../../widgets/custom_button_widget.dart';
 import '../../widgets/custom_text_field_widget.dart';
 import '../../widgets/social_login_buttons_widget.dart';
 import '../../../../../core/services/localization_service.dart';
+import '../../../../../core/services/guest_mode_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -32,6 +33,7 @@ class _LoginScreenState extends State<LoginScreen>
   bool _rememberMe = false;
 
   final LocalizationService _localizationService = LocalizationService();
+  final GuestModeService _guestModeService = GuestModeService();
 
   @override
   void initState() {
@@ -179,6 +181,8 @@ class _LoginScreenState extends State<LoginScreen>
           : SystemUiOverlayStyle.dark,
     );
   }
+
+
 
   Widget _buildHeader(double textScaleFactor) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -408,6 +412,9 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (!mounted) return;
 
+      // Désactiver le mode invité lors de la connexion
+      _guestModeService.disableGuestMode();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_localizationService.translate('login_success')),
@@ -460,6 +467,8 @@ class _LoginScreenState extends State<LoginScreen>
       SnackBar(content: Text(_localizationService.translate('facebook_login_todo'))),
     );
   }
+
+
 
   @override
   void dispose() {

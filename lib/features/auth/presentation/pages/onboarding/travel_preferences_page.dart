@@ -22,8 +22,8 @@ class _TravelPreferencesPageState extends State<TravelPreferencesPage> {
       'type': 'slider',
       'icon': Icons.calendar_today,
       'minValue': 1.0,
-      'maxValue': 7.0,
-      'defaultValue': 3.0,
+      'maxValue': 30.0,
+      'defaultValue': 7.0,
       'unit': _localization.translate('duration_unit')
     },
     {
