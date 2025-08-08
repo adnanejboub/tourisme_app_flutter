@@ -170,7 +170,7 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Key Attractions',
+          localizationService.translate('key_attractions'),
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -207,23 +207,23 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
   Widget _buildRecommendedActivities(LocalizationService localizationService, ColorScheme colorScheme) {
     final activities = [
       {
-        'title': 'Explore the Souks',
-        'location': '${widget.destination['name']} Medina',
+        'title': localizationService.translate('explore_the_souks'),
+        'location': '${widget.destination['name']} ${localizationService.translate('medina')}',
         'image': 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5',
       },
       {
-        'title': 'Visit the Secret Garden',
+        'title': localizationService.translate('visit_secret_garden'),
         'location': widget.destination['name'],
         'image': 'https://images.unsplash.com/photo-1570191913384-b786dde7d9b4',
       },
       {
-        'title': 'Enjoy a traditional Hammam',
-        'location': 'Various locations',
+        'title': localizationService.translate('enjoy_traditional_hammam'),
+        'location': localizationService.translate('various_locations'),
         'image': 'https://images.unsplash.com/photo-1590736969955-71cc94901144',
       },
       {
-        'title': 'Hot Air Balloon Ride',
-        'location': 'Palmerale, ${widget.destination['name']}',
+        'title': localizationService.translate('hot_air_balloon_ride'),
+        'location': '${localizationService.translate('palmerale')}, ${widget.destination['name']}',
         'image': 'https://images.unsplash.com/photo-1591414646028-7b60c18c6f14',
       },
     ];
@@ -232,7 +232,7 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Recommended Activities',
+          localizationService.translate('recommended_activities'),
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -315,7 +315,7 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Location on Map',
+          localizationService.translate('location_on_map'),
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -341,7 +341,7 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Map View',
+                  localizationService.translate('map_view'),
                   style: TextStyle(
                     fontSize: 16,
                     color: colorScheme.onSurface.withOpacity(0.6),
@@ -377,7 +377,7 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
           elevation: 0,
         ),
         child: Text(
-          'Plan Your Itinerary',
+          localizationService.translate('plan_your_itinerary'),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,

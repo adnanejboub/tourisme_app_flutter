@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/constants.dart';
+import '../../../../core/services/localization_service.dart';
 
 class SavedPage extends StatefulWidget {
   const SavedPage({Key? key}) : super(key: key);
@@ -29,37 +31,41 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     
-    return Scaffold(
-      backgroundColor: colorScheme.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(colorScheme),
-            _buildTabBar(colorScheme),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildActivitiesTab(colorScheme),
-                  _buildCitiesTab(colorScheme),
-                  _buildProductsTab(colorScheme),
-                ],
-              ),
+    return Consumer<LocalizationService>(
+      builder: (context, localizationService, child) {
+        return Scaffold(
+          backgroundColor: colorScheme.background,
+          body: SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(colorScheme, localizationService),
+                _buildTabBar(colorScheme, localizationService),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildActivitiesTab(colorScheme, localizationService),
+                      _buildCitiesTab(colorScheme, localizationService),
+                      _buildProductsTab(colorScheme, localizationService),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildHeader(ColorScheme colorScheme) {
+  Widget _buildHeader(ColorScheme colorScheme, LocalizationService localizationService) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         children: [
           Expanded(
             child: Text(
-              'Wishlist',
+              localizationService.translate('wishlist'),
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -76,7 +82,7 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _buildTabBar(ColorScheme colorScheme) {
+  Widget _buildTabBar(ColorScheme colorScheme, LocalizationService localizationService) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       child: TabBar(
@@ -89,25 +95,25 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
         unselectedLabelColor: colorScheme.onSurface.withOpacity(0.6),
         labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 14),
-        tabs: const [
-          Tab(text: 'Activities'),
-          Tab(text: 'Cities'),
-          Tab(text: 'Products'),
+        tabs: [
+          Tab(text: localizationService.translate('activities')),
+          Tab(text: localizationService.translate('cities')),
+          Tab(text: localizationService.translate('products')),
         ],
       ),
     );
   }
 
-  Widget _buildActivitiesTab(ColorScheme colorScheme) {
+  Widget _buildActivitiesTab(ColorScheme colorScheme, LocalizationService localizationService) {
     // TODO: Replace with real activities data
     final activities = <Map<String, dynamic>>[]; // Empty for now
 
     if (activities.isEmpty) {
       return _buildEmptyState(
         icon: Icons.local_activity,
-        title: 'No activities saved yet',
-        subtitle: 'Start exploring and save your favorite activities',
-        actionText: 'Explore Activities',
+        title: localizationService.translate('no_activities_saved'),
+        subtitle: localizationService.translate('start_exploring_activities'),
+        actionText: localizationService.translate('explore_activities'),
         onAction: () {},
         colorScheme: colorScheme,
       );
@@ -118,21 +124,21 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
       itemCount: activities.length,
       itemBuilder: (context, index) {
         final activity = activities[index];
-        return _buildActivityCard(activity, colorScheme);
+        return _buildActivityCard(activity, colorScheme, localizationService);
       },
     );
   }
 
-  Widget _buildCitiesTab(ColorScheme colorScheme) {
+  Widget _buildCitiesTab(ColorScheme colorScheme, LocalizationService localizationService) {
     // TODO: Replace with real cities data
     final cities = <Map<String, dynamic>>[]; // Empty for now
 
     if (cities.isEmpty) {
       return _buildEmptyState(
         icon: Icons.location_city,
-        title: 'No cities saved yet',
-        subtitle: 'Save cities you want to visit',
-        actionText: 'Explore Cities',
+        title: localizationService.translate('no_cities_saved'),
+        subtitle: localizationService.translate('save_cities_visit'),
+        actionText: localizationService.translate('explore_cities'),
         onAction: () {},
         colorScheme: colorScheme,
       );
@@ -143,21 +149,21 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
       itemCount: cities.length,
       itemBuilder: (context, index) {
         final city = cities[index];
-        return _buildCityCard(city, colorScheme);
+        return _buildCityCard(city, colorScheme, localizationService);
       },
     );
   }
 
-  Widget _buildProductsTab(ColorScheme colorScheme) {
+  Widget _buildProductsTab(ColorScheme colorScheme, LocalizationService localizationService) {
     // TODO: Replace with real products data
     final products = <Map<String, dynamic>>[]; // Empty for now
 
     if (products.isEmpty) {
       return _buildEmptyState(
         icon: Icons.shopping_bag,
-        title: 'No products saved yet',
-        subtitle: 'Save products you want to buy',
-        actionText: 'Explore Products',
+        title: localizationService.translate('no_products_saved'),
+        subtitle: localizationService.translate('save_products_buy'),
+        actionText: localizationService.translate('explore_products'),
         onAction: () {},
         colorScheme: colorScheme,
       );
@@ -168,7 +174,7 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
       itemCount: products.length,
       itemBuilder: (context, index) {
         final product = products[index];
-        return _buildProductCard(product, colorScheme);
+        return _buildProductCard(product, colorScheme, localizationService);
       },
     );
   }
@@ -236,7 +242,7 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _buildActivityCard(Map<String, dynamic> activity, ColorScheme colorScheme) {
+  Widget _buildActivityCard(Map<String, dynamic> activity, ColorScheme colorScheme, LocalizationService localizationService) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -256,14 +262,14 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
           child: Icon(Icons.local_activity, color: colorScheme.onPrimary),
         ),
         title: Text(
-          activity['title'] ?? 'Activity',
+          activity['title'] ?? localizationService.translate('activity'),
           style: TextStyle(
             fontWeight: FontWeight.w600,
             color: colorScheme.onSurface,
           ),
         ),
         subtitle: Text(
-          activity['location'] ?? 'Location',
+          activity['location'] ?? localizationService.translate('location'),
           style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
         ),
         trailing: IconButton(
@@ -274,7 +280,7 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _buildCityCard(Map<String, dynamic> city, ColorScheme colorScheme) {
+  Widget _buildCityCard(Map<String, dynamic> city, ColorScheme colorScheme, LocalizationService localizationService) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -294,14 +300,14 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
           child: Icon(Icons.location_city, color: colorScheme.onPrimary),
         ),
         title: Text(
-          city['name'] ?? 'City',
+          city['name'] ?? localizationService.translate('cities'),
           style: TextStyle(
             fontWeight: FontWeight.w600,
             color: colorScheme.onSurface,
           ),
         ),
         subtitle: Text(
-          city['country'] ?? 'Country',
+          city['country'] ?? localizationService.translate('location'),
           style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
         ),
         trailing: IconButton(
@@ -312,7 +318,7 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _buildProductCard(Map<String, dynamic> product, ColorScheme colorScheme) {
+  Widget _buildProductCard(Map<String, dynamic> product, ColorScheme colorScheme, LocalizationService localizationService) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -332,14 +338,14 @@ class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMix
           child: Icon(Icons.shopping_bag, color: colorScheme.onPrimary),
         ),
         title: Text(
-          product['name'] ?? 'Product',
+          product['name'] ?? localizationService.translate('products'),
           style: TextStyle(
             fontWeight: FontWeight.w600,
             color: colorScheme.onSurface,
           ),
         ),
         subtitle: Text(
-          product['price'] ?? 'Price',
+          product['price'] ?? localizationService.translate('price'),
           style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
         ),
         trailing: IconButton(

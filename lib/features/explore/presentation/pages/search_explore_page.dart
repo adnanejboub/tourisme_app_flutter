@@ -80,7 +80,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
               onPressed: () => Navigator.pop(context),
             ),
             title: Text(
-              'Search Morocco',
+              localizationService.translate('search_morocco'),
               style: TextStyle(
                 color: colorScheme.onBackground,
                 fontWeight: FontWeight.bold,
@@ -102,27 +102,31 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
   }
 
   Widget _buildSearchBar(ColorScheme colorScheme) {
-    return Container(
-      margin: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.onSurface.withOpacity(0.1)),
-      ),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'Search cities, activities...',
-          hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
-          prefixIcon: Icon(Icons.search, color: colorScheme.onSurface.withOpacity(0.6)),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        ),
-        style: TextStyle(
-          fontSize: 16,
-          color: colorScheme.onSurface,
-        ),
-      ),
+    return Consumer<LocalizationService>(
+      builder: (context, localizationService, child) {
+        return Container(
+          margin: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: colorScheme.onSurface.withOpacity(0.1)),
+          ),
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: localizationService.translate('search_cities_activities_hint'),
+              hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
+              prefixIcon: Icon(Icons.search, color: colorScheme.onSurface.withOpacity(0.6)),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            ),
+            style: TextStyle(
+              fontSize: 16,
+              color: colorScheme.onSurface,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -154,150 +158,162 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
   }
 
   Widget _buildEmptyState(ColorScheme colorScheme) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.search,
-            size: 64,
-            color: colorScheme.onSurface.withOpacity(0.4),
+    return Consumer<LocalizationService>(
+      builder: (context, localizationService, child) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.search,
+                size: 64,
+                color: colorScheme.onSurface.withOpacity(0.4),
+              ),
+              SizedBox(height: 16),
+              Text(
+                localizationService.translate('search_for_cities_activities'),
+                style: TextStyle(
+                  fontSize: 18,
+                  color: colorScheme.onSurface.withOpacity(0.6),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
-          SizedBox(height: 16),
-          Text(
-            'Search for cities, activities, or attractions',
-            style: TextStyle(
-              fontSize: 18,
-              color: colorScheme.onSurface.withOpacity(0.6),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildNoResults(ColorScheme colorScheme) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.search_off,
-            size: 64,
-            color: colorScheme.onSurface.withOpacity(0.4),
+    return Consumer<LocalizationService>(
+      builder: (context, localizationService, child) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.search_off,
+                size: 64,
+                color: colorScheme.onSurface.withOpacity(0.4),
+              ),
+              SizedBox(height: 16),
+              Text(
+                '${localizationService.translate('no_results_found')} "$_searchQuery"',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: colorScheme.onSurface.withOpacity(0.6),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 8),
+              Text(
+                localizationService.translate('try_different_keywords'),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: colorScheme.onSurface.withOpacity(0.5),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
-          SizedBox(height: 16),
-          Text(
-            'No results found for "$_searchQuery"',
-            style: TextStyle(
-              fontSize: 18,
-              color: colorScheme.onSurface.withOpacity(0.6),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Try different keywords or check spelling',
-            style: TextStyle(
-              fontSize: 14,
-              color: colorScheme.onSurface.withOpacity(0.5),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildSearchResultCard(Map<String, dynamic> city, ColorScheme colorScheme) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DetailsExplorePage(destination: city as Map<String, dynamic>),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  city['imageUrl'] ?? 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5',
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 80,
-                      height: 80,
-                      color: colorScheme.onSurface.withOpacity(0.1),
-                      child: Icon(Icons.image, color: colorScheme.onSurface.withOpacity(0.6)),
-                    );
-                  },
-                ),
-              ),
-              SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      city['name'] ?? 'City',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      city['arabicName'] ?? '',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colorScheme.onSurface.withOpacity(0.6),
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      city['description'] ?? '',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colorScheme.onSurface.withOpacity(0.7),
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: colorScheme.onSurface.withOpacity(0.4),
-                size: 16,
+    return Consumer<LocalizationService>(
+      builder: (context, localizationService, child) {
+        return Container(
+          margin: EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: Offset(0, 2),
               ),
             ],
           ),
-        ),
-      ),
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetailsExplorePage(destination: city as Map<String, dynamic>),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      city['imageUrl'] ?? 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5',
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: 80,
+                          height: 80,
+                          color: colorScheme.onSurface.withOpacity(0.1),
+                          child: Icon(Icons.image, color: colorScheme.onSurface.withOpacity(0.6)),
+                        );
+                      },
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          city['name'] ?? localizationService.translate('city'),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          city['arabicName'] ?? '',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: colorScheme.onSurface.withOpacity(0.6),
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          city['description'] ?? '',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    color: colorScheme.onSurface.withOpacity(0.4),
+                    size: 16,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 } 

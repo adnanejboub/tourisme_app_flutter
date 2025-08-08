@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../config/theme/app_theme.dart';
 import '../../core/services/guest_mode_service.dart';
-
-
+import '../../core/services/localization_service.dart';
 
 class PlanTripButton extends StatelessWidget {
   final VoidCallback? onTripPlanned;
@@ -23,36 +23,40 @@ class PlanTripButton extends StatelessWidget {
         final guestModeService = GuestModeService();
         final isGuestMode = guestModeService.isGuestMode;
 
-        return Container(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () => _handlePlanTrip(context, guestModeService),
-            icon: Icon(
-              isGuestMode ? Icons.lock : Icons.calendar_today,
-              size: 20,
-            ),
-            label: Text(
-              isGuestMode 
-                  ? 'Se connecter pour planifier' 
-                  : 'Planifier un voyage',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+        return Consumer<LocalizationService>(
+          builder: (context, localizationService, child) {
+            return Container(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _handlePlanTrip(context, guestModeService),
+                icon: Icon(
+                  isGuestMode ? Icons.lock : Icons.calendar_today,
+                  size: 20,
+                ),
+                label: Text(
+                  isGuestMode 
+                      ? localizationService.translate('login_required_message')
+                      : localizationService.translate('plan_your_itinerary'),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isGuestMode 
+                      ? Colors.grey[300] 
+                      : AppTheme.primaryColor,
+                  foregroundColor: isGuestMode 
+                      ? Colors.grey[600] 
+                      : Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
               ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isGuestMode 
-                  ? Colors.grey[300] 
-                  : AppTheme.primaryColor,
-              foregroundColor: isGuestMode 
-                  ? Colors.grey[600] 
-                  : Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
+            );
+          },
         );
       },
     );

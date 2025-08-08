@@ -27,37 +27,37 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
       'id': 'sightseeing',
       'name': 'activity_sightseeing',
       'icon': Icons.visibility,
-      'duration': '2-4 hours',
+      'duration': '2_4_hours',
     },
     {
       'id': 'food_tour',
       'name': 'activity_food_tour',
       'icon': Icons.restaurant,
-      'duration': '3-4 hours',
+      'duration': '3_4_hours',
     },
     {
       'id': 'shopping',
       'name': 'activity_shopping',
       'icon': Icons.shopping_bag,
-      'duration': '2-3 hours',
+      'duration': '2_3_hours',
     },
     {
       'id': 'cultural_visit',
       'name': 'activity_cultural_visit',
       'icon': Icons.museum,
-      'duration': '1-2 hours',
+      'duration': '1_2_hours',
     },
     {
       'id': 'adventure',
       'name': 'activity_adventure',
       'icon': Icons.directions_bike,
-      'duration': '4-6 hours',
+      'duration': '4_6_hours',
     },
     {
       'id': 'relaxation',
       'name': 'activity_relaxation',
       'icon': Icons.spa,
-      'duration': '2-3 hours',
+      'duration': '2_3_hours',
     },
   ];
 
@@ -469,7 +469,7 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      activity['duration'] as String,
+                      localizationService.translate(activity['duration'] as String),
                       style: TextStyle(
                         color: isSelected ? colorScheme.onPrimary.withOpacity(0.8) : colorScheme.onSurface.withOpacity(0.7),
                         fontSize: 12,

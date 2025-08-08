@@ -92,8 +92,8 @@ class _ExplorePageState extends State<ExplorePage> {
           body: SafeArea(
             child: Column(
               children: [
-                _buildHeader(colorScheme),
-                _buildSearchBar(colorScheme),
+                _buildHeader(colorScheme, localizationService),
+                _buildSearchBar(colorScheme, localizationService),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.symmetric(horizontal: 16),
@@ -101,13 +101,13 @@ class _ExplorePageState extends State<ExplorePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 24),
-                        _buildCategoriesSection(colorScheme),
+                        _buildCategoriesSection(colorScheme, localizationService),
                         SizedBox(height: 32),
-                        _buildPopularCitiesSection(colorScheme),
+                        _buildPopularCitiesSection(colorScheme, localizationService),
                         SizedBox(height: 32),
-                        _buildRecommendedActivitiesSection(colorScheme),
+                        _buildRecommendedActivitiesSection(colorScheme, localizationService),
                         SizedBox(height: 32),
-                        _buildUpcomingEventsSection(colorScheme),
+                        _buildUpcomingEventsSection(colorScheme, localizationService),
                         SizedBox(height: 32),
                       ],
                     ),
@@ -121,7 +121,7 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildHeader(ColorScheme colorScheme) {
+  Widget _buildHeader(ColorScheme colorScheme, LocalizationService localizationService) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
@@ -132,7 +132,7 @@ class _ExplorePageState extends State<ExplorePage> {
           ),
           Expanded(
             child: Text(
-              'Explore Morocco',
+              localizationService.translate('explore_morocco'),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -150,7 +150,7 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildSearchBar(ColorScheme colorScheme) {
+  Widget _buildSearchBar(ColorScheme colorScheme, LocalizationService localizationService) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -168,7 +168,7 @@ class _ExplorePageState extends State<ExplorePage> {
               Icon(Icons.search, color: colorScheme.onSurface.withOpacity(0.6)),
               SizedBox(width: 12),
               Text(
-                'Search cities, activities...',
+                localizationService.translate('search_cities_activities'),
                 style: TextStyle(
                   color: colorScheme.onSurface.withOpacity(0.6),
                   fontSize: 16,
@@ -181,19 +181,19 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildCategoriesSection(ColorScheme colorScheme) {
+  Widget _buildCategoriesSection(ColorScheme colorScheme, LocalizationService localizationService) {
     final categories = [
-      {'id': 'cities', 'name': 'Cities', 'icon': Icons.location_city},
-      {'id': 'culture', 'name': 'Culture', 'icon': Icons.book},
-      {'id': 'nature', 'name': 'Nature', 'icon': Icons.landscape},
-      {'id': 'adventure', 'name': 'Adventure', 'icon': Icons.directions_bike},
+      {'id': 'cities', 'name': localizationService.translate('cities'), 'icon': Icons.location_city},
+      {'id': 'culture', 'name': localizationService.translate('culture'), 'icon': Icons.book},
+      {'id': 'nature', 'name': localizationService.translate('nature'), 'icon': Icons.landscape},
+      {'id': 'adventure', 'name': localizationService.translate('adventure'), 'icon': Icons.directions_bike},
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Categories',
+          localizationService.translate('categories'),
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -243,12 +243,12 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildPopularCitiesSection(ColorScheme colorScheme) {
+  Widget _buildPopularCitiesSection(ColorScheme colorScheme, LocalizationService localizationService) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Popular Cities',
+          localizationService.translate('popular_cities'),
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -328,12 +328,12 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildRecommendedActivitiesSection(ColorScheme colorScheme) {
+  Widget _buildRecommendedActivitiesSection(ColorScheme colorScheme, LocalizationService localizationService) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Recommended Activities',
+          localizationService.translate('recommended_activities'),
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -415,7 +415,7 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildUpcomingEventsSection(ColorScheme colorScheme) {
+  Widget _buildUpcomingEventsSection(ColorScheme colorScheme, LocalizationService localizationService) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -423,7 +423,7 @@ class _ExplorePageState extends State<ExplorePage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Upcoming Events',
+              localizationService.translate('upcoming_events'),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -433,7 +433,7 @@ class _ExplorePageState extends State<ExplorePage> {
             TextButton(
               onPressed: () => _openEventsPage(),
               child: Text(
-                'View All',
+                localizationService.translate('view_all'),
                 style: TextStyle(
                   color: colorScheme.primary,
                   fontWeight: FontWeight.w600,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/constants.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/services/localization_service.dart';
 import '../../../../shared/widgets/guest_mode_mixin.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -17,186 +18,190 @@ class _ProfilePageState extends State<ProfilePage> with GuestModeMixin {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     
-    return Scaffold(
-      backgroundColor: colorScheme.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 24),
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Consumer<LocalizationService>(
+      builder: (context, localizationService, child) {
+        return Scaffold(
+          backgroundColor: colorScheme.background,
+          body: SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Profile',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onBackground,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.edit, color: colorScheme.primary, size: 26),
-                      onPressed: () => executeWithGuestCheck('edit_profile', () {
-                        Navigator.pushNamed(context, '/edit_profile');
-                      }),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                // Avatar
-                Center(
-                  child: Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      CircleAvatar(
-                        radius: 48,
-                        backgroundColor: colorScheme.surface,
-                        child: Icon(Icons.person, size: 60, color: colorScheme.onSurface.withOpacity(0.6)),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: GestureDetector(
-                          onTap: () {},
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: colorScheme.surface,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.all(6),
-                            child: Icon(Icons.camera_alt, size: 20, color: colorScheme.primary),
+                    const SizedBox(height: 24),
+                    // Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          localizationService.translate('profile'),
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onBackground,
                           ),
                         ),
+                        IconButton(
+                          icon: Icon(Icons.edit, color: colorScheme.primary, size: 26),
+                          onPressed: () => executeWithGuestCheck('edit_profile', () {
+                            Navigator.pushNamed(context, '/edit_profile');
+                          }),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    // Avatar
+                    Center(
+                      child: Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          CircleAvatar(
+                            radius: 48,
+                            backgroundColor: colorScheme.surface,
+                            child: Icon(Icons.person, size: 60, color: colorScheme.onSurface.withOpacity(0.6)),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: GestureDetector(
+                              onTap: () {},
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surface,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 4,
+                                    ),
+                                  ],
+                                ),
+                                padding: const EdgeInsets.all(6),
+                                child: Icon(Icons.camera_alt, size: 20, color: colorScheme.primary),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
-                // Name & info
-                Center(
-                  child: Column(
-                    children: [
-                      Text('adnane', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colorScheme.onBackground)),
-                      const SizedBox(height: 4),
-                      Text('Member since 2025', style: TextStyle(fontSize: 16, color: colorScheme.onBackground.withOpacity(0.6))),
-                      const SizedBox(height: 2),
-                      Text('0 contribution', style: TextStyle(fontSize: 14, color: colorScheme.onBackground.withOpacity(0.6))),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Description
-                Text(
-                  'Tell other travelers a bit about yourself.',
-                  style: TextStyle(color: colorScheme.onBackground, fontSize: 15),
-                ),
-                const SizedBox(height: 16),
-                // City
-                Row(
-                  children: [
-                    Icon(Icons.location_on, color: colorScheme.onBackground.withOpacity(0.6), size: 20),
-                    const SizedBox(width: 8),
-                    Text('No city selected.', style: TextStyle(color: colorScheme.onBackground.withOpacity(0.6))),
+                    ),
+                    const SizedBox(height: 18),
+                    // Name & info
+                    Center(
+                      child: Column(
+                        children: [
+                          Text('adnane', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colorScheme.onBackground)),
+                          const SizedBox(height: 4),
+                          Text('${localizationService.translate('member_since')} 2025', style: TextStyle(fontSize: 16, color: colorScheme.onBackground.withOpacity(0.6))),
+                          const SizedBox(height: 2),
+                          Text('0 ${localizationService.translate('contribution')}', style: TextStyle(fontSize: 14, color: colorScheme.onBackground.withOpacity(0.6))),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Description
+                    Text(
+                      localizationService.translate('tell_about_yourself'),
+                      style: TextStyle(color: colorScheme.onBackground, fontSize: 15),
+                    ),
+                    const SizedBox(height: 16),
+                    // City
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, color: colorScheme.onBackground.withOpacity(0.6), size: 20),
+                        const SizedBox(width: 8),
+                        Text(localizationService.translate('no_city_selected'), style: TextStyle(color: colorScheme.onBackground.withOpacity(0.6))),
+                      ],
+                    ),
+                    const SizedBox(height: 28),
+                    // Accomplishments
+                    Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(localizationService.translate('your_achievements'), style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 17)),
+                              Text(localizationService.translate('show_all'), style: TextStyle(color: colorScheme.primary, decoration: TextDecoration.underline)),
+                            ],
+                          ),
+                          Divider(color: colorScheme.onSurface.withOpacity(0.2), height: 24),
+                          Row(
+                            children: [
+                              Icon(Icons.lock, color: colorScheme.onSurface.withOpacity(0.6), size: 36),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(localizationService.translate('write_first_review'), style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.w600)),
+                                    Text(localizationService.translate('unlock_levels_reviews'), style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 13)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 18),
+                          Row(
+                            children: [
+                              Icon(Icons.lock, color: colorScheme.onSurface.withOpacity(0.6), size: 36),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(localizationService.translate('upload_first_photo'), style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.w600)),
+                                    Text(localizationService.translate('unlock_levels_photos'), style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 13)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    // ListTiles
+                    _ProfileTile(
+                      icon: Icons.calendar_today,
+                      title: localizationService.translate('reservations'),
+                      onTap: () => executeWithGuestCheck('view_reservations', () {
+                        Navigator.pushNamed(context, '/reservations');
+                      }),
+                      isRestricted: isFeatureRestricted('view_reservations'),
+                    ),
+                    const SizedBox(height: 12),
+                    _ProfileTile(
+                      icon: Icons.settings,
+                      title: localizationService.translate('preferences'),
+                      onTap: () => executeWithGuestCheck('modify_preferences', () {
+                        Navigator.pushNamed(context, '/preferences');
+                      }),
+                      isRestricted: isFeatureRestricted('modify_preferences'),
+                    ),
+                    const SizedBox(height: 12),
+                    _ThemeSelectorTile(),
+                    const SizedBox(height: 32),
                   ],
                 ),
-                const SizedBox(height: 28),
-                // Accomplishments
-                Container(
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Your Achievements', style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 17)),
-                          Text('Show all', style: TextStyle(color: colorScheme.primary, decoration: TextDecoration.underline)),
-                        ],
-                      ),
-                      Divider(color: colorScheme.onSurface.withOpacity(0.2), height: 24),
-                      Row(
-                        children: [
-                          Icon(Icons.lock, color: colorScheme.onSurface.withOpacity(0.6), size: 36),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Write your first review', style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.w600)),
-                                Text('Unlock levels with reviews', style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 13)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 18),
-                      Row(
-                        children: [
-                          Icon(Icons.lock, color: colorScheme.onSurface.withOpacity(0.6), size: 36),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Upload your first photo', style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.w600)),
-                                Text('Unlock levels with photos', style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 13)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-                // ListTiles
-                _ProfileTile(
-                  icon: Icons.calendar_today,
-                  title: 'Reservations',
-                  onTap: () => executeWithGuestCheck('view_reservations', () {
-                    Navigator.pushNamed(context, '/reservations');
-                  }),
-                  isRestricted: isFeatureRestricted('view_reservations'),
-                ),
-                const SizedBox(height: 12),
-                _ProfileTile(
-                  icon: Icons.settings,
-                  title: 'Preferences',
-                  onTap: () => executeWithGuestCheck('modify_preferences', () {
-                    Navigator.pushNamed(context, '/preferences');
-                  }),
-                  isRestricted: isFeatureRestricted('modify_preferences'),
-                ),
-                const SizedBox(height: 12),
-                _ThemeSelectorTile(),
-                const SizedBox(height: 32),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -268,69 +273,73 @@ class _ThemeSelectorTile extends StatelessWidget {
     
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
-        return Material(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(14),
-          elevation: 2,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(14),
-            onTap: () {
-              _showThemeDialog(context, themeProvider);
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.palette, 
-                    color: colorScheme.primary, 
-                    size: 24
+        return Consumer<LocalizationService>(
+          builder: (context, localizationService, child) {
+            return Material(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(14),
+              elevation: 2,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  _showThemeDialog(context, themeProvider, localizationService);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.palette, 
+                        color: colorScheme.primary, 
+                        size: 24
+                      ),
+                      const SizedBox(width: 18),
+                      Expanded(
+                        child: Text(
+                          localizationService.translate('theme'), 
+                          style: TextStyle(
+                            color: colorScheme.onSurface, 
+                            fontWeight: FontWeight.w500, 
+                            fontSize: 16
+                          )
+                        ),
+                      ),
+                      Text(
+                        _getThemeModeText(themeProvider.themeMode, localizationService),
+                        style: TextStyle(
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.chevron_right, 
+                        color: colorScheme.onSurface.withOpacity(0.6), 
+                        size: 24
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 18),
-                  Expanded(
-                    child: Text(
-                      'Theme', 
-                      style: TextStyle(
-                        color: colorScheme.onSurface, 
-                        fontWeight: FontWeight.w500, 
-                        fontSize: 16
-                      )
-                    ),
-                  ),
-                  Text(
-                    _getThemeModeText(themeProvider.themeMode),
-                    style: TextStyle(
-                      color: colorScheme.onSurface.withOpacity(0.6),
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.chevron_right, 
-                    color: colorScheme.onSurface.withOpacity(0.6), 
-                    size: 24
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
   }
 
-  String _getThemeModeText(ThemeMode mode) {
+  String _getThemeModeText(ThemeMode mode, LocalizationService localizationService) {
     switch (mode) {
       case ThemeMode.light:
-        return 'Light';
+        return localizationService.translate('light');
       case ThemeMode.dark:
-        return 'Dark';
+        return localizationService.translate('dark');
       case ThemeMode.system:
-        return 'System';
+        return localizationService.translate('system');
     }
   }
 
-  void _showThemeDialog(BuildContext context, ThemeProvider themeProvider) {
+  void _showThemeDialog(BuildContext context, ThemeProvider themeProvider, LocalizationService localizationService) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     
@@ -340,15 +349,15 @@ class _ThemeSelectorTile extends StatelessWidget {
         return AlertDialog(
           backgroundColor: colorScheme.surface,
           title: Text(
-            'Choose Theme',
+            localizationService.translate('choose_theme'),
             style: TextStyle(color: colorScheme.onSurface),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               _ThemeOptionTile(
-                title: 'Light',
-                subtitle: 'Always use light theme',
+                title: localizationService.translate('light'),
+                subtitle: localizationService.translate('always_use_light'),
                 icon: Icons.wb_sunny,
                 isSelected: themeProvider.themeMode == ThemeMode.light,
                 onTap: () {
@@ -358,8 +367,8 @@ class _ThemeSelectorTile extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               _ThemeOptionTile(
-                title: 'Dark',
-                subtitle: 'Always use dark theme',
+                title: localizationService.translate('dark'),
+                subtitle: localizationService.translate('always_use_dark'),
                 icon: Icons.nightlight_round,
                 isSelected: themeProvider.themeMode == ThemeMode.dark,
                 onTap: () {
@@ -369,8 +378,8 @@ class _ThemeSelectorTile extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               _ThemeOptionTile(
-                title: 'System',
-                subtitle: 'Follow system theme',
+                title: localizationService.translate('system'),
+                subtitle: localizationService.translate('follow_system_theme'),
                 icon: Icons.settings_system_daydream,
                 isSelected: themeProvider.themeMode == ThemeMode.system,
                 onTap: () {
