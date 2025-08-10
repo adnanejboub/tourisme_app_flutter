@@ -19,6 +19,7 @@ import 'package:tourisme_app_flutter/features/explore/presentation/pages/search_
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/filter_explore_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/events_explore_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/itinerary_planning_page.dart';
+import 'package:tourisme_app_flutter/features/explore/presentation/pages/city_selection_page.dart';
 import 'package:tourisme_app_flutter/features/products/presentation/pages/products_page.dart';
 import 'package:tourisme_app_flutter/features/saved/presentation/pages/saved_page.dart';
 import 'package:tourisme_app_flutter/features/profile/presentation/pages/profile_page.dart';
@@ -47,6 +48,7 @@ class AppRoutes {
   static const String filterExplore = '/filter-explore';
   static const String eventsExplore = '/events-explore';
   static const String itineraryPlanning = '/itinerary-planning';
+  static const String citySelection = '/city-selection';
   static const String products = '/products';
   static const String saved = '/saved';
   static const String profile = '/profile';
@@ -127,6 +129,9 @@ class AppRoutes {
         final args = settings.arguments as Map<String, dynamic>?;
         final destination = args?['destination'] as Map<String, dynamic>?;
         return _buildRoute(ItineraryPlanningPage(destination: destination), settings);
+
+      case citySelection:
+        return _buildRoute(const CitySelectionPage(), settings);
 
       case products:
         return _buildRoute(const ProductsPage(), settings);

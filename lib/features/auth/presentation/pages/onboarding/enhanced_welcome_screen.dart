@@ -401,33 +401,8 @@ class _EnhancedWelcomeScreenState extends State<EnhancedWelcomeScreen>
   }
 
   void _handleNewTrip() async {
-    // Navigate to itinerary planning with pre-selected city based on location
-    if (detectedCity != null) {
-      final location = await _locationService.detectUserLocation();
-      
-      // Create a destination object for the detected city
-      final destination = {
-        'name': detectedCity!,
-        'type': 'city',
-        'isUserLocation': true,
-        'location': {
-          'latitude': location.latitude,
-          'longitude': location.longitude,
-        },
-        'description': 'Your detected location - ${detectedCity!}',
-        'preSelected': true,
-      };
-      
-      Navigator.pushNamed(
-        context,
-        AppRoutes.itineraryPlanning,
-        arguments: {
-          'destination': destination,
-        },
-      );
-    } else {
-      Navigator.pushNamed(context, AppRoutes.itineraryPlanning);
-    }
+    // Navigate to city selection page
+    Navigator.pushNamed(context, AppRoutes.citySelection);
   }
 
   void _handleExplore() {
