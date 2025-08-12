@@ -51,10 +51,20 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
 
     final query = _searchQuery.toLowerCase();
     final results = AppConstants.moroccoCities.where((city) {
-      return city['name'].toLowerCase().contains(query) ||
-          city['arabicName'].toLowerCase().contains(query) ||
-          city['description'].toLowerCase().contains(query) ||
-          city['attractions'].any((attraction) => attraction.toLowerCase().contains(query));
+      // Vérifier que les clés existent avant d'y accéder
+      final name = city['name']?.toString().toLowerCase() ?? '';
+      final arabicName = city['arabicName']?.toString().toLowerCase() ?? '';
+      final description = city['description']?.toString().toLowerCase() ?? '';
+      
+      // Vérifier si la ville a des attractions et les filtrer
+      final attractions = city['attractions'] as List<dynamic>?;
+      final hasMatchingAttraction = attractions?.any((attraction) => 
+        attraction.toString().toLowerCase().contains(query)) ?? false;
+      
+      return name.contains(query) ||
+          arabicName.contains(query) ||
+          description.contains(query) ||
+          hasMatchingAttraction;
     }).toList();
 
     setState(() {

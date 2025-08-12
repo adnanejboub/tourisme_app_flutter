@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
-import 'itinerary_result_page.dart';
+import '../../../saved/data/models/trip_model.dart';
+import '../../../saved/data/services/trip_service.dart';
+import '../../../saved/presentation/pages/create_edit_trip_page.dart';
 
 class ItineraryPlanningPage extends StatefulWidget {
   final Map<String, dynamic>? destination;
@@ -702,20 +704,20 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
   }
 
   Widget _buildActionButton(ColorScheme colorScheme, LocalizationService localizationService, bool isTablet, bool isDesktop) {
-    final canGenerate = _selectedActivities.length >= 2 && !_isGenerating;
+    final canCreateTrip = _selectedActivities.length >= 2 && !_isGenerating;
     
     return Container(
       width: double.infinity,
       height: isDesktop ? 64 : 56,
       child: ElevatedButton(
-        onPressed: canGenerate ? _generateItinerary : null,
+        onPressed: canCreateTrip ? _createTrip : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: canGenerate ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.3),
-          foregroundColor: canGenerate ? colorScheme.onPrimary : colorScheme.onSurface.withOpacity(0.5),
+          backgroundColor: canCreateTrip ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.3),
+          foregroundColor: canCreateTrip ? colorScheme.onPrimary : colorScheme.onSurface.withOpacity(0.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          elevation: canGenerate ? 4 : 0,
+          elevation: canCreateTrip ? 4 : 0,
         ),
         child: _isGenerating
             ? Row(
@@ -731,7 +733,7 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                   ),
                   SizedBox(width: 16),
                   Text(
-                    'Generating Itinerary...',
+                    'Creating Trip...',
                     style: TextStyle(
                       fontSize: isDesktop ? 18 : 16,
                       fontWeight: FontWeight.bold,
@@ -743,12 +745,12 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.auto_awesome,
+                    Icons.add_location_alt,
                     size: isDesktop ? 28 : 24,
                   ),
                   SizedBox(width: 12),
                   Text(
-                    'Generate Smart Itinerary',
+                    'Create Trip',
                     style: TextStyle(
                       fontSize: isDesktop ? 18 : 16,
                       fontWeight: FontWeight.bold,
@@ -760,11 +762,11 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
     );
   }
 
-  Future<void> _generateItinerary() async {
+  Future<void> _createTrip() async {
     if (_selectedActivities.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please select at least 2 activities to generate an itinerary'),
+          content: Text('Please select at least 2 activities to create a trip'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -775,28 +777,87 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
       _isGenerating = true;
     });
 
-    // Simuler la génération d'itinéraire
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // Calculate end date based on selected days
+      final endDate = _startDate.add(Duration(days: _selectedDays - 1));
+      
+      // Create trip name based on destination and activities
+      final destinationName = widget.destination?['name'] ?? 'Morocco';
+      final tripName = '${destinationName} Adventure';
+      
+      // Convert selected activities to TripActivity objects
+      final List<TripActivity> tripActivities = _selectedActivities.map((activityId) {
+        final activity = _availableActivities.firstWhere((a) => a['id'] == activityId);
+        return TripActivity(
+          id: DateTime.now().millisecondsSinceEpoch.toString() + '_${activityId}',
+          name: activity['name'],
+          type: 'attraction',
+          description: activity['description'],
+          duration: _parseDurationToMinutes(activity['duration']),
+        );
+      }).toList();
 
-    setState(() {
-      _isGenerating = false;
-    });
+      // Create the trip
+      final trip = TripModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: tripName,
+        destination: destinationName,
+        startDate: _startDate,
+        endDate: endDate,
+        activities: tripActivities,
+        notes: 'Budget: ${_budgetRanges[_selectedBudget]?['name']} (${_budgetRanges[_selectedBudget]?['range']})',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
-    // Naviguer vers la page de résultat
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ItineraryResultPage(
-          destination: widget.destination,
-          tripData: {
-            'days': _selectedDays,
-            'budget': _selectedBudget,
-            'activities': _selectedActivities,
-            'startDate': _startDate,
-            'budgetInfo': _budgetRanges[_selectedBudget],
-          },
+      // Save trip to service
+      final tripService = TripService();
+      await tripService.saveTrip(trip);
+
+      setState(() {
+        _isGenerating = false;
+      });
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Trip created successfully!'),
+          backgroundColor: Colors.green,
         ),
-      ),
-    );
+      );
+
+      // Navigate to the trip details page
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CreateEditTripPage(trip: trip),
+        ),
+      );
+
+    } catch (e) {
+      setState(() {
+        _isGenerating = false;
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error creating trip: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  int? _parseDurationToMinutes(String duration) {
+    // Parse duration strings like "2-4 hours", "3-4 hours", etc.
+    final regex = RegExp(r'(\d+)-?(\d+)?\s*hours?');
+    final match = regex.firstMatch(duration);
+    if (match != null) {
+      final minHours = int.tryParse(match.group(1) ?? '0') ?? 0;
+      final maxHours = int.tryParse(match.group(2) ?? match.group(1) ?? '0') ?? minHours;
+      // Return average duration in minutes
+      return ((minHours + maxHours) / 2 * 60).round();
+    }
+    return null;
   }
 }

@@ -22,129 +22,8 @@ class _CitySelectionPageState extends State<CitySelectionPage> {
   bool _isLoadingLocation = false;
   bool _isSearching = false;
 
-  // Liste des villes avec leurs informations
-  final List<Map<String, dynamic>> _allCities = [
-    {
-      'id': 'casablanca',
-      'name': 'Casablanca',
-      'country': 'Morocco',
-      'image': 'https://images.unsplash.com/photo-1553603228-0f7051e6ad75?w=400',
-      'rating': 4.5,
-      'reviews': '15K',
-      'tags': ['Business', 'Beach', 'Modern'],
-      'latitude': 33.5731,
-      'longitude': -7.5898,
-      'description': 'Economic capital with modern architecture and Hassan II Mosque',
-      'popularActivities': ['Visit Hassan II Mosque', 'Explore Medina', 'Beach activities'],
-      'bestTime': 'March to November',
-      'averageCost': 'Medium',
-    },
-    {
-      'id': 'marrakech',
-      'name': 'Marrakech',
-      'country': 'Morocco',
-      'image': 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=400',
-      'rating': 4.7,
-      'reviews': '22K',
-      'tags': ['Cultural', 'Historic', 'Souks'],
-      'latitude': 31.6295,
-      'longitude': -7.9811,
-      'description': 'Red city with vibrant souks and historic medina',
-      'popularActivities': ['Explore Jemaa el-Fnaa', 'Visit Majorelle Garden', 'Shop in souks'],
-      'bestTime': 'March to May, September to November',
-      'averageCost': 'Low to Medium',
-    },
-    {
-      'id': 'fes',
-      'name': 'Fes',
-      'country': 'Morocco',
-      'image': 'https://images.unsplash.com/photo-1553603228-0f7051e6ad75?w=400',
-      'rating': 4.6,
-      'reviews': '18K',
-      'tags': ['Cultural', 'Historic', 'Medina'],
-      'latitude': 34.0181,
-      'longitude': -5.0078,
-      'description': 'Spiritual and cultural heart of Morocco',
-      'popularActivities': ['Visit Al-Qarawiyyin', 'Explore Fes el-Bali', 'Tanneries'],
-      'bestTime': 'March to May, September to November',
-      'averageCost': 'Low to Medium',
-    },
-    {
-      'id': 'agadir',
-      'name': 'Agadir',
-      'country': 'Morocco',
-      'image': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
-      'rating': 4.4,
-      'reviews': '12K',
-      'tags': ['Beach', 'Relaxation', 'Modern'],
-      'latitude': 30.4278,
-      'longitude': -9.5981,
-      'description': 'Coastal city with beautiful beaches and modern amenities',
-      'popularActivities': ['Beach activities', 'Water sports', 'Relaxation'],
-      'bestTime': 'March to November',
-      'averageCost': 'Medium',
-    },
-    {
-      'id': 'tangier',
-      'name': 'Tangier',
-      'country': 'Morocco',
-      'image': 'https://images.unsplash.com/photo-1553603228-0f7051e6ad75?w=400',
-      'rating': 4.3,
-      'reviews': '10K',
-      'tags': ['Coastal', 'Historic', 'Mediterranean'],
-      'latitude': 35.7595,
-      'longitude': -5.8340,
-      'description': 'Gateway between Europe and Africa with rich history',
-      'popularActivities': ['Visit Kasbah', 'Explore Medina', 'Beach activities'],
-      'bestTime': 'March to November',
-      'averageCost': 'Low to Medium',
-    },
-    {
-      'id': 'essaouira',
-      'name': 'Essaouira',
-      'country': 'Morocco',
-      'image': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
-      'rating': 4.5,
-      'reviews': '8K',
-      'tags': ['Beach', 'Artistic', 'Relaxed'],
-      'latitude': 31.5085,
-      'longitude': -9.7595,
-      'description': 'Coastal gem with artistic atmosphere and strong winds',
-      'popularActivities': ['Wind surfing', 'Art galleries', 'Beach relaxation'],
-      'bestTime': 'March to November',
-      'averageCost': 'Low to Medium',
-    },
-    {
-      'id': 'chefchaouen',
-      'name': 'Chefchaouen',
-      'country': 'Morocco',
-      'image': 'https://images.unsplash.com/photo-1553603228-0f7051e6ad75?w=400',
-      'rating': 4.8,
-      'reviews': '14K',
-      'tags': ['Blue City', 'Mountains', 'Photography'],
-      'latitude': 35.1714,
-      'longitude': -5.2697,
-      'description': 'Famous blue-painted city in the Rif Mountains',
-      'popularActivities': ['Photography', 'Hiking', 'Explore blue streets'],
-      'bestTime': 'March to November',
-      'averageCost': 'Low to Medium',
-    },
-    {
-      'id': 'rabat',
-      'name': 'Rabat',
-      'country': 'Morocco',
-      'image': 'https://images.unsplash.com/photo-1553603228-0f7051e6ad75?w=400',
-      'rating': 4.4,
-      'reviews': '11K',
-      'tags': ['Capital', 'Historic', 'Modern'],
-      'latitude': 34.0209,
-      'longitude': -6.8416,
-      'description': 'Capital city with rich history and modern development',
-      'popularActivities': ['Visit Hassan Tower', 'Explore Kasbah', 'Modern city tour'],
-      'bestTime': 'March to November',
-      'averageCost': 'Medium',
-    },
-  ];
+  // Utiliser la même structure de données que search_explore_page
+  List<Map<String, dynamic>> get _allCities => AppConstants.moroccoCities;
 
   List<Map<String, dynamic>> get _filteredCities {
     List<Map<String, dynamic>> cities = _allCities;
@@ -152,33 +31,42 @@ class _CitySelectionPageState extends State<CitySelectionPage> {
     // Filtrage par recherche
     if (_searchQuery.isNotEmpty) {
       cities = cities.where((city) {
-        return city['name'].toLowerCase().contains(_searchQuery.toLowerCase()) ||
-               city['country'].toLowerCase().contains(_searchQuery.toLowerCase()) ||
-               city['tags'].any((tag) => tag.toLowerCase().contains(_searchQuery.toLowerCase()));
+        // Vérifier que les clés existent avant d'y accéder
+        final name = city['name']?.toString().toLowerCase() ?? '';
+        final description = city['description']?.toString().toLowerCase() ?? '';
+        
+        // Vérifier si la ville a un type et les filtrer
+        final types = city['type'] as List<dynamic>?;
+        final hasMatchingType = types?.any((type) => 
+          type.toString().toLowerCase().contains(_searchQuery.toLowerCase())) ?? false;
+        
+        return name.contains(_searchQuery.toLowerCase()) ||
+               description.contains(_searchQuery.toLowerCase()) ||
+               hasMatchingType;
       }).toList();
     }
 
     // Filtrage par catégorie
     if (_selectedFilter != 'all') {
-      switch (_selectedFilter) {
-        case 'beach':
-          cities = cities.where((city) => 
-            city['tags'].any((tag) => tag.toLowerCase().contains('beach'))).toList();
-          break;
-        case 'cultural':
-          cities = cities.where((city) => 
-            city['tags'].any((tag) => tag.toLowerCase().contains('cultural') || 
-                                   tag.toLowerCase().contains('historic'))).toList();
-          break;
-        case 'modern':
-          cities = cities.where((city) => 
-            city['tags'].any((tag) => tag.toLowerCase().contains('modern'))).toList();
-          break;
-        case 'mountains':
-          cities = cities.where((city) => 
-            city['tags'].any((tag) => tag.toLowerCase().contains('mountains'))).toList();
-          break;
-      }
+      cities = cities.where((city) {
+        final types = city['type'] as List<dynamic>?;
+        if (types == null) return false;
+        
+        switch (_selectedFilter) {
+          case 'beach':
+            return types.any((type) => type.toString().toLowerCase().contains('beach') || 
+                                       type.toString().toLowerCase().contains('coastal'));
+          case 'cultural':
+            return types.any((type) => type.toString().toLowerCase().contains('cultural') || 
+                                       type.toString().toLowerCase().contains('historical'));
+          case 'modern':
+            return types.any((type) => type.toString().toLowerCase().contains('modern'));
+          case 'mountains':
+            return types.any((type) => type.toString().toLowerCase().contains('mountains'));
+          default:
+            return false;
+        }
+      }).toList();
     }
 
     return cities;
@@ -239,16 +127,23 @@ class _CitySelectionPageState extends State<CitySelectionPage> {
     String? nearestCity;
 
     for (var city in _allCities) {
+      // Vérifier que les clés existent avant d'y accéder
+      final cityLat = city['latitude'];
+      final cityLng = city['longitude'];
+      final cityName = city['name'];
+      
+      if (cityLat == null || cityLng == null || cityName == null) continue;
+      
       double distance = Geolocator.distanceBetween(
         latitude,
         longitude,
-        city['latitude'],
-        city['longitude'],
+        cityLat.toDouble(),
+        cityLng.toDouble(),
       );
 
       if (distance < minDistance) {
         minDistance = distance;
-        nearestCity = city['name'];
+        nearestCity = cityName.toString();
       }
     }
 
@@ -261,20 +156,20 @@ class _CitySelectionPageState extends State<CitySelectionPage> {
       MaterialPageRoute(
         builder: (context) => CityDetailsPage(
           city: {
-            'name': city['name'],
+            'name': city['name'] ?? '',
             'type': 'city',
             'isUserLocation': city['name'] == _detectedCity,
             'location': {
-              'latitude': city['latitude'],
-              'longitude': city['longitude'],
+              'latitude': city['latitude'] ?? 0.0,
+              'longitude': city['longitude'] ?? 0.0,
             },
-            'description': city['description'],
-            'popularActivities': city['popularActivities'],
-            'bestTime': city['bestTime'],
-            'averageCost': city['averageCost'],
-            'image': city['image'],
-            'rating': city['rating'],
-            'tags': city['tags'],
+            'description': city['description'] ?? '',
+            'popularActivities': city['attractions'] ?? [],
+            'bestTime': 'March to November', // Valeur par défaut
+            'averageCost': 'Medium', // Valeur par défaut
+            'image': city['imageUrl'] ?? '',
+            'rating': 4.5, // Valeur par défaut
+            'tags': city['type'] ?? [],
           },
         ),
       ),
@@ -540,7 +435,7 @@ class _CitySelectionPageState extends State<CitySelectionPage> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                     image: DecorationImage(
-                      image: NetworkImage(city['image']),
+                      image: NetworkImage(city['imageUrl'] ?? 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5'),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -592,7 +487,7 @@ class _CitySelectionPageState extends State<CitySelectionPage> {
                         Icon(Icons.star, color: Colors.amber, size: 12),
                         SizedBox(width: 4),
                         Text(
-                          city['rating'].toString(),
+                          '4.5', // Valeur par défaut
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 10,
@@ -613,7 +508,7 @@ class _CitySelectionPageState extends State<CitySelectionPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      city['name'],
+                      city['name'] ?? '',
                       style: TextStyle(
                         fontSize: titleSize,
                         fontWeight: FontWeight.bold,
@@ -624,7 +519,7 @@ class _CitySelectionPageState extends State<CitySelectionPage> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      city['country'],
+                      'Morocco', // Valeur par défaut
                       style: TextStyle(
                         fontSize: subtitleSize,
                         color: colorScheme.onSurface.withOpacity(0.6),
@@ -634,7 +529,7 @@ class _CitySelectionPageState extends State<CitySelectionPage> {
                     Wrap(
                       spacing: 6,
                       runSpacing: 4,
-                      children: (city['tags'] as List<String>).take(2).map((tag) {
+                      children: (city['type'] as List<dynamic>? ?? []).take(2).map((type) {
                         return Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: 8,
@@ -645,7 +540,7 @@ class _CitySelectionPageState extends State<CitySelectionPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            tag,
+                            type.toString(),
                             style: TextStyle(
                               fontSize: 10,
                               color: colorScheme.primary,
