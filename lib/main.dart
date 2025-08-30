@@ -9,6 +9,7 @@ import '/core/services/localization_service.dart';
 import '/core/providers/theme_provider.dart';
 import 'features/auth/presentation/pages/onboarding/splash_screen.dart';
 
+//flutter run -d chrome --web-port=4200
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 

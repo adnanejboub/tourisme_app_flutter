@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tourisme_app_flutter/domain/category/entities/category.dart';
+import 'package:tourisme_app_flutter/features/marketplace/category_products/pages/category_products.dart'; // <-- Import this
 
 class CategoriesWidget extends StatefulWidget {
   final List<CategoryEntity> categories;
@@ -41,6 +42,13 @@ class _CategoriesWidgetState extends State<CategoriesWidget> {
                 setState(() {
                   selectedCategory = category;
                 });
+                // Navigate to CategoryProductsPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CategoryProductsPage(category: category),
+                  ),
+                );
               },
               backgroundColor: Colors.white,
               selectedColor: const Color(0xFF4A90E2),
@@ -52,10 +60,11 @@ class _CategoriesWidgetState extends State<CategoriesWidget> {
       ),
     );
   }
+
   @override
   void initState() {
     super.initState();
-      selectedCategory = widget.categories[0]; // ✅ Select first category
+    selectedCategory = widget.categories[0]; // ✅ Select first category
   }
 }
 
