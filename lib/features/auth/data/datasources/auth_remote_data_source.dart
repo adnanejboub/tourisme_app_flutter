@@ -1,0 +1,208 @@
+import 'package:dio/dio.dart';
+import '../../../../core/network/dio_client.dart';
+import '../models/auth_model.dart';
+import '../../domain/entities/auth_entities.dart';
+
+/// Interface pour la source de données d'authentification
+abstract class AuthRemoteDataSource {
+  Future<AuthModel> login(LoginParams params);
+  Future<AuthModel> register(RegisterParams params);
+  Future<UserProfileModel> getCurrentUser();
+  Future<void> logout();
+  Future<Map<String, dynamic>> testConnection();
+}
+
+/// Implémentation de la source de données d'authentification
+class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
+  final Dio _dio = DioClient.instance;
+
+  @override
+  Future<AuthModel> login(LoginParams params) async {
+    try {
+      final loginRequest = LoginRequestModel.fromEntity(params);
+      
+      final response = await _dio.post(
+        '/auth/login',
+        data: loginRequest.toJson(),
+      );
+
+      if (response.statusCode == 200) {
+        final authModel = AuthModel.fromJson(response.data);
+        
+        // Stocker le token automatiquement via l'extension Dio
+        await _dio.updateAuthToken(authModel.accessToken);
+        
+        return authModel;
+      } else {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw Exception('Nom d\'utilisateur ou mot de passe incorrect');
+      } else if (e.response?.statusCode == 400) {
+        final errorData = e.response?.data;
+        if (errorData is Map<String, dynamic> && errorData['message'] != null) {
+          throw Exception(errorData['message']);
+        }
+        throw Exception('Données de connexion invalides');
+      } else if (e.type == DioExceptionType.connectionTimeout) {
+        throw Exception('Délai de connexion dépassé. Vérifiez votre connexion internet.');
+      } else if (e.type == DioExceptionType.receiveTimeout) {
+        throw Exception('Délai de réception dépassé. Le serveur met trop de temps à répondre.');
+      } else if (e.type == DioExceptionType.connectionError) {
+        throw Exception('Impossible de se connecter au serveur. Vérifiez votre connexion internet.');
+      } else {
+        throw Exception('Erreur de connexion: ${e.message}');
+      }
+    } catch (e) {
+      throw Exception('Erreur inattendue: $e');
+    }
+  }
+
+  @override
+  Future<AuthModel> register(RegisterParams params) async {
+    try {
+      final registerRequest = RegisterRequestModel.fromEntity(params);
+      
+      print('🔗 Making registration request to: ${_dio.options.baseUrl}/auth/register');
+      print('📦 Request data: ${registerRequest.toJson()}');
+      
+      final response = await _dio.post(
+        '/auth/register',
+        data: registerRequest.toJson(),
+      );
+
+      print('✅ Registration response status: ${response.statusCode}');
+      print('📦 Response data: ${response.data}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // La réponse d'inscription peut contenir des tokens si l'utilisateur est automatiquement connecté
+        if (response.data['access_token'] != null) {
+          final authModel = AuthModel.fromJson(response.data);
+          await _dio.updateAuthToken(authModel.accessToken);
+          return authModel;
+        } else {
+          // Si pas de token dans la réponse, retourner un modèle vide
+          return AuthModel(
+            accessToken: '',
+            refreshToken: '',
+            expiresIn: 0,
+            tokenType: 'Bearer',
+          );
+        }
+      } else {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } on DioException catch (e) {
+      print('❌ DioException during registration:');
+      print('   Status: ${e.response?.statusCode}');
+      print('   Message: ${e.message}');
+      print('   Response data: ${e.response?.data}');
+      
+      if (e.response?.statusCode == 400) {
+        final errorData = e.response?.data;
+        if (errorData is Map<String, dynamic> && errorData['message'] != null) {
+          throw Exception(errorData['message']);
+        }
+        throw Exception('Veuillez vérifier les informations saisies et réessayer');
+      } else if (e.response?.statusCode == 409) {
+        throw Exception('Un compte avec cet email ou nom d\'utilisateur existe déjà');
+      } else if (e.response?.statusCode == 500) {
+        final errorData = e.response?.data;
+        if (errorData is Map<String, dynamic> && errorData['message'] != null) {
+          throw Exception(errorData['message']);
+        }
+        throw Exception('Le serveur rencontre actuellement des difficultés. Veuillez réessayer dans quelques minutes.');
+      } else if (e.type == DioExceptionType.connectionTimeout) {
+        throw Exception('La connexion au serveur a pris trop de temps. Vérifiez votre connexion internet.');
+      } else if (e.type == DioExceptionType.receiveTimeout) {
+        throw Exception('Le serveur met trop de temps à répondre. Veuillez réessayer.');
+      } else if (e.type == DioExceptionType.connectionError) {
+        throw Exception('Impossible de se connecter au serveur. Vérifiez votre connexion internet.');
+      } else {
+        throw Exception('Erreur d\'inscription: ${e.message}');
+      }
+    } catch (e) {
+      print('❌ Unexpected error during registration: $e');
+      throw Exception('Erreur inattendue: $e');
+    }
+  }
+
+  @override
+  Future<UserProfileModel> getCurrentUser() async {
+    try {
+      final response = await _dio.get('/auth/me');
+
+      if (response.statusCode == 200) {
+        return UserProfileModel.fromJson(response.data);
+      } else {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw Exception('Token d\'authentification invalide ou expiré');
+      } else if (e.response?.statusCode == 403) {
+        throw Exception('Accès refusé');
+      } else if (e.type == DioExceptionType.connectionTimeout) {
+        throw Exception('Délai de connexion dépassé. Vérifiez votre connexion internet.');
+      } else if (e.type == DioExceptionType.receiveTimeout) {
+        throw Exception('Délai de réception dépassé. Le serveur met trop de temps à répondre.');
+      } else {
+        throw Exception('Erreur de récupération du profil: ${e.message}');
+      }
+    } catch (e) {
+      throw Exception('Erreur inattendue: $e');
+    }
+  }
+
+  @override
+  Future<void> logout() async {
+    try {
+      // Appeler l'endpoint de déconnexion du backend
+      await _dio.post('/auth/logout');
+    } catch (e) {
+      // Ignorer les erreurs de déconnexion côté serveur
+      print('Erreur lors de la déconnexion côté serveur: $e');
+    } finally {
+      // Toujours nettoyer le token local
+      await _dio.clearAuthToken();
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> testConnection() async {
+    try {
+      print('🔗 Testing connection to: ${_dio.options.baseUrl}/auth/test/connection');
+      
+      final response = await _dio.get('/auth/test/connection');
+      
+      print('✅ Connection test response: ${response.data}');
+      
+      if (response.statusCode == 200) {
+        return Map<String, dynamic>.from(response.data);
+      } else {
+        throw Exception('Connection test failed with status: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print('❌ Connection test failed:');
+      print('   Status: ${e.response?.statusCode}');
+      print('   Message: ${e.message}');
+      throw Exception('Connection test failed: ${e.message}');
+    } catch (e) {
+      print('❌ Unexpected error during connection test: $e');
+      throw Exception('Connection test failed: $e');
+    }
+  }
+}
