@@ -10,6 +10,10 @@ abstract class AuthRemoteDataSource {
   Future<UserProfileModel> getCurrentUser();
   Future<void> logout();
   Future<Map<String, dynamic>> testConnection();
+  
+  // New profile management methods
+  Future<UserProfileModel> getCompleteProfile();
+  Future<UserProfileModel> updateProfile(ProfileUpdateParams params);
 }
 
 /// Implémentation de la source de données d'authentification
@@ -199,10 +203,102 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       print('❌ Connection test failed:');
       print('   Status: ${e.response?.statusCode}');
       print('   Message: ${e.message}');
-      throw Exception('Connection test failed: ${e.message}');
+      throw Exception('Erreur lors du test de connexion: $e');
     } catch (e) {
       print('❌ Unexpected error during connection test: $e');
-      throw Exception('Connection test failed: $e');
+      throw Exception('Erreur lors du test de connexion: $e');
+    }
+  }
+
+  @override
+  Future<UserProfileModel> getCompleteProfile() async {
+    try {
+      print('AuthRemoteDataSource: Calling /api/profile/complete endpoint...');
+      final response = await _dio.get('/api/profile/complete');
+      
+      print('AuthRemoteDataSource: Response status: ${response.statusCode}');
+      print('AuthRemoteDataSource: Response data: ${response.data}');
+      
+      if (response.statusCode == 200) {
+        print('AuthRemoteDataSource: Successfully parsed profile data');
+        return UserProfileModel.fromJson(response.data);
+      } else {
+        print('AuthRemoteDataSource: Bad response status: ${response.statusCode}');
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } on DioException catch (e) {
+      print('AuthRemoteDataSource: DioException occurred: ${e.message}');
+      print('AuthRemoteDataSource: Response status: ${e.response?.statusCode}');
+      print('AuthRemoteDataSource: Response data: ${e.response?.data}');
+      
+      if (e.response?.statusCode == 401) {
+        throw Exception('Token d\'authentification invalide ou expiré');
+      } else if (e.response?.statusCode == 404) {
+        throw Exception('Profil utilisateur non trouvé');
+      } else {
+        throw Exception('Erreur lors de la récupération du profil: ${e.message}');
+      }
+    } catch (e) {
+      print('AuthRemoteDataSource: Unexpected error: $e');
+      throw Exception('Erreur lors de la récupération du profil: $e');
+    }
+  }
+
+  @override
+  Future<UserProfileModel> updateProfile(ProfileUpdateParams params) async {
+    try {
+      print('AuthRemoteDataSource: Updating profile with data: ${params.toJson()}');
+      
+      final response = await _dio.put(
+        '/api/profile/update',
+        data: params.toJson(),
+      );
+      
+      print('AuthRemoteDataSource: Update response status: ${response.statusCode}');
+      print('AuthRemoteDataSource: Update response data: ${response.data}');
+      
+      if (response.statusCode == 200) {
+        print('AuthRemoteDataSource: Profile updated successfully, fetching updated profile...');
+        // After update, get the updated profile
+        return await getCompleteProfile();
+      } else {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } on DioException catch (e) {
+      print('AuthRemoteDataSource: DioException during profile update: ${e.message}');
+      print('AuthRemoteDataSource: Response status: ${e.response?.statusCode}');
+      print('AuthRemoteDataSource: Response data: ${e.response?.data}');
+      
+      if (e.response?.statusCode == 401) {
+        throw Exception('Token d\'authentification invalide ou expiré');
+      } else if (e.response?.statusCode == 400) {
+        final errorData = e.response?.data;
+        if (errorData is Map<String, dynamic> && errorData['message'] != null) {
+          throw Exception(errorData['message']);
+        }
+        throw Exception('Données de profil invalides');
+      } else if (e.response?.statusCode == 404) {
+        throw Exception('Profil utilisateur non trouvé');
+      } else if (e.response?.statusCode == 500) {
+        final errorData = e.response?.data;
+        if (errorData is Map<String, dynamic> && errorData['message'] != null) {
+          throw Exception(errorData['message']);
+        }
+        throw Exception('Erreur serveur lors de la mise à jour du profil');
+      } else {
+        throw Exception('Erreur lors de la mise à jour du profil: ${e.message}');
+      }
+    } catch (e) {
+      print('AuthRemoteDataSource: Unexpected error during profile update: $e');
+      throw Exception('Erreur lors de la mise à jour du profil: $e');
     }
   }
 }

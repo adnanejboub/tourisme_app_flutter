@@ -242,17 +242,23 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildEmailField() {
     return CustomTextFieldWidget(
       controller: _emailController,
-      label: _localizationService.translate('email_phone_label'),
-      hintText: _localizationService.translate('email_phone_hint'),
-      prefixIcon: Icons.email_outlined,
-      keyboardType: TextInputType.emailAddress,
+      label: _localizationService.translate('username_email_label'),
+      hintText: _localizationService.translate('username_email_hint'),
+      prefixIcon: Icons.person_outline,
+      keyboardType: TextInputType.text,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return _localizationService.translate('email_phone_error');
+          return _localizationService.translate('username_email_error');
         }
 
-        if (!Validators.isValidEmail(value) && value.length < 10) {
-          return _localizationService.translate('email_phone_invalid');
+        // Allow both username and email formats
+        // Username: at least 3 characters, alphanumeric and underscore
+        // Email: valid email format
+        final isEmail = Validators.isValidEmail(value);
+        final isUsername = RegExp(r'^[a-zA-Z0-9_]{3,}$').hasMatch(value);
+        
+        if (!isEmail && !isUsername) {
+          return _localizationService.translate('username_email_invalid');
         }
         return null;
       },
@@ -432,7 +438,7 @@ class _LoginScreenState extends State<LoginScreen>
     // Déclencher l'événement de connexion via le BLoC
     context.read<AuthBloc>().add(
       LoginRequested(
-        username: _emailController.text.trim(),
+        identifier: _emailController.text.trim(), // Use identifier instead of username
         password: _passwordController.text,
       ),
     );

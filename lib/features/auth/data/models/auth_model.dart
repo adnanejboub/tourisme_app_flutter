@@ -1,4 +1,5 @@
 import '../../domain/entities/auth_entities.dart';
+import 'auth_models.dart';
 
 /// Modèle pour la réponse d'authentification (login/register)
 class AuthModel extends AuthEntity {
@@ -38,6 +39,21 @@ class UserProfileModel extends UserProfileEntity {
     super.realmAccess,
     super.backendUser,
     required super.tokenVerified,
+    super.id,
+    super.telephone,
+    super.adresse,
+    super.dateNaissance,
+    super.cin,
+    super.dateInscription,
+    super.role,
+    super.touristeId,
+    super.nationalite,
+    super.passeport,
+    super.dateEntree,
+    super.dateSortie,
+    super.preferences,
+    super.niveauLangue,
+    super.budgetMax,
   });
 
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
@@ -51,6 +67,30 @@ class UserProfileModel extends UserProfileEntity {
           ? Map<String, dynamic>.from(json['backendUser']) 
           : null,
       tokenVerified: json['tokenVerified'] ?? false,
+      // Parse backend profile data
+      id: json['id']?.toInt(),
+      telephone: json['telephone'],
+      adresse: json['adresse'],
+      dateNaissance: json['dateNaissance'] != null 
+          ? DateTime.tryParse(json['dateNaissance']) 
+          : null,
+      cin: json['cin'],
+      dateInscription: json['dateInscription'] != null 
+          ? DateTime.tryParse(json['dateInscription']) 
+          : null,
+      role: json['role'],
+      touristeId: json['touristeId']?.toInt(),
+      nationalite: json['nationalite'],
+      passeport: json['passeport'],
+      dateEntree: json['dateEntree'] != null 
+          ? DateTime.tryParse(json['dateEntree']) 
+          : null,
+      dateSortie: json['dateSortie'] != null 
+          ? DateTime.tryParse(json['dateSortie']) 
+          : null,
+      preferences: json['preferences'],
+      niveauLangue: json['niveauLangue'],
+      budgetMax: json['budgetMax']?.toDouble(),
     );
   }
 
@@ -63,6 +103,21 @@ class UserProfileModel extends UserProfileEntity {
       'realmAccess': realmAccess,
       'backendUser': backendUser,
       'tokenVerified': tokenVerified,
+      'id': id,
+      'telephone': telephone,
+      'adresse': adresse,
+      'dateNaissance': dateNaissance?.toIso8601String(),
+      'cin': cin,
+      'dateInscription': dateInscription?.toIso8601String(),
+      'role': role,
+      'touristeId': touristeId,
+      'nationalite': nationalite,
+      'passeport': passeport,
+      'dateEntree': dateEntree?.toIso8601String(),
+      'dateSortie': dateSortie?.toIso8601String(),
+      'preferences': preferences,
+      'niveauLangue': niveauLangue,
+      'budgetMax': budgetMax,
     };
   }
 }
@@ -130,24 +185,24 @@ class RegisterRequestModel {
 
 /// Modèle pour la requête de connexion
 class LoginRequestModel {
-  final String username;
+  final String identifier; // username or email
   final String password;
 
   LoginRequestModel({
-    required this.username,
+    required this.identifier,
     required this.password,
   });
 
   factory LoginRequestModel.fromEntity(LoginParams entity) {
     return LoginRequestModel(
-      username: entity.username,
+      identifier: entity.identifier,
       password: entity.password,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'username': username,
+      'identifier': identifier,
       'password': password,
     };
   }

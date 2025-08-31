@@ -63,24 +63,24 @@ class RegisterRequestModel {
 
 /// Modèle pour la requête de connexion
 class LoginRequestModel {
-  final String username;
+  final String identifier; // username or email
   final String password;
 
   LoginRequestModel({
-    required this.username,
+    required this.identifier,
     required this.password,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      'username': username,
+      'identifier': identifier,
       'password': password,
     };
   }
 
   factory LoginRequestModel.fromJson(Map<String, dynamic> json) {
     return LoginRequestModel(
-      username: json['username'],
+      identifier: json['identifier'] ?? json['username'] ?? '',
       password: json['password'],
     );
   }

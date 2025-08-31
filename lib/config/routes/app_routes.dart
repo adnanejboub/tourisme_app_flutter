@@ -144,8 +144,8 @@ class AppRoutes {
 
       case reservations:
         return _buildRoute(const ReservationsPage(), settings);
-      case editProfile:
-        return _buildRoute(const EditProfilePage(), settings);
+              case editProfile:
+          return _buildRoute(const EditProfilePage(), settings);
       case preferences:
         return _buildRoute(const PreferencesPage(), settings);
 

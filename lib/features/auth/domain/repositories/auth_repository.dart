@@ -19,4 +19,8 @@ abstract class AuthRepository {
   
   /// Test de connexion au serveur
   Future<Map<String, dynamic>> testConnection();
+  
+  // New profile management methods
+  Future<UserProfileEntity> getCompleteProfile();
+  Future<UserProfileEntity> updateProfile(ProfileUpdateParams params);
 }

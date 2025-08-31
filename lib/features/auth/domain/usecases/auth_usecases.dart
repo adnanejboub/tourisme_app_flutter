@@ -162,7 +162,7 @@ class LoginUseCase implements UseCase<AuthEntity, LoginParams> {
   }
 
   void _validateLoginParams(LoginParams params) {
-    if (params.username.isEmpty) {
+    if (params.identifier.isEmpty) {
       throw AuthException('Veuillez saisir votre nom d\'utilisateur ou email', AuthErrorType.validation);
     }
     if (params.password.isEmpty) {
@@ -233,6 +233,74 @@ class IsLoggedInUseCase implements UseCase<bool, void> {
       return true;
     } catch (e) {
       return false;
+    }
+  }
+}
+
+/// Use case pour récupérer le profil complet de l'utilisateur
+class GetCompleteProfileUseCase implements UseCase<UserProfileEntity, void> {
+  final AuthRepository repository;
+
+  GetCompleteProfileUseCase(this.repository);
+
+  @override
+  Future<UserProfileEntity> call(void params) async {
+    try {
+      return await repository.getCompleteProfile();
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      if (e.toString().contains('401') || e.toString().contains('Token')) {
+        throw AuthException('Token d\'authentification invalide ou expiré', AuthErrorType.unauthorized);
+      } else if (e.toString().contains('403')) {
+        throw AuthException('Accès refusé', AuthErrorType.forbidden);
+      } else if (e.toString().contains('timeout')) {
+        throw AuthException('Délai de connexion dépassé', AuthErrorType.network);
+      } else if (e.toString().contains('connection')) {
+        throw AuthException('Erreur de connexion réseau', AuthErrorType.network);
+      } else {
+        throw AuthException('Erreur de récupération du profil: $e', AuthErrorType.unknown);
+      }
+    }
+  }
+}
+
+/// Use case pour mettre à jour le profil utilisateur
+class UpdateProfileUseCase implements UseCase<UserProfileEntity, ProfileUpdateParams> {
+  final AuthRepository repository;
+
+  UpdateProfileUseCase(this.repository);
+
+  @override
+  Future<UserProfileEntity> call(ProfileUpdateParams params) async {
+    try {
+      return await repository.updateProfile(params);
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      final errorMessage = e.toString().toLowerCase();
+      
+      // Validation errors
+      if (errorMessage.contains('validation') || errorMessage.contains('invalides')) {
+        throw AuthException('Veuillez remplir tous les champs requis correctement.', AuthErrorType.validation);
+      }
+      
+      // Network errors
+      if (errorMessage.contains('timeout') || errorMessage.contains('délai')) {
+        throw AuthException('La connexion au serveur a pris trop de temps. Veuillez vérifier votre connexion internet et réessayer.', AuthErrorType.network);
+      }
+      
+      if (errorMessage.contains('connection') || errorMessage.contains('réseau')) {
+        throw AuthException('Impossible de se connecter au serveur. Veuillez vérifier votre connexion internet et réessayer.', AuthErrorType.network);
+      }
+      
+      // Server errors
+      if (errorMessage.contains('500') || errorMessage.contains('serveur')) {
+        throw AuthException('Le serveur rencontre actuellement des difficultés. Veuillez réessayer dans quelques minutes.', AuthErrorType.serverError);
+      }
+      
+      // Unknown errors
+      throw AuthException('Une erreur inattendue s\'est produite lors de la mise à jour du profil. Veuillez réessayer.', AuthErrorType.unknown);
     }
   }
 }

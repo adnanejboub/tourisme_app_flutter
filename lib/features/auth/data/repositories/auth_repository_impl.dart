@@ -72,4 +72,24 @@ class AuthRepositoryImpl implements AuthRepository {
       throw Exception('Erreur lors du test de connexion: $e');
     }
   }
+
+  @override
+  Future<UserProfileEntity> getCompleteProfile() async {
+    try {
+      final userProfileModel = await _remoteDataSource.getCompleteProfile();
+      return userProfileModel;
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération du profil complet: $e');
+    }
+  }
+
+  @override
+  Future<UserProfileEntity> updateProfile(ProfileUpdateParams params) async {
+    try {
+      final userProfileModel = await _remoteDataSource.updateProfile(params);
+      return userProfileModel;
+    } catch (e) {
+      throw Exception('Erreur lors de la mise à jour du profil: $e');
+    }
+  }
 }

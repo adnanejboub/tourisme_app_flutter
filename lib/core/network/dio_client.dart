@@ -120,11 +120,18 @@ class _AuthInterceptor extends Interceptor {
     final isPublicEndpoint = _publicEndpoints.any((endpoint) => 
         options.path == endpoint || options.path.endsWith(endpoint));
     
+    print('AuthInterceptor: Request to ${options.path}');
+    print('AuthInterceptor: Is public endpoint: $isPublicEndpoint');
+    
     // Ajouter le token d'authentification seulement si ce n'est pas un endpoint public
     if (!isPublicEndpoint) {
       final token = await _getStoredToken();
+      print('AuthInterceptor: Token found: ${token != null ? 'Yes (${token?.substring(0, 20)}...)' : 'No'}');
       if (token != null && token.isNotEmpty) {
         options.headers['Authorization'] = 'Bearer $token';
+        print('AuthInterceptor: Authorization header added');
+      } else {
+        print('AuthInterceptor: No token available for authenticated endpoint');
       }
     }
 

@@ -15,7 +15,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Consumer<LocalizationService>(
       builder: (context, localizationService, child) {
         final List<Map<String, dynamic>> recommendationsNearYou = [
