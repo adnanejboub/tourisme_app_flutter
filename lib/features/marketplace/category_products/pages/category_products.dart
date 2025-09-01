@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:tourisme_app_flutter/domain/category/entities/category.dart';
+import 'package:tourisme_app_flutter/domain/product/entities/product.dart';
 import 'package:tourisme_app_flutter/data/static_data.dart';
 import '../../common/widgets/product/product_card.dart';
 
 class CategoryProductsPage extends StatelessWidget {
   final CategoryEntity category;
-  
+
   const CategoryProductsPage({Key? key, required this.category}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final products = StaticData.getProductsByCategory(category.id);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(category.title),
@@ -28,8 +27,22 @@ class CategoryProductsPage extends StatelessWidget {
           ),
         ],
       ),
-      body: products.isEmpty
-          ? Center(
+      body: FutureBuilder<List<ProductEntity>>(
+        future: StaticData.getProducts(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          final allProducts = snapshot.data ?? [];
+          final products = category.title == "All"
+              ? allProducts
+              : allProducts.where((p) => p.categoryId == category.id).toList();
+
+          if (products.isEmpty) {
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -51,20 +64,24 @@ class CategoryProductsPage extends StatelessWidget {
                   ),
                 ],
               ),
-            )
-          : GridView.builder(
-              padding: const EdgeInsets.all(16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.7,
-              ),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                return ProductCard(product: products[index]);
-              },
+            );
+          }
+
+          return GridView.builder(
+            padding: const EdgeInsets.all(16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 0.7,
             ),
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              return ProductCard(product: products[index]);
+            },
+          );
+        },
+      ),
     );
   }
 }
