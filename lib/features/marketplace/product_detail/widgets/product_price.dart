@@ -18,7 +18,7 @@ class ProductPriceWidget extends StatelessWidget {
         children: [
           if (discountedPrice > 0) ...[
             Text(
-              '\$discountedPrice',
+              '\$$discountedPrice',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.bold,

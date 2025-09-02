@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tourisme_app_flutter/data/static_data.dart';
+import 'package:tourisme_app_flutter/domain/order/entities/cart_item.dart';
 import '../widgets/cart_item_widget.dart';
 import 'checkout.dart';
 
@@ -13,14 +14,6 @@ class CartPage extends StatefulWidget {
 class _CartPageState extends State<CartPage> {
   @override
   Widget build(BuildContext context) {
-    final cartItems = StaticData.getCartItems();
-    final total = cartItems.fold(0.0, (sum, item) {
-      final price = item.product.discountedPrice > 0 
-          ? item.product.discountedPrice.toDouble()
-          : item.product.price;
-      return sum + (price * item.quantity);
-    });
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Shopping Cart'),
@@ -29,8 +22,25 @@ class _CartPageState extends State<CartPage> {
           icon: const Icon(Icons.arrow_back_ios),
         ),
       ),
-      body: cartItems.isEmpty
-          ? Center(
+      body: FutureBuilder<List<CartItemEntity>>(
+        future: StaticData.getCartItems(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Failed to load cart items'));
+          }
+          final cartItems = snapshot.data ?? [];
+          final total = cartItems.fold(0.0, (sum, item) {
+            final price = item.product.discountedPrice > 0
+                ? item.product.discountedPrice.toDouble()
+                : item.product.price;
+            return sum + (price * item.quantity);
+          });
+
+          if (cartItems.isEmpty) {
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -57,83 +67,85 @@ class _CartPageState extends State<CartPage> {
                   ),
                 ],
               ),
-            )
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: cartItems.length,
-                    itemBuilder: (context, index) {
-                      final item = cartItems[index];
-                      return CartItemWidget(
-                        item: item,
-                        onQuantityChanged: (quantity) {
-                          setState(() {
-                            StaticData.updateCartItemQuantity(item.id, quantity);
-                          });
-                        },
-                        onRemove: () {
-                          setState(() {
-                            StaticData.removeFromCart(item.id);
-                          });
-                        },
-                      );
-                    },
-                  ),
-                ),
-                Container(
+            );
+          }
+
+          return Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, -2),
+                  itemCount: cartItems.length,
+                  itemBuilder: (context, index) {
+                    final item = cartItems[index];
+                    return CartItemWidget(
+                      item: item,
+                      onQuantityChanged: (quantity) async {
+                        await StaticData.updateCartItemQuantity(item.id, quantity);
+                        setState(() {});
+                      },
+                      onRemove: () async {
+                        await StaticData.removeFromCart(item.id);
+                        setState(() {});
+                      },
+                    );
+                  },
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total:',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          Text(
+                            '\$${total.toStringAsFixed(2)}',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CheckoutPage(cartItems: cartItems),
+                              ),
+                            );
+                          },
+                          child: const Text('Proceed to Checkout'),
+                        ),
                       ),
                     ],
                   ),
-                  child: SafeArea(
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Total:',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            Text(
-                              '\$${total.toStringAsFixed(2)}',
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CheckoutPage(cartItems: cartItems),
-                                ),
-                              );
-                            },
-                            child: const Text('Proceed to Checkout'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
