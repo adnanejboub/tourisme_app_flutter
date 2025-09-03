@@ -104,19 +104,21 @@ class _ExplorePageState extends State<ExplorePage> {
                       ? Center(child: CircularProgressIndicator())
                       : _error != null
                           ? Center(child: Text(_error!, style: TextStyle(color: colorScheme.error)))
-                          : SingleChildScrollView(
+                          : RefreshIndicator(
+                              onRefresh: _loadData,
+                  child: SingleChildScrollView(
+                                physics: AlwaysScrollableScrollPhysics(),
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 24),
-                        _buildCategoriesSection(colorScheme, localizationService),
+                                    _buildAllCitiesSection(colorScheme, localizationService),
                         SizedBox(height: 32),
-                                  _buildAllCitiesSection(colorScheme, localizationService),
-                        SizedBox(height: 32),
-                                  _buildAllActivitiesSection(colorScheme, localizationService),
+                                    _buildAllActivitiesSection(colorScheme, localizationService),
                         SizedBox(height: 32),
                       ],
+                                ),
                     ),
                   ),
                 ),
@@ -254,13 +256,26 @@ class _ExplorePageState extends State<ExplorePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
         Text(
-          localizationService.translate('cities'),
+              localizationService.translate('cities'),
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: colorScheme.onBackground,
           ),
+            ),
+            Text(
+              '${_filteredCities.length}',
+              style: TextStyle(
+                fontSize: 14,
+                color: colorScheme.onSurface.withOpacity(0.6),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
         SizedBox(height: 16),
         _buildCityFilterChips(colorScheme, localizationService),
@@ -292,8 +307,10 @@ class _ExplorePageState extends State<ExplorePage> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-              child: Image.network(
-                city.imageUrl ?? '',
+              child: Stack(
+                children: [
+                  Image.network(
+                    city.imageUrl ?? '',
                 width: double.infinity,
                 height: 200,
                 fit: BoxFit.cover,
@@ -305,6 +322,22 @@ class _ExplorePageState extends State<ExplorePage> {
                     child: Icon(Icons.image, size: 64, color: colorScheme.onSurface.withOpacity(0.6)),
                   );
                 },
+                  ),
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [
+                            Colors.black.withOpacity(0.35),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             Padding(
@@ -319,6 +352,36 @@ class _ExplorePageState extends State<ExplorePage> {
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onSurface,
                     ),
+                  ),
+                  SizedBox(height: 6),
+                  Row(
+                    children: [
+                      if (city.paysNom != null && city.paysNom!.isNotEmpty)
+                        Row(
+                          children: [
+                            Icon(Icons.public, size: 14, color: colorScheme.onSurface.withOpacity(0.6)),
+                            SizedBox(width: 4),
+                            Text(
+                              city.paysNom!,
+                              style: TextStyle(fontSize: 12, color: colorScheme.onSurface.withOpacity(0.7)),
+                            ),
+                          ],
+                        ),
+                      if ((city.latitude != null && city.longitude != null))
+                        Padding(
+                          padding: EdgeInsets.only(left: 12),
+                          child: Row(
+                            children: [
+                              Icon(Icons.location_on, size: 14, color: colorScheme.onSurface.withOpacity(0.6)),
+                              SizedBox(width: 4),
+                              Text(
+                                '${city.latitude?.toStringAsFixed(2)}, ${city.longitude?.toStringAsFixed(2)}',
+                                style: TextStyle(fontSize: 12, color: colorScheme.onSurface.withOpacity(0.7)),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
                   SizedBox(height: 8),
                   if (city.description != null && city.description!.isNotEmpty)
@@ -338,6 +401,8 @@ class _ExplorePageState extends State<ExplorePage> {
                       if (city.isHistorique == true) _buildBadge('Historic', colorScheme),
                       if (city.isCulturelle == true) _buildBadge('Cultural', colorScheme),
                       if (city.isModerne == true) _buildBadge('Modern', colorScheme),
+                      if (city.climatNom != null && city.climatNom!.isNotEmpty)
+                        _buildClimateBadge(city.climatNom!, colorScheme),
                     ],
                   ),
                 ],
@@ -353,13 +418,26 @@ class _ExplorePageState extends State<ExplorePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
         Text(
-          localizationService.translate('activities'),
+              localizationService.translate('activities'),
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: colorScheme.onBackground,
           ),
+            ),
+            Text(
+              '${_filteredActivities.length}',
+              style: TextStyle(
+                fontSize: 14,
+                color: colorScheme.onSurface.withOpacity(0.6),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
         SizedBox(height: 16),
         _buildActivityFilterChips(colorScheme, localizationService),
@@ -420,7 +498,7 @@ class _ExplorePageState extends State<ExplorePage> {
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    SizedBox(height: 6),
                     Row(
                       children: [
                         if (activity.dureeMinimun != null)
@@ -430,10 +508,29 @@ class _ExplorePageState extends State<ExplorePage> {
                             padding: EdgeInsets.only(left: 8),
                             child: _buildBadge(activity.categorie!, colorScheme),
                           ),
+                        if (activity.prix != null)
+                          Padding(
+                            padding: EdgeInsets.only(left: 8),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.amber.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${activity.prix!.toStringAsFixed(2)} MAD',
+                                style: TextStyle(fontSize: 12, color: Colors.amber[800], fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ],
                 ),
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: Icon(Icons.bookmark_border, color: colorScheme.onSurface.withOpacity(0.6)),
               ),
             ],
           ),
@@ -564,20 +661,79 @@ class _ExplorePageState extends State<ExplorePage> {
   }
 
   Widget _buildBadge(String text, ColorScheme colorScheme) {
+    final Color color = _getCategoryColor(text, colorScheme);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: colorScheme.primary.withOpacity(0.1),
+        color: color.withOpacity(0.12),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         text,
         style: TextStyle(
           fontSize: 12,
-          color: colorScheme.primary,
+          color: color,
           fontWeight: FontWeight.w600,
         ),
       ),
     );
+  }
+
+  Widget _buildClimateBadge(String climate, ColorScheme colorScheme) {
+    final Color color = _getClimateColor(climate, colorScheme);
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: color.withOpacity(0.35),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.thermostat,
+            size: 14,
+            color: color,
+          ),
+          SizedBox(width: 4),
+          Text(
+            climate,
+            style: TextStyle(
+              fontSize: 12,
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getCategoryColor(String label, ColorScheme colorScheme) {
+    final key = label.toLowerCase();
+    if (key.contains('beach') || key.contains('plage')) return Colors.blue;
+    if (key.contains('mountain') || key.contains('montagne')) return Colors.green;
+    if (key.contains('historic') || key.contains('historique')) return Colors.brown;
+    if (key.contains('cultural') || key.contains('culturelle')) return Colors.purple;
+    if (key.contains('modern') || key.contains('moderne')) return Colors.teal;
+    if (key.contains('tours')) return Colors.indigo;
+    if (key.contains('events') || key.contains('evenements')) return Colors.orange;
+    if (key.contains('outdoor') || key.contains('plein')) return Colors.cyan;
+    return colorScheme.primary;
+  }
+
+  Color _getClimateColor(String climate, ColorScheme colorScheme) {
+    final key = climate.toLowerCase();
+    if (key.contains('desert') || key.contains('arid')) return Colors.amber;
+    if (key.contains('mediterranean') || key.contains('méditerranéen') || key.contains('mediterranéen')) return Colors.deepOrange;
+    if (key.contains('oceanic') || key.contains('océanique') || key.contains('maritime')) return Colors.blueAccent;
+    if (key.contains('continental')) return Colors.indigo;
+    if (key.contains('tropical')) return Colors.green;
+    if (key.contains('semi-arid') || key.contains('steppe')) return Colors.lime;
+    return colorScheme.secondary;
   }
 }
