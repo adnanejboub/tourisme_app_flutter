@@ -25,6 +25,22 @@ class PublicApiService {
     }
     throw Exception('Failed to load activities');
   }
+
+  Future<Map<String, dynamic>> searchAggregated(String query) async {
+    final response = await _dio.get('/public/search', queryParameters: {'q': query});
+    if (response.statusCode == 200 && response.data is Map) {
+      final map = response.data as Map<String, dynamic>;
+      final citiesRaw = map['cities'] as List? ?? [];
+      final activitiesRaw = map['activities'] as List? ?? [];
+      final cities = citiesRaw.map((e) => CityDto.fromJson(e as Map<String, dynamic>)).toList();
+      final activities = activitiesRaw.map((e) => ActivityModel.fromJson(e as Map<String, dynamic>)).toList();
+      return {
+        'cities': cities,
+        'activities': activities,
+      };
+    }
+    throw Exception('Failed to search');
+  }
 }
 
 

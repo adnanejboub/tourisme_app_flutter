@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
 import 'details_explore.dart';
+import '../../data/services/public_api_service.dart';
+import '../../data/models/city_dto.dart';
+import '../../data/models/activity.dart';
 
 class SearchExplorePage extends StatefulWidget {
   const SearchExplorePage({Key? key}) : super(key: key);
@@ -13,9 +16,12 @@ class SearchExplorePage extends StatefulWidget {
 
 class _SearchExplorePageState extends State<SearchExplorePage> {
   final TextEditingController _searchController = TextEditingController();
+  final PublicApiService _api = PublicApiService();
   String _searchQuery = '';
-  List<Map<String, dynamic>> _searchResults = [];
+  List<CityDto> _cityResults = [];
+  List<ActivityModel> _activityResults = [];
   bool _isSearching = false;
+  String? _error;
 
   @override
   void initState() {
@@ -32,45 +38,39 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
   void _onSearchChanged() {
     setState(() {
       _searchQuery = _searchController.text;
-      _performSearch();
     });
+    _performSearch();
   }
 
-  void _performSearch() {
+  Future<void> _performSearch() async {
     if (_searchQuery.isEmpty) {
       setState(() {
-        _searchResults = [];
+        _cityResults = [];
+        _activityResults = [];
         _isSearching = false;
+        _error = null;
       });
       return;
     }
 
     setState(() {
       _isSearching = true;
+      _error = null;
     });
 
-    final query = _searchQuery.toLowerCase();
-    final results = AppConstants.moroccoCities.where((city) {
-      // Vérifier que les clés existent avant d'y accéder
-      final name = city['name']?.toString().toLowerCase() ?? '';
-      final arabicName = city['arabicName']?.toString().toLowerCase() ?? '';
-      final description = city['description']?.toString().toLowerCase() ?? '';
-      
-      // Vérifier si la ville a des attractions et les filtrer
-      final attractions = city['attractions'] as List<dynamic>?;
-      final hasMatchingAttraction = attractions?.any((attraction) => 
-        attraction.toString().toLowerCase().contains(query)) ?? false;
-      
-      return name.contains(query) ||
-          arabicName.contains(query) ||
-          description.contains(query) ||
-          hasMatchingAttraction;
-    }).toList();
-
-    setState(() {
-      _searchResults = results;
-      _isSearching = false;
-    });
+    try {
+      final result = await _api.searchAggregated(_searchQuery.trim());
+      setState(() {
+        _cityResults = (result['cities'] as List<CityDto>);
+        _activityResults = (result['activities'] as List<ActivityModel>);
+        _isSearching = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isSearching = false;
+      });
+    }
   }
 
   @override
@@ -141,6 +141,10 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
   }
 
   Widget _buildSearchResults(ColorScheme colorScheme) {
+    if (_error != null) {
+      return Center(child: Text(_error!, style: TextStyle(color: colorScheme.error)));
+    }
+
     if (_isSearching) {
       return Center(
         child: CircularProgressIndicator(
@@ -153,17 +157,180 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
       return _buildEmptyState(colorScheme);
     }
 
-    if (_searchResults.isEmpty) {
+    if (_cityResults.isEmpty && _activityResults.isEmpty) {
       return _buildNoResults(colorScheme);
     }
 
-    return ListView.builder(
+    return ListView(
       padding: EdgeInsets.symmetric(horizontal: 16),
-      itemCount: _searchResults.length,
-      itemBuilder: (context, index) {
-        final city = _searchResults[index];
-        return _buildSearchResultCard(city, colorScheme);
-      },
+      children: [
+        if (_cityResults.isNotEmpty) ...[
+          SizedBox(height: 8),
+          _buildSectionHeader('Cities (${_cityResults.length})', colorScheme),
+          SizedBox(height: 8),
+          ..._cityResults.map((c) => _buildCityResultCard(c, colorScheme)).toList(),
+          SizedBox(height: 16),
+        ],
+        if (_activityResults.isNotEmpty) ...[
+          _buildSectionHeader('Activities (${_activityResults.length})', colorScheme),
+          SizedBox(height: 8),
+          ..._activityResults.map((a) => _buildActivityResultCard(a, colorScheme)).toList(),
+          SizedBox(height: 16),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildSectionHeader(String title, ColorScheme colorScheme) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+        color: colorScheme.onSurface,
+      ),
+    );
+  }
+
+  Widget _buildCityResultCard(CityDto city, ColorScheme colorScheme) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: Offset(0, 2)),
+        ],
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DetailsExplorePage(destination: {
+                'id': city.id,
+                'name': city.nom,
+                'description': city.description ?? '',
+                'image': city.imageUrl ?? '',
+              }),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: EdgeInsets.all(12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  city.imageUrl ?? '',
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 60,
+                      height: 60,
+                      color: colorScheme.onSurface.withOpacity(0.1),
+                      child: Icon(Icons.image, color: colorScheme.onSurface.withOpacity(0.6)),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(city.nom, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colorScheme.onSurface)),
+                    if (city.climatNom != null)
+                      Padding(
+                        padding: EdgeInsets.only(top: 4),
+                        child: Text(city.climatNom!, style: TextStyle(fontSize: 12, color: colorScheme.onSurface.withOpacity(0.6))),
+                      ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, color: colorScheme.onSurface.withOpacity(0.4), size: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActivityResultCard(ActivityModel activity, ColorScheme colorScheme) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: Offset(0, 2)),
+        ],
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DetailsExplorePage(destination: {
+                'id': activity.id,
+                'title': activity.nom,
+                'image': activity.imageUrl ?? '',
+              }),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: EdgeInsets.all(12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  activity.imageUrl ?? '',
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 60,
+                      height: 60,
+                      color: colorScheme.onSurface.withOpacity(0.1),
+                      child: Icon(Icons.image, color: colorScheme.onSurface.withOpacity(0.6)),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(activity.nom, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colorScheme.onSurface)),
+                    SizedBox(height: 4),
+                    Row(
+                      children: [
+                        if (activity.dureeMinimun != null)
+                          Text('${activity.dureeMinimun}-${activity.dureeMaximun ?? ''} min', style: TextStyle(fontSize: 12, color: colorScheme.onSurface.withOpacity(0.6))),
+                        if (activity.categorie != null)
+                          Padding(
+                            padding: EdgeInsets.only(left: 8),
+                            child: Text(activity.categorie!, style: TextStyle(fontSize: 12, color: colorScheme.onSurface.withOpacity(0.6))),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, color: colorScheme.onSurface.withOpacity(0.4), size: 16),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -226,101 +393,6 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
                 textAlign: TextAlign.center,
               ),
             ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSearchResultCard(Map<String, dynamic> city, ColorScheme colorScheme) {
-    return Consumer<LocalizationService>(
-      builder: (context, localizationService, child) {
-        return Container(
-          margin: EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DetailsExplorePage(destination: city as Map<String, dynamic>),
-                ),
-              );
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      city['imageUrl'] ?? 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5',
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 80,
-                          height: 80,
-                          color: colorScheme.onSurface.withOpacity(0.1),
-                          child: Icon(Icons.image, color: colorScheme.onSurface.withOpacity(0.6)),
-                        );
-                      },
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          city['name'] ?? localizationService.translate('city'),
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          city['arabicName'] ?? '',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colorScheme.onSurface.withOpacity(0.6),
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          city['description'] ?? '',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colorScheme.onSurface.withOpacity(0.7),
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    color: colorScheme.onSurface.withOpacity(0.4),
-                    size: 16,
-                  ),
-                ],
-              ),
-            ),
           ),
         );
       },
