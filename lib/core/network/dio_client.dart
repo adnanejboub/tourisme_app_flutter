@@ -112,16 +112,15 @@ class _AuthInterceptor extends Interceptor {
     '/auth/email/verify',
     '/auth/email/resend-verification',
     '/auth/test/connection',
-    '/public/',
-    '/public/cities',
-    '/public/activities',
   ];
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     // Vérifier si c'est un endpoint public qui ne nécessite pas de token
     final isPublicEndpoint = _publicEndpoints.any((endpoint) => 
-        options.path == endpoint || options.path.endsWith(endpoint) || options.path.startsWith('/public'));
+        options.path == endpoint || 
+        options.path.endsWith(endpoint) || 
+        options.path.startsWith('/public'));
     
     print('AuthInterceptor: Request to ${options.path}');
     print('AuthInterceptor: Is public endpoint: $isPublicEndpoint');

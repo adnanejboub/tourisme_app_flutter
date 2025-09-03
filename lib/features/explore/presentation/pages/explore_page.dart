@@ -23,6 +23,10 @@ class _ExplorePageState extends State<ExplorePage> {
   final PublicApiService _api = PublicApiService();
   List<CityDto> _cities = [];
   List<ActivityModel> _activities = [];
+  List<CityDto> _filteredCities = [];
+  List<ActivityModel> _filteredActivities = [];
+  Set<String> _activeCityFilters = {};
+  Set<String> _activeActivityFilters = {};
   bool _isLoading = true;
   String? _error;
 
@@ -45,6 +49,8 @@ class _ExplorePageState extends State<ExplorePage> {
       setState(() {
         _cities = results[0] as List<CityDto>;
         _activities = results[1] as List<ActivityModel>;
+        _filteredCities = _cities;
+        _filteredActivities = _activities;
         _isLoading = false;
       });
     } catch (e) {
@@ -53,6 +59,30 @@ class _ExplorePageState extends State<ExplorePage> {
         _isLoading = false;
       });
     }
+  }
+
+  void _applyFilters() {
+    setState(() {
+      _filteredCities = _cities.where((c) {
+        if (_activeCityFilters.isEmpty) return true;
+        final flags = <String, bool?>{
+          'plage': c.isPlage,
+          'montagne': c.isMontagne,
+          'desert': c.isDesert,
+          'riviera': c.isRiviera,
+          'historique': c.isHistorique,
+          'culturelle': c.isCulturelle,
+          'moderne': c.isModerne,
+        };
+        return _activeCityFilters.any((f) => flags[f] == true);
+      }).toList();
+
+      _filteredActivities = _activities.where((a) {
+        if (_activeActivityFilters.isEmpty) return true;
+        final cat = (a.categorie ?? '').toLowerCase();
+        return _activeActivityFilters.any((f) => cat.contains(f));
+      }).toList();
+    });
   }
 
   @override
@@ -233,7 +263,9 @@ class _ExplorePageState extends State<ExplorePage> {
           ),
         ),
         SizedBox(height: 16),
-        ..._cities.map((city) => _buildCityCard(city, colorScheme)).toList(),
+        _buildCityFilterChips(colorScheme, localizationService),
+        SizedBox(height: 12),
+        ..._filteredCities.map((city) => _buildCityCard(city, colorScheme)).toList(),
       ],
     );
   }
@@ -289,12 +321,24 @@ class _ExplorePageState extends State<ExplorePage> {
                     ),
                   ),
                   SizedBox(height: 8),
+                  if (city.description != null && city.description!.isNotEmpty)
                   Text(
-                    city.description ?? '',
+                      city.description!,
                     style: TextStyle(
                       fontSize: 14,
                       color: colorScheme.onSurface.withOpacity(0.7),
                     ),
+                    ),
+                  SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      if (city.isPlage == true) _buildBadge('Beach', colorScheme),
+                      if (city.isMontagne == true) _buildBadge('Mountain', colorScheme),
+                      if (city.isHistorique == true) _buildBadge('Historic', colorScheme),
+                      if (city.isCulturelle == true) _buildBadge('Cultural', colorScheme),
+                      if (city.isModerne == true) _buildBadge('Modern', colorScheme),
+                    ],
                   ),
                 ],
               ),
@@ -318,7 +362,9 @@ class _ExplorePageState extends State<ExplorePage> {
           ),
         ),
         SizedBox(height: 16),
-        ..._activities.map((activity) => _buildActivityCard(activity, colorScheme)).toList(),
+        _buildActivityFilterChips(colorScheme, localizationService),
+        SizedBox(height: 12),
+        ..._filteredActivities.map((activity) => _buildActivityCard(activity, colorScheme)).toList(),
       ],
     );
   }
@@ -375,13 +421,16 @@ class _ExplorePageState extends State<ExplorePage> {
                       ),
                     ),
                     SizedBox(height: 4),
-                    if (activity.prix != null)
-                    Text(
-                        '${activity.prix!.toStringAsFixed(2)} MAD',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colorScheme.onSurface.withOpacity(0.6),
-                      ),
+                    Row(
+                      children: [
+                        if (activity.dureeMinimun != null)
+                          _buildBadge('${activity.dureeMinimun}-${activity.dureeMaximun ?? ''} min', colorScheme),
+                        if (activity.categorie != null)
+                          Padding(
+                            padding: EdgeInsets.only(left: 8),
+                            child: _buildBadge(activity.categorie!, colorScheme),
+                          ),
+                      ],
                     ),
                   ],
                 ),
@@ -390,6 +439,75 @@ class _ExplorePageState extends State<ExplorePage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCityFilterChips(ColorScheme colorScheme, LocalizationService localizationService) {
+    final filters = [
+      {'id': 'plage', 'label': 'Beach'},
+      {'id': 'montagne', 'label': 'Mountain'},
+      {'id': 'desert', 'label': 'Desert'},
+      {'id': 'historique', 'label': 'Historic'},
+      {'id': 'culturelle', 'label': 'Cultural'},
+      {'id': 'moderne', 'label': 'Modern'},
+    ];
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: filters.map((f) {
+        final selected = _activeCityFilters.contains(f['id']);
+        return FilterChip(
+          label: Text(f['label'] as String),
+          selected: selected,
+          onSelected: (v) {
+            setState(() {
+              if (v) {
+                _activeCityFilters.add(f['id'] as String);
+              } else {
+                _activeCityFilters.remove(f['id']);
+              }
+              _applyFilters();
+            });
+          },
+          backgroundColor: colorScheme.surface,
+          selectedColor: colorScheme.primary,
+          checkmarkColor: Colors.white,
+          side: BorderSide(color: selected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.2)),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildActivityFilterChips(ColorScheme colorScheme, LocalizationService localizationService) {
+    final filters = [
+      {'id': 'tours', 'label': 'Tours'},
+      {'id': 'evenements', 'label': 'Events'},
+      {'id': 'activites_plein_air', 'label': 'Outdoor'},
+    ];
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: filters.map((f) {
+        final selected = _activeActivityFilters.contains(f['id']);
+        return FilterChip(
+          label: Text(f['label'] as String),
+          selected: selected,
+          onSelected: (v) {
+            setState(() {
+              if (v) {
+                _activeActivityFilters.add(f['id'] as String);
+              } else {
+                _activeActivityFilters.remove(f['id']);
+              }
+              _applyFilters();
+            });
+          },
+          backgroundColor: colorScheme.surface,
+          selectedColor: colorScheme.primary,
+          checkmarkColor: Colors.white,
+          side: BorderSide(color: selected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.2)),
+        );
+      }).toList(),
     );
   }
 
@@ -445,5 +563,21 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  // Events UI removed for now, pending backend real events integration
+  Widget _buildBadge(String text, ColorScheme colorScheme) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colorScheme.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          color: colorScheme.primary,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
 }

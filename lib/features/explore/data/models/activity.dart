@@ -6,6 +6,9 @@ class ActivityModel {
   final String? imageUrl;
   final int? dureeMinimun;
   final int? dureeMaximun;
+  final String? saison;
+  final String? niveauDificulta;
+  final String? categorie;
 
   ActivityModel({
     required this.id,
@@ -15,6 +18,9 @@ class ActivityModel {
     this.imageUrl,
     this.dureeMinimun,
     this.dureeMaximun,
+    this.saison,
+    this.niveauDificulta,
+    this.categorie,
   });
 
   factory ActivityModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +32,9 @@ class ActivityModel {
       imageUrl: json['imageUrl'] as String? ?? json['image'] as String?,
       dureeMinimun: (json['dureeMinimun'] as num?)?.toInt(),
       dureeMaximun: (json['dureeMaximun'] as num?)?.toInt(),
+      saison: json['saison'] as String?,
+      niveauDificulta: json['niveauDificulta'] as String?,
+      categorie: json['categorie']?.toString(),
     );
   }
 }
