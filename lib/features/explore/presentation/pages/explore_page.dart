@@ -6,6 +6,9 @@ import 'details_explore.dart';
 import 'search_explore_page.dart';
 import 'filter_explore_page.dart';
 import 'events_explore_page.dart';
+import '../../data/services/public_api_service.dart';
+import '../../data/models/city_dto.dart';
+import '../../data/models/activity.dart';
 
 class ExplorePage extends StatefulWidget {
   const ExplorePage({Key? key}) : super(key: key);
@@ -17,68 +20,40 @@ class ExplorePage extends StatefulWidget {
 class _ExplorePageState extends State<ExplorePage> {
   String _selectedCategory = 'cities';
   Map<String, dynamic>? _currentFilters;
+  final PublicApiService _api = PublicApiService();
+  List<CityDto> _cities = [];
+  List<ActivityModel> _activities = [];
+  bool _isLoading = true;
+  String? _error;
 
-  final List<Map<String, dynamic>> _popularCities = [
-    {
-      'id': 1,
-      'name': 'Marrakech',
-      'arabicName': 'مراكش',
-      'description': 'The Red City, known for its vibrant souks, and historic palaces.',
-      'image': 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5',
-    },
-    {
-      'id': 2,
-      'name': 'Fes',
-      'arabicName': 'فاس',
-      'description': 'Home to the world\'s oldest university and a labyrinthine medina.',
-      'image': 'https://images.unsplash.com/photo-1570191913384-b786dde7d9b4',
-    },
-    {
-      'id': 3,
-      'name': 'Chefchaouen',
-      'arabicName': 'شفشاون',
-      'description': 'The famous Blue Pearl of Morocco, nestled in the Rif Mountains.',
-      'image': 'https://images.unsplash.com/photo-1590736969955-71cc94901144',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
 
-  final List<Map<String, dynamic>> _recommendedActivities = [
-    {
-      'id': 1,
-      'title': 'Sahara Desert Safari',
-      'location': 'Marrakech',
-      'image': 'https://images.unsplash.com/photo-1591414646028-7b60c18c6f14',
-    },
-    {
-      'id': 2,
-      'title': 'Marrakech Medina Tour',
-      'location': 'Marrakech',
-      'image': 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5',
-    },
-    {
-      'id': 3,
-      'title': 'Moroccan Cooking Class',
-      'location': 'Fes',
-      'image': 'https://images.unsplash.com/photo-1570191913384-b786dde7d9b4',
-    },
-  ];
-
-  final List<Map<String, dynamic>> _upcomingEvents = [
-    {
-      'id': 1,
-      'title': 'Cinema World Music Festival',
-      'date': 'June 10-15',
-      'location': 'Essaouira',
-      'image': 'https://images.unsplash.com/photo-1591414646028-7b60c18c6f14',
-    },
-    {
-      'id': 2,
-      'title': 'Rose Festival',
-      'date': 'May 10-12',
-      'location': 'Kelaat M\'Gouna',
-      'image': 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5',
-    },
-  ];
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final results = await Future.wait([
+        _api.getAllCities(),
+        _api.getAllActivities(),
+      ]);
+      setState(() {
+        _cities = results[0] as List<CityDto>;
+        _activities = results[1] as List<ActivityModel>;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +70,11 @@ class _ExplorePageState extends State<ExplorePage> {
                 _buildHeader(colorScheme, localizationService),
                 _buildSearchBar(colorScheme, localizationService),
                 Expanded(
-                  child: SingleChildScrollView(
+                  child: _isLoading
+                      ? Center(child: CircularProgressIndicator())
+                      : _error != null
+                          ? Center(child: Text(_error!, style: TextStyle(color: colorScheme.error)))
+                          : SingleChildScrollView(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,11 +82,9 @@ class _ExplorePageState extends State<ExplorePage> {
                         SizedBox(height: 24),
                         _buildCategoriesSection(colorScheme, localizationService),
                         SizedBox(height: 32),
-                        _buildPopularCitiesSection(colorScheme, localizationService),
+                                  _buildAllCitiesSection(colorScheme, localizationService),
                         SizedBox(height: 32),
-                        _buildRecommendedActivitiesSection(colorScheme, localizationService),
-                        SizedBox(height: 32),
-                        _buildUpcomingEventsSection(colorScheme, localizationService),
+                                  _buildAllActivitiesSection(colorScheme, localizationService),
                         SizedBox(height: 32),
                       ],
                     ),
@@ -243,12 +220,12 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildPopularCitiesSection(ColorScheme colorScheme, LocalizationService localizationService) {
+  Widget _buildAllCitiesSection(ColorScheme colorScheme, LocalizationService localizationService) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          localizationService.translate('popular_cities'),
+          localizationService.translate('cities'),
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -256,12 +233,12 @@ class _ExplorePageState extends State<ExplorePage> {
           ),
         ),
         SizedBox(height: 16),
-        ..._popularCities.map((city) => _buildCityCard(city, colorScheme)).toList(),
+        ..._cities.map((city) => _buildCityCard(city, colorScheme)).toList(),
       ],
     );
   }
 
-  Widget _buildCityCard(Map<String, dynamic> city, ColorScheme colorScheme) {
+  Widget _buildCityCard(CityDto city, ColorScheme colorScheme) {
     return Container(
       margin: EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -284,7 +261,7 @@ class _ExplorePageState extends State<ExplorePage> {
             ClipRRect(
               borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
               child: Image.network(
-                city['image'] as String,
+                city.imageUrl ?? '',
                 width: double.infinity,
                 height: 200,
                 fit: BoxFit.cover,
@@ -304,7 +281,7 @@ class _ExplorePageState extends State<ExplorePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    city['name'] as String,
+                    city.nom,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -313,7 +290,7 @@ class _ExplorePageState extends State<ExplorePage> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    city['description'] as String,
+                    city.description ?? '',
                     style: TextStyle(
                       fontSize: 14,
                       color: colorScheme.onSurface.withOpacity(0.7),
@@ -328,12 +305,12 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildRecommendedActivitiesSection(ColorScheme colorScheme, LocalizationService localizationService) {
+  Widget _buildAllActivitiesSection(ColorScheme colorScheme, LocalizationService localizationService) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          localizationService.translate('recommended_activities'),
+          localizationService.translate('activities'),
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -341,12 +318,12 @@ class _ExplorePageState extends State<ExplorePage> {
           ),
         ),
         SizedBox(height: 16),
-        ..._recommendedActivities.map((activity) => _buildActivityCard(activity, colorScheme)).toList(),
+        ..._activities.map((activity) => _buildActivityCard(activity, colorScheme)).toList(),
       ],
     );
   }
 
-  Widget _buildActivityCard(Map<String, dynamic> activity, ColorScheme colorScheme) {
+  Widget _buildActivityCard(ActivityModel activity, ColorScheme colorScheme) {
     return Container(
       margin: EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -370,7 +347,7 @@ class _ExplorePageState extends State<ExplorePage> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.network(
-                  activity['image']!,
+                  activity.imageUrl ?? '',
                   width: 60,
                   height: 60,
                   fit: BoxFit.cover,
@@ -390,7 +367,7 @@ class _ExplorePageState extends State<ExplorePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      activity['title']!,
+                      activity.nom,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -398,8 +375,9 @@ class _ExplorePageState extends State<ExplorePage> {
                       ),
                     ),
                     SizedBox(height: 4),
+                    if (activity.prix != null)
                     Text(
-                      activity['location']!,
+                        '${activity.prix!.toStringAsFixed(2)} MAD',
                       style: TextStyle(
                         fontSize: 14,
                         color: colorScheme.onSurface.withOpacity(0.6),
@@ -410,134 +388,6 @@ class _ExplorePageState extends State<ExplorePage> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildUpcomingEventsSection(ColorScheme colorScheme, LocalizationService localizationService) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              localizationService.translate('upcoming_events'),
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onBackground,
-              ),
-            ),
-            TextButton(
-              onPressed: () => _openEventsPage(),
-              child: Text(
-                localizationService.translate('view_all'),
-                style: TextStyle(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 16),
-        ..._upcomingEvents.map((event) => _buildEventCard(event, colorScheme)).toList(),
-      ],
-    );
-  }
-
-  Widget _buildEventCard(Map<String, dynamic> event, ColorScheme colorScheme) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: InkWell(
-        onTap: () => _openEventDetails(event),
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-              child: Image.network(
-                event['image']!,
-                width: double.infinity,
-                height: 200,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: double.infinity,
-                    height: 200,
-                    color: colorScheme.onSurface.withOpacity(0.1),
-                    child: Icon(Icons.image, size: 64, color: colorScheme.onSurface.withOpacity(0.6)),
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    event['title']!,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today,
-                        size: 16,
-                        color: colorScheme.onSurface.withOpacity(0.6),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        event['date']!,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: colorScheme.onSurface.withOpacity(0.6),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 16,
-                        color: colorScheme.onSurface.withOpacity(0.6),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        event['location']!,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: colorScheme.onSurface.withOpacity(0.6),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -568,39 +418,32 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  void _openCityDetails(Map<String, dynamic> city) {
+  void _openCityDetails(CityDto city) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DetailsExplorePage(destination: city),
+        builder: (context) => DetailsExplorePage(destination: {
+          'id': city.id,
+          'name': city.nom,
+          'description': city.description ?? '',
+          'image': city.imageUrl ?? '',
+        }),
       ),
     );
   }
 
-  void _openActivityDetails(Map<String, dynamic> activity) {
+  void _openActivityDetails(ActivityModel activity) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DetailsExplorePage(destination: activity),
+        builder: (context) => DetailsExplorePage(destination: {
+          'id': activity.id,
+          'title': activity.nom,
+          'image': activity.imageUrl ?? '',
+        }),
       ),
     );
   }
 
-  void _openEventDetails(Map<String, dynamic> event) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DetailsExplorePage(destination: event),
-      ),
-    );
-  }
-
-  void _openEventsPage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EventsExplorePage(),
-      ),
-    );
-  }
+  // Events UI removed for now, pending backend real events integration
 }
