@@ -132,6 +132,55 @@ class PublicApiService {
     }
     return [];
   }
+
+  // Get comprehensive city details with all related data
+  Future<Map<String, dynamic>> getCityDetails(int cityId, {CancelToken? cancelToken}) async {
+    final response = await _dio.get(
+      '/public/cities/$cityId/details',
+      cancelToken: cancelToken,
+    );
+    if (response.statusCode == 200 && response.data is Map) {
+      return Map<String, dynamic>.from(response.data as Map);
+    }
+    throw Exception('Failed to load city details');
+  }
+
+  // Get city activities
+  Future<List<Map<String, dynamic>>> getCityActivities(int cityId, {CancelToken? cancelToken}) async {
+    final response = await _dio.get(
+      '/public/cities/$cityId/activities',
+      cancelToken: cancelToken,
+    );
+    if (response.statusCode == 200 && response.data is List) {
+      return List<Map<String, dynamic>>.from(response.data as List);
+    }
+    return [];
+  }
+
+  // Get city monuments
+  Future<List<Map<String, dynamic>>> getCityMonuments(int cityId, {CancelToken? cancelToken}) async {
+    final response = await _dio.get(
+      '/public/cities/$cityId/monuments',
+      cancelToken: cancelToken,
+    );
+    if (response.statusCode == 200 && response.data is List) {
+      return List<Map<String, dynamic>>.from(response.data as List);
+    }
+    return [];
+  }
+
+  // Get city accommodations
+  Future<List<Map<String, dynamic>>> getCityAccommodations(int cityId, {CancelToken? cancelToken}) async {
+    final response = await _dio.get(
+      '/public/cities/$cityId/hebergements',
+      cancelToken: cancelToken,
+    );
+    if (response.statusCode == 200 && response.data is List) {
+      return List<Map<String, dynamic>>.from(response.data as List);
+    }
+    return [];
+  }
+
 }
 
 

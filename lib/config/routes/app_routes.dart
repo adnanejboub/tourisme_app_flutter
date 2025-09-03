@@ -15,6 +15,7 @@ import 'package:tourisme_app_flutter/features/home/presentation/pages/main_navig
 import 'package:tourisme_app_flutter/features/home/presentation/pages/home_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/explore_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/details_explore.dart';
+import 'package:tourisme_app_flutter/features/explore/presentation/pages/city_details_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/search_explore_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/filter_explore_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/events_explore_page.dart';
@@ -44,6 +45,7 @@ class AppRoutes {
   static const String mainNavigation = '/main-navigation';
   static const String explore = '/explore';
   static const String detailsExplore = '/details-explore';
+  static const String cityDetails = '/city-details';
   static const String searchExplore = '/search-explore';
   static const String filterExplore = '/filter-explore';
   static const String eventsExplore = '/events-explore';
@@ -109,6 +111,11 @@ class AppRoutes {
         final args = settings.arguments as Map<String, dynamic>?;
         final destination = args?['destination'] as Map<String, dynamic>? ?? {};
         return _buildRoute(DetailsExplorePage(destination: destination), settings);
+
+      case cityDetails:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final city = args?['city'] as Map<String, dynamic>?;
+        return _buildRoute(CityDetailsPage(city: city ?? {}), settings);
 
       case searchExplore:
         return _buildRoute(const SearchExplorePage(), settings);

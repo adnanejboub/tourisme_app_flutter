@@ -55,6 +55,29 @@ class CityDto {
       isModerne: json['isModerne'] as bool?,
     );
   }
+
+  /// Converts this CityDto to a Map<String, dynamic> for use with CityDetailsPage
+  Map<String, dynamic> toCityDetailsMap() {
+    return {
+      'id': id,
+      'nomVille': nom,
+      'name': nom,
+      'description': description ?? '',
+      'imageUrl': imageUrl ?? '',
+      'image': imageUrl ?? '',
+      'latitude': latitude,
+      'longitude': longitude,
+      'paysNom': paysNom,
+      'climatNom': climatNom,
+      'isPlage': isPlage,
+      'isMontagne': isMontagne,
+      'isDesert': isDesert,
+      'isRiviera': isRiviera,
+      'isHistorique': isHistorique,
+      'isCulturelle': isCulturelle,
+      'isModerne': isModerne,
+    };
+  }
 }
 
 

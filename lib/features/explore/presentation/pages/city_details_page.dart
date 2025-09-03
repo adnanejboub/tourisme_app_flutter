@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
+import '../../data/services/public_api_service.dart';
 import 'itinerary_planning_page.dart';
 
 class CityDetailsPage extends StatefulWidget {
@@ -24,171 +26,34 @@ class _CityDetailsPageState extends State<CityDetailsPage>
   late TabController _tabController;
   bool _isLoading = false;
   bool _isFavorite = false;
+  
+  // API service
+  late PublicApiService _apiService;
+  
+  // Dynamic data
+  Map<String, dynamic>? _cityDetails;
+  List<Map<String, dynamic>> _activities = [];
+  List<Map<String, dynamic>> _monuments = [];
+  List<Map<String, dynamic>> _accommodations = [];
+  List<Map<String, dynamic>> _events = [];
+  List<Map<String, dynamic>> _services = [];
+  List<Map<String, dynamic>> _highlights = [];
+  Map<String, dynamic>? _statistics;
+  
+  // Loading states
+  bool _isLoadingDetails = true;
+  String? _errorMessage;
 
-  // Données des activités pour chaque ville (à remplacer par un service API)
-  static const Map<String, List<Map<String, dynamic>>> _cityActivitiesData = {
-    'Casablanca': [
-      {
-        'id': 'hassan_mosque',
-        'name': 'Hassan II Mosque',
-        'type': 'Cultural',
-        'image': 'https://images.unsplash.com/photo-1553603228-0f7051e6ad75?w=400',
-        'rating': 4.8,
-        'duration': '2-3 hours',
-        'price': 'Free',
-        'description': 'Largest mosque in Morocco with stunning ocean views',
-        'location': 'Boulevard de la Corniche',
-        'bestTime': 'Morning or sunset',
-      },
-      {
-        'id': 'medina',
-        'name': 'Old Medina',
-        'type': 'Historic',
-        'image': 'https://images.unsplash.com/photo-1553603228-0f7051e6ad75?w=400',
-        'rating': 4.5,
-        'duration': '3-4 hours',
-        'price': 'Free',
-        'description': 'Historic quarter with traditional markets and architecture',
-        'location': 'Old City Center',
-        'bestTime': 'Morning or late afternoon',
-      },
-      {
-        'id': 'corniche',
-        'name': 'Corniche Beach',
-        'type': 'Beach',
-        'image': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
-        'rating': 4.3,
-        'duration': '2-6 hours',
-        'price': 'Free',
-        'description': 'Popular beach area with restaurants and activities',
-        'location': 'Coastal area',
-        'bestTime': 'Afternoon to sunset',
-      },
-    ],
-    'Marrakech': [
-      {
-        'id': 'jemaa_elfnaa',
-        'name': 'Jemaa el-Fnaa',
-        'type': 'Cultural',
-        'image': 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=400',
-        'rating': 4.7,
-        'duration': '2-4 hours',
-        'price': 'Free',
-        'description': 'Famous square with street performers and food stalls',
-        'location': 'Medina center',
-        'bestTime': 'Evening',
-      },
-      {
-        'id': 'majorelle',
-        'name': 'Majorelle Garden',
-        'type': 'Nature',
-        'image': 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400',
-        'rating': 4.6,
-        'duration': '1-2 hours',
-        'price': '70 MAD',
-        'description': 'Beautiful botanical garden with blue architecture',
-        'location': 'Gueliz district',
-        'bestTime': 'Morning',
-      },
-      {
-        'id': 'bahia_palace',
-        'name': 'Bahia Palace',
-        'type': 'Historic',
-        'image': 'https://images.unsplash.com/photo-1553603228-0f7051e6ad75?w=400',
-        'rating': 4.4,
-        'duration': '1-2 hours',
-        'price': '70 MAD',
-        'description': '19th-century palace with beautiful gardens',
-        'location': 'Medina',
-        'bestTime': 'Morning or afternoon',
-      },
-    ],
-    'Fes': [
-      {
-        'id': 'al_qarawiyyin',
-        'name': 'Al-Qarawiyyin University',
-        'type': 'Historic',
-        'image': 'https://images.unsplash.com/photo-1553603228-0f7051e6ad75?w=400',
-        'rating': 4.7,
-        'duration': '1-2 hours',
-        'price': 'Free',
-        'description': 'Oldest university in the world',
-        'location': 'Fes el-Bali',
-        'bestTime': 'Morning',
-      },
-      {
-        'id': 'tanneries',
-        'name': 'Chouara Tanneries',
-        'type': 'Cultural',
-        'image': 'https://images.unsplash.com/photo-1553603228-0f7051e6ad75?w=400',
-        'rating': 4.5,
-        'duration': '1 hour',
-        'price': 'Free',
-        'description': 'Traditional leather tanning workshops',
-        'location': 'Fes el-Bali',
-        'bestTime': 'Morning',
-      },
-    ],
-  };
 
-  // Données des hébergements pour chaque ville (à remplacer par un service API)
-  static const Map<String, List<Map<String, dynamic>>> _cityHotelsData = {
-    'Casablanca': [
-      {
-        'id': 'hilton_casablanca',
-        'name': 'Hilton Casablanca',
-        'type': 'Luxury',
-        'image': 'https://images.unsplash.com/photo-1553603228-0f7051e6ad75?w=400',
-        'rating': 4.6,
-        'price': 'From 1200 MAD',
-        'location': 'City Center',
-        'amenities': ['WiFi', 'Pool', 'Spa', 'Restaurant'],
-        'description': 'Modern luxury hotel in the heart of Casablanca',
-      },
-      {
-        'id': 'ibis_casablanca',
-        'name': 'Ibis Casablanca City Center',
-        'type': 'Mid-range',
-        'image': 'https://images.unsplash.com/photo-1553603228-0f7051e6ad75?w=400',
-        'rating': 4.2,
-        'price': 'From 600 MAD',
-        'location': 'City Center',
-        'amenities': ['WiFi', 'Restaurant', 'Bar'],
-        'description': 'Comfortable hotel with great location',
-      },
-    ],
-    'Marrakech': [
-      {
-        'id': 'riad_marrakech',
-        'name': 'Riad Marrakech',
-        'type': 'Traditional',
-        'image': 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=400',
-        'rating': 4.8,
-        'price': 'From 800 MAD',
-        'location': 'Medina',
-        'amenities': ['WiFi', 'Terrace', 'Traditional decor'],
-        'description': 'Authentic Moroccan riad experience',
-      },
-      {
-        'id': 'palmeraie_resort',
-        'name': 'Palmeraie Resort',
-        'type': 'Luxury',
-        'image': 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400',
-        'rating': 4.7,
-        'price': 'From 2000 MAD',
-        'location': 'Palmeraie',
-        'amenities': ['WiFi', 'Pool', 'Spa', 'Golf', 'Restaurant'],
-        'description': 'Luxury resort in the palm grove',
-      },
-    ],
-  };
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 5, vsync: this); // Added specialties tab
+    _apiService = PublicApiService();
     _loadFavoriteStatus();
+    _loadCityDetails();
   }
 
   @override
@@ -205,12 +70,57 @@ class _CityDetailsPageState extends State<CityDetailsPage>
     });
   }
 
+  Future<void> _loadCityDetails() async {
+    try {
+      setState(() {
+        _isLoadingDetails = true;
+        _errorMessage = null;
+      });
+
+      final cityId = widget.city['id'] as int?;
+      if (cityId == null) {
+        throw Exception('City ID not found');
+      }
+
+      final details = await _apiService.getCityDetails(cityId);
+      
+      setState(() {
+        _cityDetails = details;
+        _activities = List<Map<String, dynamic>>.from(details['activities'] ?? []);
+        _monuments = List<Map<String, dynamic>>.from(details['monuments'] ?? []);
+        _accommodations = List<Map<String, dynamic>>.from(details['accommodations'] ?? []);
+        _events = List<Map<String, dynamic>>.from(details['events'] ?? []);
+        _services = List<Map<String, dynamic>>.from(details['services'] ?? []);
+        _highlights = List<Map<String, dynamic>>.from(details['highlights'] ?? []);
+        _statistics = details['statistics'] as Map<String, dynamic>?;
+        _isLoadingDetails = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoadingDetails = false;
+      });
+    }
+  }
+
   List<Map<String, dynamic>> get _currentActivities {
-    return _cityActivitiesData[widget.city['name']] ?? [];
+    return _activities;
   }
 
   List<Map<String, dynamic>> get _currentHotels {
-    return _cityHotelsData[widget.city['name']] ?? [];
+    return _accommodations;
+  }
+
+  List<Map<String, dynamic>> get _currentMonuments {
+    return _monuments;
+  }
+
+  List<Map<String, dynamic>> get _currentEvents {
+    return _events;
+  }
+
+  List<Map<String, dynamic>> get _currentServices {
+    return _services;
   }
 
   void _onTabChanged(int index) {
@@ -262,24 +172,28 @@ class _CityDetailsPageState extends State<CityDetailsPage>
       _isLoading = true;
     });
 
+    final cityData = _cityDetails?['city'] ?? widget.city;
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ItineraryPlanningPage(
           destination: {
-            'name': widget.city['name'],
+            'name': cityData['nomVille'] ?? cityData['name'],
             'type': 'city',
-            'isUserLocation': widget.city['isUserLocation'] ?? false,
-            'location': widget.city['location'],
-            'description': widget.city['description'],
-            'popularActivities': widget.city['popularActivities'],
-            'bestTime': widget.city['bestTime'],
-            'averageCost': widget.city['averageCost'],
-            'image': widget.city['image'],
-            'rating': widget.city['rating'],
-            'tags': widget.city['tags'],
+            'isUserLocation': cityData['isUserLocation'] ?? false,
+            'location': cityData['location'],
+            'description': cityData['description'] ?? cityData['descriptionVille'],
+            'popularActivities': cityData['popularActivities'],
+            'bestTime': cityData['bestTime'] ?? cityData['meilleurePeriode'],
+            'averageCost': cityData['averageCost'] ?? cityData['coutMoyen'],
+            'image': cityData['image'] ?? cityData['imageUrl'],
+            'rating': cityData['noteMoyenne'] ?? cityData['rating'],
+            'tags': cityData['tags'],
             'activities': _currentActivities,
             'hotels': _currentHotels,
+            'monuments': _currentMonuments,
+            'events': _currentEvents,
+            'services': _currentServices,
           },
         ),
       ),
@@ -301,6 +215,56 @@ class _CityDetailsPageState extends State<CityDetailsPage>
     final isTablet = screenWidth > 600;
     final isDesktop = screenWidth > 900;
 
+    if (_isLoadingDetails) {
+      return Scaffold(
+        backgroundColor: colorScheme.background,
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        backgroundColor: colorScheme.background,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: colorScheme.error,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Error loading city details',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onBackground,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _errorMessage!,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: colorScheme.onBackground.withOpacity(0.7),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _loadCityDetails,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: colorScheme.background,
       body: CustomScrollView(
@@ -309,7 +273,9 @@ class _CityDetailsPageState extends State<CityDetailsPage>
           SliverToBoxAdapter(
             child: Column(
               children: [
-                _buildCityDescription(colorScheme, isTablet, isDesktop),
+                _buildCityOverview(colorScheme, isTablet, isDesktop),
+                _buildStatisticsSection(colorScheme),
+                _buildHighlightsSection(colorScheme, isTablet, isDesktop),
                 _buildTabBar(colorScheme),
                 const SizedBox(height: 20),
                 _buildTabContent(colorScheme, isTablet, isDesktop),
@@ -380,8 +346,9 @@ class _CityDetailsPageState extends State<CityDetailsPage>
   }
 
   Widget _buildHeroImage() {
+    final cityData = _cityDetails?['city'] ?? widget.city;
     return CachedNetworkImage(
-      imageUrl: widget.city['image'] ?? '',
+      imageUrl: cityData['image'] ?? cityData['imageUrl'] ?? '',
       fit: BoxFit.cover,
       placeholder: (context, url) => Container(
         color: Colors.grey[300],
@@ -414,6 +381,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
   }
 
   Widget _buildCityInfo(bool isTablet, bool isDesktop) {
+    final cityData = _cityDetails?['city'] ?? widget.city;
     return Positioned(
       bottom: 20,
       left: 20,
@@ -422,7 +390,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            widget.city['name'] ?? 'Unknown City',
+            cityData['nomVille'] ?? cityData['name'] ?? 'Unknown City',
             style: TextStyle(
               color: Colors.white,
               fontSize: isDesktop ? 36 : (isTablet ? 32 : 28),
@@ -431,7 +399,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
           ),
           const SizedBox(height: 8),
           Text(
-            widget.city['country'] ?? 'Unknown Country',
+            cityData['paysNom'] ?? cityData['pays'] ?? cityData['country'] ?? 'Morocco',
             style: TextStyle(
               color: Colors.white.withOpacity(0.9),
               fontSize: isDesktop ? 20 : (isTablet ? 18 : 16),
@@ -443,7 +411,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
               const Icon(Icons.star, color: Colors.amber, size: 20),
               const SizedBox(width: 8),
               Text(
-                '${widget.city['rating'] ?? 0.0}',
+                '${cityData['noteMoyenne'] ?? cityData['rating'] ?? 0.0}',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -455,9 +423,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  widget.city['tags'] != null
-                      ? (widget.city['tags'] as List).join(', ')
-                      : '',
+                  cityData['climatNom'] ?? cityData['region'] ?? cityData['tags']?.join(', ') ?? '',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.9),
                     fontSize: 16,
@@ -472,23 +438,70 @@ class _CityDetailsPageState extends State<CityDetailsPage>
     );
   }
 
-  Widget _buildCityDescription(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildCityOverview(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+    final cityData = _cityDetails?['city'] ?? widget.city;
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'About ${widget.city['name'] ?? 'this city'}',
-            style: TextStyle(
-              fontSize: isDesktop ? 24 : (isTablet ? 22 : 20),
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onBackground,
-            ),
+          // City name and nickname
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      cityData['nomVille'] ?? cityData['name'] ?? 'Unknown City',
+                      style: TextStyle(
+                        fontSize: isDesktop ? 28 : (isTablet ? 26 : 24),
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onBackground,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      cityData['surnom'] ?? cityData['nickname'] ?? 'The Red City',
+                      style: TextStyle(
+                        fontSize: isDesktop ? 18 : (isTablet ? 16 : 14),
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Rating badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: colorScheme.primary.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.star, color: colorScheme.primary, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${cityData['noteMoyenne'] ?? cityData['rating'] ?? 0.0}',
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+          // Description
           Text(
-            widget.city['description'] ?? 'No description available.',
+            cityData['description'] ?? cityData['descriptionVille'] ?? 'No description available.',
             style: TextStyle(
               fontSize: isDesktop ? 16 : (isTablet ? 15 : 14),
               color: colorScheme.onBackground.withOpacity(0.8),
@@ -496,33 +509,104 @@ class _CityDetailsPageState extends State<CityDetailsPage>
             ),
           ),
           const SizedBox(height: 20),
+          // City characteristics
+          _buildCityCharacteristics(cityData, colorScheme),
+          const SizedBox(height: 20),
+          // Info cards
           _buildInfoCards(colorScheme),
         ],
       ),
     );
   }
 
+  Widget _buildCityCharacteristics(Map<String, dynamic> cityData, ColorScheme colorScheme) {
+    List<Map<String, dynamic>> characteristics = [];
+    
+    // Add characteristics based on city data
+    if (cityData['isPlage'] == true) characteristics.add({'icon': Icons.beach_access, 'label': 'Beach', 'color': Colors.blue});
+    if (cityData['isMontagne'] == true) characteristics.add({'icon': Icons.landscape, 'label': 'Mountain', 'color': Colors.green});
+    if (cityData['isDesert'] == true) characteristics.add({'icon': Icons.wb_sunny, 'label': 'Desert', 'color': Colors.orange});
+    if (cityData['isRiviera'] == true) characteristics.add({'icon': Icons.water, 'label': 'Riviera', 'color': Colors.cyan});
+    if (cityData['isHistorique'] == true) characteristics.add({'icon': Icons.history_edu, 'label': 'Historical', 'color': Colors.brown});
+    if (cityData['isCulturelle'] == true) characteristics.add({'icon': Icons.museum, 'label': 'Cultural', 'color': Colors.purple});
+    if (cityData['isModerne'] == true) characteristics.add({'icon': Icons.business, 'label': 'Modern', 'color': Colors.grey});
+    if (cityData['hasAeroport'] == true) characteristics.add({'icon': Icons.flight, 'label': 'Airport', 'color': Colors.indigo});
+    if (cityData['hasGare'] == true) characteristics.add({'icon': Icons.train, 'label': 'Train Station', 'color': Colors.teal});
+    if (cityData['hasPort'] == true) characteristics.add({'icon': Icons.directions_boat, 'label': 'Port', 'color': Colors.blueGrey});
+
+    if (characteristics.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'City Features',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onBackground,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: characteristics.map((char) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: (char['color'] as Color).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: (char['color'] as Color).withOpacity(0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    char['icon'] as IconData,
+                    size: 16,
+                    color: char['color'] as Color,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    char['label'] as String,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: char['color'] as Color,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
   Widget _buildInfoCards(ColorScheme colorScheme) {
+    final cityData = _cityDetails?['city'] ?? widget.city;
     return Row(
       children: [
         _buildInfoCard(
           Icons.access_time,
           'Best Time',
-          widget.city['bestTime'] ?? 'N/A',
+          cityData['bestTime'] ?? cityData['meilleurePeriode'] ?? 'N/A',
           colorScheme,
         ),
         const SizedBox(width: 16),
         _buildInfoCard(
           Icons.attach_money,
           'Average Cost',
-          widget.city['averageCost'] ?? 'N/A',
+          cityData['averageCost'] ?? cityData['coutMoyen'] ?? 'N/A',
           colorScheme,
         ),
         const SizedBox(width: 16),
         _buildInfoCard(
           Icons.star,
           'Rating',
-          '${widget.city['rating'] ?? 0.0}/5',
+          '${cityData['noteMoyenne'] ?? cityData['rating'] ?? 0.0}/5',
           colorScheme,
         ),
       ],
@@ -568,6 +652,222 @@ class _CityDetailsPageState extends State<CityDetailsPage>
     );
   }
 
+  Widget _buildStatisticsSection(ColorScheme colorScheme) {
+    if (_statistics == null) return const SizedBox.shrink();
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'City Statistics',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildStatCard(
+                Icons.explore,
+                'Activities',
+                '${_statistics!['totalActivities'] ?? 0}',
+                colorScheme.primary,
+                colorScheme,
+              ),
+              const SizedBox(width: 12),
+              _buildStatCard(
+                Icons.location_city,
+                'Monuments',
+                '${_statistics!['totalMonuments'] ?? 0}',
+                Colors.orange,
+                colorScheme,
+              ),
+              const SizedBox(width: 12),
+              _buildStatCard(
+                Icons.hotel,
+                'Hotels',
+                '${_statistics!['totalAccommodations'] ?? 0}',
+                Colors.green,
+                colorScheme,
+              ),
+              const SizedBox(width: 12),
+              _buildStatCard(
+                Icons.build,
+                'Services',
+                '${_statistics!['totalServices'] ?? 0}',
+                Colors.purple,
+                colorScheme,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(IconData icon, String label, String value, Color iconColor, ColorScheme colorScheme) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: iconColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: iconColor, size: 24),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: colorScheme.onSurface.withOpacity(0.7),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHighlightsSection(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+    if (_highlights.isEmpty) return const SizedBox.shrink();
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Key Attractions',
+            style: TextStyle(
+              fontSize: isDesktop ? 20 : (isTablet ? 18 : 16),
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onBackground,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 120,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _highlights.length,
+              itemBuilder: (context, index) {
+                final highlight = _highlights[index];
+                return _buildHighlightCard(highlight, colorScheme);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHighlightCard(Map<String, dynamic> highlight, ColorScheme colorScheme) {
+    return Container(
+      width: 200,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                color: Colors.grey[200],
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                child: CachedNetworkImage(
+                  imageUrl: highlight['imageUrl'] ?? '',
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[300],
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  highlight['name'] ?? 'Unknown',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.star, color: Colors.amber, size: 12),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${highlight['rating'] ?? 0.0}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTabBar(ColorScheme colorScheme) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -581,10 +881,16 @@ class _CityDetailsPageState extends State<CityDetailsPage>
             child: _buildTabButton('Activities', 0, Icons.explore, colorScheme),
           ),
           Expanded(
-            child: _buildTabButton('Hotels', 1, Icons.hotel, colorScheme),
+            child: _buildTabButton('Monuments', 1, Icons.location_city, colorScheme),
           ),
           Expanded(
-            child: _buildTabButton('Plan Trip', 2, Icons.map, colorScheme),
+            child: _buildTabButton('Hotels', 2, Icons.hotel, colorScheme),
+          ),
+          Expanded(
+            child: _buildTabButton('Services', 3, Icons.build, colorScheme),
+          ),
+          Expanded(
+            child: _buildTabButton('Plan Trip', 4, Icons.map, colorScheme),
           ),
         ],
       ),
@@ -633,7 +939,9 @@ class _CityDetailsPageState extends State<CityDetailsPage>
         onPageChanged: _onTabChanged,
         children: [
           _buildActivitiesTab(colorScheme, isTablet, isDesktop),
+          _buildMonumentsTab(colorScheme, isTablet, isDesktop),
           _buildHotelsTab(colorScheme, isTablet, isDesktop),
+          _buildServicesTab(colorScheme, isTablet, isDesktop),
           _buildPlanTripTab(colorScheme, isTablet, isDesktop),
         ],
       ),
@@ -729,13 +1037,23 @@ class _CityDetailsPageState extends State<CityDetailsPage>
   }
 
   Widget _buildActivityInfo(Map<String, dynamic> activity, ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+    // Calculate duration range
+    String durationText = 'N/A';
+    if (activity['dureeMinimun'] != null && activity['dureeMaximun'] != null) {
+      durationText = '${activity['dureeMinimun']}-${activity['dureeMaximun']}h';
+    } else if (activity['dureeMinimun'] != null) {
+      durationText = '${activity['dureeMinimun']}h+';
+    } else if (activity['dureeMaximun'] != null) {
+      durationText = 'Up to ${activity['dureeMaximun']}h';
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            activity['name'] ?? 'Unknown Activity',
+            activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? 'Unknown Activity',
             style: TextStyle(
               fontSize: isDesktop ? 18 : (isTablet ? 16 : 14),
               fontWeight: FontWeight.bold,
@@ -750,7 +1068,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              activity['type'] ?? 'Activity',
+              activity['categorie'] ?? activity['typeActivite'] ?? activity['type'] ?? 'Activity',
               style: TextStyle(
                 fontSize: 12,
                 color: colorScheme.primary,
@@ -759,22 +1077,66 @@ class _CityDetailsPageState extends State<CityDetailsPage>
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            activity['description'] ?? 'No description available.',
-            style: TextStyle(
-              fontSize: isDesktop ? 14 : (isTablet ? 13 : 12),
-              color: colorScheme.onSurface.withOpacity(0.7),
+          // Season information
+          if (activity['saison'] != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'Season: ${activity['saison']}',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.blue,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
+          const SizedBox(height: 8),
+          // Difficulty level
+          if (activity['niveauDificulta'] != null)
+            Row(
+              children: [
+                Icon(Icons.trending_up, size: 12, color: colorScheme.onSurface.withOpacity(0.6)),
+                const SizedBox(width: 4),
+                Text(
+                  'Difficulty: ${activity['niveauDificulta']}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
+              ],
+            ),
+          const SizedBox(height: 4),
+          // Special conditions
+          if (activity['conditionsSpeciales'] != null)
+            Row(
+              children: [
+                Icon(Icons.info_outline, size: 12, color: colorScheme.onSurface.withOpacity(0.6)),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    activity['conditionsSpeciales'],
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           const SizedBox(height: 8),
           Row(
             children: [
               Icon(Icons.access_time, size: 14, color: colorScheme.onSurface.withOpacity(0.6)),
               const SizedBox(width: 4),
               Text(
-                activity['duration'] ?? 'N/A',
+                durationText,
                 style: TextStyle(
                   fontSize: 12,
                   color: colorScheme.onSurface.withOpacity(0.6),
@@ -784,7 +1146,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
               Icon(Icons.attach_money, size: 14, color: colorScheme.onSurface.withOpacity(0.6)),
               const SizedBox(width: 4),
               Text(
-                activity['price'] ?? 'N/A',
+                activity['prix'] != null ? '${activity['prix']} MAD' : activity['price'] ?? 'Contact for price',
                 style: TextStyle(
                   fontSize: 12,
                   color: colorScheme.onSurface.withOpacity(0.6),
@@ -796,7 +1158,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
                   Icon(Icons.star, size: 14, color: Colors.amber),
                   const SizedBox(width: 2),
                   Text(
-                    '${activity['rating'] ?? 0.0}',
+                    '${activity['noteMoyenne'] ?? activity['rating'] ?? 0.0}',
                     style: TextStyle(
                       fontSize: 12,
                       color: colorScheme.onSurface.withOpacity(0.8),
@@ -808,6 +1170,263 @@ class _CityDetailsPageState extends State<CityDetailsPage>
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMonumentsTab(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+    if (_currentMonuments.isEmpty) {
+      return _buildEmptyState(
+        'No monuments available',
+        'Monuments will be added soon for this destination.',
+        Icons.location_city_outlined,
+        colorScheme,
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      itemCount: _currentMonuments.length,
+      itemBuilder: (context, index) {
+        final monument = _currentMonuments[index];
+        return _buildMonumentCard(monument, colorScheme, isTablet, isDesktop);
+      },
+    );
+  }
+
+  Widget _buildMonumentCard(Map<String, dynamic> monument, ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: () {
+          // TODO: Navigate to monument details
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          children: [
+            // Image section
+            if (monument['imageUrl'] != null)
+              Container(
+                height: 120,
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  color: Colors.grey[200],
+                ),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  child: CachedNetworkImage(
+                    imageUrl: monument['imageUrl'],
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    placeholder: (context, url) => Container(
+                      color: Colors.grey[300],
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.location_city, color: Colors.grey, size: 40),
+                    ),
+                  ),
+                ),
+              ),
+            // Content section
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_city,
+                        color: colorScheme.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          monument['nomMonument'] ?? 'Unknown Monument',
+                          style: TextStyle(
+                            fontSize: isDesktop ? 16 : (isTablet ? 15 : 14),
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                      if (monument['gratuit'] == true)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Free',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.green,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Monument type and characteristics
+                  if (monument['typeMonument'] != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        monument['typeMonument'],
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  // Historical and cultural significance
+                  if (monument['hasHistorique'] != null || monument['hasCulturelle'] != null)
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        if (monument['hasHistorique'] != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'Historical: ${monument['hasHistorique']}',
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: Colors.orange,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        if (monument['hasCulturelle'] != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.purple.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'Cultural: ${monument['hasCulturelle']}',
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: Colors.purple,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  const SizedBox(height: 8),
+                  if (monument['description'] != null)
+                    Text(
+                      monument['description'],
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  const SizedBox(height: 8),
+                  if (monument['adresseMonument'] != null)
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, size: 12, color: colorScheme.onSurface.withOpacity(0.6)),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            monument['adresseMonument'],
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: colorScheme.onSurface.withOpacity(0.6),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 4),
+                  // Opening hours
+                  if (monument['horairesOuverture'] != null)
+                    Row(
+                      children: [
+                        Icon(Icons.access_time, size: 12, color: colorScheme.onSurface.withOpacity(0.6)),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            'Hours: ${monument['horairesOuverture']}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: colorScheme.onSurface.withOpacity(0.6),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      if (monument['prix'] != null && monument['gratuit'] != true)
+                        Row(
+                          children: [
+                            Icon(Icons.attach_money, size: 12, color: colorScheme.onSurface.withOpacity(0.6)),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${monument['prix']} MAD',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: colorScheme.onSurface.withOpacity(0.6),
+                              ),
+                            ),
+                          ],
+                        ),
+                      const Spacer(),
+                      if (monument['notesMoyennes'] != null)
+                        Row(
+                          children: [
+                            Icon(Icons.star, size: 12, color: Colors.amber),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${monument['notesMoyennes']}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: colorScheme.onSurface.withOpacity(0.8),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -870,7 +1489,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         child: CachedNetworkImage(
-          imageUrl: hotel['image'] ?? '',
+          imageUrl: hotel['imageUrl'] ?? hotel['image'] ?? '',
           width: double.infinity,
           fit: BoxFit.cover,
           placeholder: (context, url) => Container(
@@ -901,7 +1520,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
             children: [
               Expanded(
                 child: Text(
-                  hotel['name'] ?? 'Unknown Hotel',
+                  hotel['nomHebergement'] ?? 'Unknown Hotel',
                   style: TextStyle(
                     fontSize: isDesktop ? 18 : (isTablet ? 16 : 14),
                     fontWeight: FontWeight.bold,
@@ -916,7 +1535,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  hotel['type'] ?? 'Hotel',
+                  hotel['hebergementType'] ?? 'Hotel',
                   style: TextStyle(
                     fontSize: 12,
                     color: colorScheme.primary,
@@ -940,27 +1559,28 @@ class _CityDetailsPageState extends State<CityDetailsPage>
               Icon(Icons.location_on, size: 14, color: colorScheme.onSurface.withOpacity(0.6)),
               const SizedBox(width: 4),
               Text(
-                hotel['location'] ?? 'Unknown Location',
+                hotel['adresse'] ?? 'Unknown Location',
                 style: TextStyle(
                   fontSize: 12,
                   color: colorScheme.onSurface.withOpacity(0.6),
                 ),
               ),
               const Spacer(),
-              Row(
-                children: [
-                  Icon(Icons.star, size: 14, color: Colors.amber),
-                  const SizedBox(width: 2),
-                  Text(
-                    '${hotel['rating'] ?? 0.0}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colorScheme.onSurface.withOpacity(0.8),
-                      fontWeight: FontWeight.w600,
+              if (hotel['etoiles'] != null)
+                Row(
+                  children: [
+                    Icon(Icons.star, size: 14, color: Colors.amber),
+                    const SizedBox(width: 2),
+                    Text(
+                      '${hotel['etoiles']}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurface.withOpacity(0.8),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -968,7 +1588,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                hotel['price'] ?? 'Price not available',
+                hotel['prixParNuit'] != null ? 'From ${hotel['prixParNuit']} MAD/night' : 'Price not available',
                 style: TextStyle(
                   fontSize: 16,
                   color: colorScheme.primary,
@@ -978,6 +1598,27 @@ class _CityDetailsPageState extends State<CityDetailsPage>
             ],
           ),
           const SizedBox(height: 12),
+          // Availability status
+          if (hotel['isDisponible'] != null)
+            Row(
+              children: [
+                Icon(
+                  hotel['isDisponible'] == true ? Icons.check_circle : Icons.cancel,
+                  size: 14,
+                  color: hotel['isDisponible'] == true ? Colors.green : Colors.red,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  hotel['isDisponible'] == true ? 'Available' : 'Not Available',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: hotel['isDisponible'] == true ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          const SizedBox(height: 8),
           if (hotel['amenities'] != null)
             Wrap(
               spacing: 8,
@@ -1004,6 +1645,177 @@ class _CityDetailsPageState extends State<CityDetailsPage>
     );
   }
 
+  Widget _buildServicesTab(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+    if (_currentServices.isEmpty) {
+      return _buildEmptyState(
+        'No services available',
+        'Local services will be added soon for this destination.',
+        Icons.build_outlined,
+        colorScheme,
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      itemCount: _currentServices.length,
+      itemBuilder: (context, index) {
+        final service = _currentServices[index];
+        return _buildServiceCard(service, colorScheme, isTablet, isDesktop);
+      },
+    );
+  }
+
+  Widget _buildServiceCard(Map<String, dynamic> service, ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: () {
+          // TODO: Navigate to service details
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Row(
+          children: [
+            // Image section
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
+                ),
+                color: Colors.grey[200],
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
+                ),
+                child: CachedNetworkImage(
+                  imageUrl: service['imageUrl'] ?? '',
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[300],
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.build, color: Colors.grey, size: 30),
+                  ),
+                ),
+              ),
+            ),
+            // Content section
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.build,
+                          color: colorScheme.primary,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            service['nomService'] ?? service['name'] ?? 'Unknown Service',
+                            style: TextStyle(
+                              fontSize: isDesktop ? 16 : (isTablet ? 15 : 14),
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        if (service['categorie'] != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              service['categorie'],
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (service['description'] != null)
+                      Text(
+                        service['description'],
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        if (service['prix'] != null)
+                          Row(
+                            children: [
+                              Icon(Icons.attach_money, size: 12, color: colorScheme.onSurface.withOpacity(0.6)),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${service['prix']} MAD',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: colorScheme.onSurface.withOpacity(0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        const Spacer(),
+                        if (service['disponible'] == true)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'Available',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.green,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildPlanTripTab(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1016,13 +1828,13 @@ class _CityDetailsPageState extends State<CityDetailsPage>
           ),
           const SizedBox(height: 24),
           Text(
-            'Plan Your Perfect Trip to ${widget.city['name'] ?? 'this destination'}',
-                          style: TextStyle(
-                fontSize: isDesktop ? 24 : (isTablet ? 22 : 20),
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-              textAlign: TextAlign.center,
+            'Plan Your Perfect Trip to ${(_cityDetails?['city'] ?? widget.city)['nomVille'] ?? (_cityDetails?['city'] ?? widget.city)['name'] ?? 'this destination'}',
+            style: TextStyle(
+              fontSize: isDesktop ? 24 : (isTablet ? 22 : 20),
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           Text(

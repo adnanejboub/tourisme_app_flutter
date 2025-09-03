@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
 import 'details_explore.dart';
+import 'city_details_page.dart';
 import '../../data/services/public_api_service.dart';
 import '../../data/models/city_dto.dart';
 import '../../data/models/activity.dart';
@@ -431,12 +432,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => DetailsExplorePage(destination: {
-                'id': city.id,
-                'name': city.nom,
-                'description': city.description ?? '',
-                'image': city.imageUrl ?? '',
-              }),
+              builder: (context) => CityDetailsPage(city: city.toCityDetailsMap()),
             ),
           );
         },
