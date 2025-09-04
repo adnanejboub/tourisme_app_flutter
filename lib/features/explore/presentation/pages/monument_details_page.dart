@@ -26,15 +26,15 @@ class _MonumentDetailsPageState extends State<MonumentDetailsPage>
   late TabController _tabController;
   bool _isLoading = false;
   bool _isFavorite = false;
-  
+
   // API service
   late PublicApiService _apiService;
-  
+
   // Dynamic data
   Map<String, dynamic>? _monumentDetails;
   Map<String, dynamic>? _cityInfo;
   List<Map<String, dynamic>> _relatedMonuments = [];
-  
+
   // Loading states
   bool _isLoadingDetails = true;
   String? _errorMessage;
@@ -71,7 +71,7 @@ class _MonumentDetailsPageState extends State<MonumentDetailsPage>
       });
 
       final details = await _apiService.getMonumentDetails(widget.monumentId);
-      
+
       setState(() {
         _monumentDetails = details;
         _cityInfo = details['city'] as Map<String, dynamic>?;
@@ -492,11 +492,11 @@ class _MonumentDetailsPageState extends State<MonumentDetailsPage>
         _buildInfoCard(
           Icons.attach_money,
           'Price',
-          _monumentDetails?['gratuit'] == true 
-              ? 'Free' 
-              : (_monumentDetails?['prix'] != null 
-                  ? '${_monumentDetails!['prix']} MAD' 
-                  : 'N/A'),
+          _monumentDetails?['gratuit'] == true
+              ? 'Free'
+              : (_monumentDetails?['prix'] != null
+              ? '${_monumentDetails!['prix']} MAD'
+              : 'N/A'),
           colorScheme,
         ),
       ],
@@ -680,7 +680,7 @@ class _MonumentDetailsPageState extends State<MonumentDetailsPage>
 
   Widget _buildRelatedMonuments(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
     if (_relatedMonuments.isEmpty) return const SizedBox.shrink();
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Column(
