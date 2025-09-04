@@ -18,6 +18,8 @@ import 'package:tourisme_app_flutter/features/explore/presentation/pages/details
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/city_details_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/monument_details_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/activity_details_page.dart';
+import 'package:tourisme_app_flutter/features/explore/presentation/pages/service_details_page.dart';
+import 'package:tourisme_app_flutter/features/explore/presentation/pages/accommodation_details_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/search_explore_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/filter_explore_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/events_explore_page.dart';
@@ -50,6 +52,8 @@ class AppRoutes {
   static const String cityDetails = '/city-details';
   static const String monumentDetails = '/monument-details';
   static const String activityDetails = '/activity-details';
+  static const String serviceDetails = '/service-details';
+  static const String accommodationDetails = '/accommodation-details';
   static const String searchExplore = '/search-explore';
   static const String filterExplore = '/filter-explore';
   static const String eventsExplore = '/events-explore';
@@ -150,6 +154,36 @@ class AppRoutes {
           );
         }
         return _buildRoute(ActivityDetailsPage(activityId: activityId), settings);
+
+      case serviceDetails:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final serviceId = args?['serviceId'] as int?;
+        if (serviceId == null) {
+          return _buildRoute(
+            Scaffold(
+              body: Center(
+                child: Text('Service ID not provided'),
+              ),
+            ),
+            settings,
+          );
+        }
+        return _buildRoute(ServiceDetailsPage(serviceId: serviceId), settings);
+
+      case accommodationDetails:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final hebergementId = args?['hebergementId'] as int?;
+        if (hebergementId == null) {
+          return _buildRoute(
+            Scaffold(
+              body: Center(
+                child: Text('Accommodation ID not provided'),
+              ),
+            ),
+            settings,
+          );
+        }
+        return _buildRoute(AccommodationDetailsPage(hebergementId: hebergementId), settings);
 
       case searchExplore:
         return _buildRoute(const SearchExplorePage(), settings);

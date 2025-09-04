@@ -205,6 +205,39 @@ class PublicApiService {
     throw Exception('Failed to load activity details');
   }
 
+  // Get accommodation details
+  Future<Map<String, dynamic>> getAccommodationDetails(int hebergementId, {CancelToken? cancelToken}) async {
+    final response = await _dio.get(
+      '/public/hebergements/$hebergementId',
+      cancelToken: cancelToken,
+    );
+    if (response.statusCode == 200 && response.data is Map) {
+      return Map<String, dynamic>.from(response.data as Map);
+    }
+    throw Exception('Failed to load accommodation details');
+  }
+
+  // Get service details (parent + subtype info)
+  Future<Map<String, dynamic>> getServiceDetails(int serviceId, {CancelToken? cancelToken}) async {
+    final response = await _dio.get(
+      '/public/services/$serviceId',
+      cancelToken: cancelToken,
+    );
+    if (response.statusCode == 200 && response.data is Map) {
+      return Map<String, dynamic>.from(response.data as Map);
+    }
+    throw Exception('Failed to load service details');
+  }
+
+  // List all services (lightweight)
+  Future<List<Map<String, dynamic>>> getAllServices({CancelToken? cancelToken}) async {
+    final response = await _dio.get('/public/services', cancelToken: cancelToken);
+    if (response.statusCode == 200 && response.data is List) {
+      return List<Map<String, dynamic>>.from(response.data as List);
+    }
+    return [];
+  }
+
 }
 
 

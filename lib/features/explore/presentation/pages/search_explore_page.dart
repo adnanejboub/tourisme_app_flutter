@@ -11,6 +11,7 @@ import 'activity_details_page.dart';
 import '../../data/services/public_api_service.dart';
 import '../../data/models/city_dto.dart';
 import '../../data/models/activity.dart';
+import '../../../../config/routes/app_routes.dart';
 
 class SearchExplorePage extends StatefulWidget {
   const SearchExplorePage({Key? key}) : super(key: key);
@@ -198,9 +199,13 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
         final mons = await _api.getAllMonuments(cancelToken: _inflightToken);
         setState(() { _attractionResults = mons; });
       }
-      if (_activeCategory == 'all' || _activeCategory == 'services' || _activeCategory == 'accommodations') {
+      if (_activeCategory == 'all' || _activeCategory == 'services') {
+        final services = await _api.getAllServices(cancelToken: _inflightToken);
+        setState(() { _serviceResults = services; });
+      }
+      if (_activeCategory == 'all' || _activeCategory == 'accommodations') {
         final prods = await _api.getProducts(cancelToken: _inflightToken);
-        setState(() { _serviceResults = prods; _accommodationResults = prods; });
+        setState(() { _accommodationResults = prods; });
       }
     } catch (e) {
       setState(() { _error = e.toString(); });
@@ -322,7 +327,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
         if (_activeCategory == 'all' && _serviceResults.isNotEmpty || _activeCategory == 'services') ...[
           _buildSectionHeader('Services (${_serviceResults.length})', colorScheme),
           SizedBox(height: 8),
-          ..._serviceResults.map((s) => _buildGenericResultTile(s, colorScheme, Icons.room_service)).toList(),
+          ..._serviceResults.map((s) => _buildServiceTile(s, colorScheme)).toList(),
           SizedBox(height: 16),
         ],
         // Show monuments when selected or in All
@@ -335,7 +340,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
         if (_activeCategory == 'all' && _accommodationResults.isNotEmpty || _activeCategory == 'accommodations') ...[
           _buildSectionHeader('Accommodations (${_accommodationResults.length})', colorScheme),
           SizedBox(height: 8),
-          ..._accommodationResults.map((p) => _buildGenericResultTile(p, colorScheme, Icons.hotel)).toList(),
+          ..._accommodationResults.map((p) => _buildAccommodationTile(p, colorScheme)).toList(),
           SizedBox(height: 16),
         ],
       ],
@@ -560,7 +565,65 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
         title: Text(title, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.w600)),
         subtitle: subtitle.isNotEmpty ? Text(subtitle, style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6))) : null,
         trailing: Icon(Icons.arrow_forward_ios, size: 16, color: colorScheme.onSurface.withOpacity(0.4)),
-        onTap: () {},
+        onTap: () => _onGenericItemTap(item),
+      ),
+    );
+  }
+
+  Widget _buildServiceTile(Map<String, dynamic> s, ColorScheme colorScheme) {
+    final title = (s['nomService'] ?? s['typeService'] ?? 'Service').toString();
+    final subtitle = (s['ville'] ?? s['description'] ?? '').toString();
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: Offset(0, 2))],
+      ),
+      child: ListTile(
+        leading: Icon(Icons.room_service, color: colorScheme.primary),
+        title: Text(title, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.w600)),
+        subtitle: subtitle.isNotEmpty ? Text(subtitle, style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6))) : null,
+        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: colorScheme.onSurface.withOpacity(0.4)),
+        onTap: () {
+          final id = s['idService'] as int?;
+          if (id != null) {
+            Navigator.pushNamed(context, AppRoutes.serviceDetails, arguments: {'serviceId': id});
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Service ID missing')), 
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildAccommodationTile(Map<String, dynamic> p, ColorScheme colorScheme) {
+    final title = (p['nomHebergement'] ?? p['name'] ?? 'Accommodation').toString();
+    final subtitle = (p['adresse'] ?? '').toString();
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: Offset(0, 2))],
+      ),
+      child: ListTile(
+        leading: Icon(Icons.hotel, color: colorScheme.primary),
+        title: Text(title, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.w600)),
+        subtitle: subtitle.isNotEmpty ? Text(subtitle, style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6))) : null,
+        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: colorScheme.onSurface.withOpacity(0.4)),
+        onTap: () {
+          final id = p['idHebergement'] as int?;
+          if (id != null) {
+            Navigator.pushNamed(context, AppRoutes.accommodationDetails, arguments: {'hebergementId': id});
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Accommodation ID missing')),
+            );
+          }
+        },
       ),
     );
   }
@@ -732,6 +795,40 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
       MaterialPageRoute(
         builder: (context) => ActivityDetailsPage(activityId: activity.id),
       ),
+    );
+  }
+
+  void _onGenericItemTap(Map<String, dynamic> item) {
+    // Try to route based on available identifiers in the payload
+    final monumentId = item['idMonument'] as int?;
+    final serviceId = item['idService'] as int?;
+    final activityId = item['idActivite'] as int?;
+
+    if (monumentId != null) {
+      _navigateToMonumentDetails(item);
+      return;
+    }
+    if (activityId != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ActivityDetailsPage(activityId: activityId),
+        ),
+      );
+      return;
+    }
+    if (serviceId != null) {
+      Navigator.pushNamed(
+        context,
+        AppRoutes.serviceDetails,
+        arguments: {'serviceId': serviceId},
+      );
+      return;
+    }
+
+    // No supported identifier found
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Details not available for this item')),
     );
   }
 } 
