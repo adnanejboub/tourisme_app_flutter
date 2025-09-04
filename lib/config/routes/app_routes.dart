@@ -16,6 +16,8 @@ import 'package:tourisme_app_flutter/features/home/presentation/pages/home_page.
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/explore_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/details_explore.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/city_details_page.dart';
+import 'package:tourisme_app_flutter/features/explore/presentation/pages/monument_details_page.dart';
+import 'package:tourisme_app_flutter/features/explore/presentation/pages/activity_details_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/search_explore_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/filter_explore_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/events_explore_page.dart';
@@ -46,6 +48,8 @@ class AppRoutes {
   static const String explore = '/explore';
   static const String detailsExplore = '/details-explore';
   static const String cityDetails = '/city-details';
+  static const String monumentDetails = '/monument-details';
+  static const String activityDetails = '/activity-details';
   static const String searchExplore = '/search-explore';
   static const String filterExplore = '/filter-explore';
   static const String eventsExplore = '/events-explore';
@@ -116,6 +120,36 @@ class AppRoutes {
         final args = settings.arguments as Map<String, dynamic>?;
         final city = args?['city'] as Map<String, dynamic>?;
         return _buildRoute(CityDetailsPage(city: city ?? {}), settings);
+
+      case monumentDetails:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final monumentId = args?['monumentId'] as int?;
+        if (monumentId == null) {
+          return _buildRoute(
+            Scaffold(
+              body: Center(
+                child: Text('Monument ID not provided'),
+              ),
+            ),
+            settings,
+          );
+        }
+        return _buildRoute(MonumentDetailsPage(monumentId: monumentId), settings);
+
+      case activityDetails:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final activityId = args?['activityId'] as int?;
+        if (activityId == null) {
+          return _buildRoute(
+            Scaffold(
+              body: Center(
+                child: Text('Activity ID not provided'),
+              ),
+            ),
+            settings,
+          );
+        }
+        return _buildRoute(ActivityDetailsPage(activityId: activityId), settings);
 
       case searchExplore:
         return _buildRoute(const SearchExplorePage(), settings);
@@ -456,6 +490,22 @@ class AppRoutes {
 
   static void navigateToPreferences(BuildContext context) {
     Navigator.pushNamed(context, preferences);
+  }
+
+  static void navigateToMonumentDetails(BuildContext context, int monumentId) {
+    Navigator.pushNamed(
+      context,
+      monumentDetails,
+      arguments: {'monumentId': monumentId},
+    );
+  }
+
+  static void navigateToActivityDetails(BuildContext context, int activityId) {
+    Navigator.pushNamed(
+      context,
+      activityDetails,
+      arguments: {'activityId': activityId},
+    );
   }
 
   static void goBack(BuildContext context) {

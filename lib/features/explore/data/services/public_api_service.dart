@@ -181,6 +181,30 @@ class PublicApiService {
     return [];
   }
 
+  // Get monument details
+  Future<Map<String, dynamic>> getMonumentDetails(int monumentId, {CancelToken? cancelToken}) async {
+    final response = await _dio.get(
+      '/public/monuments/$monumentId',
+      cancelToken: cancelToken,
+    );
+    if (response.statusCode == 200 && response.data is Map) {
+      return Map<String, dynamic>.from(response.data as Map);
+    }
+    throw Exception('Failed to load monument details');
+  }
+
+  // Get activity details
+  Future<Map<String, dynamic>> getActivityDetails(int activityId, {CancelToken? cancelToken}) async {
+    final response = await _dio.get(
+      '/public/activities/$activityId/details',
+      cancelToken: cancelToken,
+    );
+    if (response.statusCode == 200 && response.data is Map) {
+      return Map<String, dynamic>.from(response.data as Map);
+    }
+    throw Exception('Failed to load activity details');
+  }
+
 }
 
 

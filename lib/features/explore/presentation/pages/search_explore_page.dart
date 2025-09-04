@@ -6,6 +6,8 @@ import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
 import 'details_explore.dart';
 import 'city_details_page.dart';
+import 'monument_details_page.dart';
+import 'activity_details_page.dart';
 import '../../data/services/public_api_service.dart';
 import '../../data/models/city_dto.dart';
 import '../../data/models/activity.dart';
@@ -491,18 +493,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
         ],
       ),
       child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DetailsExplorePage(destination: {
-                'id': activity.id,
-                'title': activity.nom,
-                'image': activity.imageUrl ?? '',
-              }),
-            ),
-          );
-        },
+        onTap: () => _navigateToActivityDetails(activity),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: EdgeInsets.all(12),
@@ -591,7 +582,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () {},
+        onTap: () => _navigateToMonumentDetails(monument),
         child: Padding(
           padding: EdgeInsets.all(12),
           child: Row(
@@ -720,6 +711,27 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
           ),
         );
       },
+    );
+  }
+
+  void _navigateToMonumentDetails(Map<String, dynamic> monument) {
+    final monumentId = monument['idMonument'] as int?;
+    if (monumentId != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MonumentDetailsPage(monumentId: monumentId),
+        ),
+      );
+    }
+  }
+
+  void _navigateToActivityDetails(ActivityModel activity) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ActivityDetailsPage(activityId: activity.id),
+      ),
     );
   }
 } 
