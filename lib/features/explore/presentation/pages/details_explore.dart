@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
 import 'itinerary_planning_page.dart';
+import '../../../saved/data/services/wishlist_service.dart';
 
 class DetailsExplorePage extends StatefulWidget {
   final Map<String, dynamic> destination;
@@ -66,10 +67,37 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
             isFavorite ? Icons.favorite : Icons.favorite_border,
             color: isFavorite ? Colors.red : colorScheme.onBackground,
           ),
-          onPressed: () {
-            setState(() {
-              isFavorite = !isFavorite;
-            });
+          onPressed: () async {
+            final id = widget.destination['id'] as int?;
+            final type = (widget.destination['type'] as String?) ?? 'city';
+            if (id == null) return;
+            final prev = isFavorite;
+            setState(() { isFavorite = !prev; });
+            try {
+              await WishlistService.saveSnapshot(
+                type: type,
+                itemId: id,
+                data: {
+                  'id': id,
+                  'name': widget.destination['name'] ?? '',
+                  'image': widget.destination['imageUrl'] ?? '',
+                },
+              );
+              final res = await WishlistService().toggleFavorite(type: type, itemId: id);
+              final action = res['action'] as String?;
+              final added = action == 'added';
+              if (mounted) {
+                setState(() { isFavorite = added; });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(added ? 'Added to favorites' : 'Removed from favorites')),
+                );
+              }
+            } catch (e) {
+              if (mounted) setState(() { isFavorite = prev; });
+              if (e is UnauthorizedException && mounted) {
+                Navigator.pushNamed(context, '/login');
+              }
+            }
           },
         ),
       ],

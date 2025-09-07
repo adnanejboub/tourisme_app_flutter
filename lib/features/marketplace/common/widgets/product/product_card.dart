@@ -1,11 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:tourisme_app_flutter/domain/product/entities/product.dart';
 import 'package:tourisme_app_flutter/features/marketplace/product_detail/pages/product_detail.dart';
+import 'package:tourisme_app_flutter/features/saved/data/services/wishlist_service.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends StatefulWidget {
   final ProductEntity product;
   
   const ProductCard({Key? key, required this.product}) : super(key: key);
+
+  @override
+  State<ProductCard> createState() => _ProductCardState();
+}
+
+class _ProductCardState extends State<ProductCard> {
+  bool _isFavoriteLocal = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isFavoriteLocal = widget.product.isFavorite;
+    WishlistService.changes.addListener(_onFavoritesChanged);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +29,7 @@ class ProductCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductDetailPage(product: product),
+            builder: (context) => ProductDetailPage(product: widget.product),
           ),
         );
       },
@@ -34,7 +49,7 @@ class ProductCard extends StatelessWidget {
                   child: Stack(
                     children: [
                       Image.network(
-                        product.image,
+                        widget.product.image,
                         width: double.infinity,
                         height: double.infinity,
                         fit: BoxFit.cover,
@@ -52,8 +67,39 @@ class ProductCard extends StatelessWidget {
                         top: 8,
                         right: 8,
                         child: GestureDetector(
-                          onTap: () {
-                            // Toggle favorite
+                          onTap: () async {
+                            final id = int.tryParse(widget.product.id) ?? 0;
+                            if (id == 0) return;
+                            final prev = _isFavoriteLocal;
+                            setState(() { _isFavoriteLocal = !prev; });
+                            try {
+                              // Save snapshot for wishlist rendering identical card data
+                              await WishlistService.saveSnapshot(
+                                type: 'product',
+                                itemId: id,
+                                data: {
+                                  'id': id,
+                                  'nom': widget.product.title,
+                                  'description': widget.product.description,
+                                  'prix': widget.product.price,
+                                  'image': widget.product.image,
+                                },
+                              );
+                              final res = await WishlistService().toggleFavorite(type: 'product', itemId: id);
+                              final action = res['action'] as String?;
+                              final added = action == 'added';
+                              if (mounted) {
+                                setState(() { _isFavoriteLocal = added; });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(added ? 'Added to wishlist' : 'Removed from wishlist')),
+                                );
+                              }
+                            } catch (e) {
+                              setState(() { _isFavoriteLocal = prev; });
+                              if (e is UnauthorizedException && mounted) {
+                                Navigator.pushNamed(context, '/login');
+                              }
+                            }
                           },
                           child: Container(
                             padding: const EdgeInsets.all(6),
@@ -68,9 +114,9 @@ class ProductCard extends StatelessWidget {
                               ],
                             ),
                             child: Icon(
-                              product.isFavorite ? Icons.favorite : Icons.favorite_border,
+                              _isFavoriteLocal ? Icons.favorite : Icons.favorite_border,
                               size: 16,
-                              color: product.isFavorite 
+                              color: _isFavoriteLocal 
                                   ? Theme.of(context).colorScheme.error 
                                   : Theme.of(context).colorScheme.onSurface,
                             ),
@@ -90,7 +136,7 @@ class ProductCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      product.title,
+                      widget.product.title,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -100,9 +146,9 @@ class ProductCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        if (product.discountedPrice > 0) ...[
+                        if (widget.product.discountedPrice > 0) ...[
                           Text(
-                            '\$${product.discountedPrice}',
+                            '\$${widget.product.discountedPrice}',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.bold,
@@ -110,7 +156,7 @@ class ProductCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '\$${product.price}',
+                            '\$${widget.product.price}',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               decoration: TextDecoration.lineThrough,
                               color: Theme.of(context).colorScheme.outline,
@@ -118,7 +164,7 @@ class ProductCard extends StatelessWidget {
                           ),
                         ] else
                           Text(
-                            '\$${product.price}',
+                            '\$${widget.product.price}',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.bold,
@@ -134,5 +180,15 @@ class ProductCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    WishlistService.changes.removeListener(_onFavoritesChanged);
+    super.dispose();
+  }
+
+  void _onFavoritesChanged() {
+    // no-op here; could be used to sync status if product detail pushes updates
   }
 }

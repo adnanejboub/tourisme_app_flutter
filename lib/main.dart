@@ -24,8 +24,7 @@ void main() async {
     statusBarIconBrightness: Brightness.dark,
   ));
 
-  // Nettoyer les tokens expirés au démarrage de l'app
-  await DioClient.clearExpiredTokens();
+  // Ne pas nettoyer les tokens au démarrage pour éviter 401 involontaires
 
   // Initialiser le service de localisation
   final localizationService = LocalizationService();

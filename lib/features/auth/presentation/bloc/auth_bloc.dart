@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import '../../domain/entities/auth_entities.dart';
 import '../../domain/usecases/auth_usecases.dart';
 import '../../../../core/services/guest_mode_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Events
 abstract class AuthEvent extends Equatable {
@@ -16,10 +17,7 @@ class LoginRequested extends AuthEvent {
   final String identifier; // username or email
   final String password;
 
-  const LoginRequested({
-    required this.identifier,
-    required this.password,
-  });
+  const LoginRequested({required this.identifier, required this.password});
 
   @override
   List<Object?> get props => [identifier, password];
@@ -88,6 +86,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LogoutUseCase _logoutUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
 
+  //ysser code:
+  static const _storage = FlutterSecureStorage();
+  static const _tokenKey = 'access_token';
+
+  static Future<void> saveToken(String token) async {
+    await _storage.write(key: _tokenKey, value: token);
+  }
+
   AuthBloc({
     required LoginUseCase loginUseCase,
     required RegisterUseCase registerUseCase,
@@ -117,6 +123,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
 
       final auth = await _loginUseCase(params);
+
+      //yasser code:
+      // ✅ Save the token as soon as login succeeds
+      await saveToken(auth.accessToken);
       emit(AuthSuccess(auth));
 
       // Récupérer automatiquement le profil utilisateur
@@ -213,7 +223,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthGuestMode());
         return;
       }
-      
+
       // Extract the actual error message from AuthException
       String errorMessage = e.toString();
       if (e is AuthException) {

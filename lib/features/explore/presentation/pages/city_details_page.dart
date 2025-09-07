@@ -6,6 +6,8 @@ import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
 import '../../data/services/public_api_service.dart';
 import 'itinerary_planning_page.dart';
+import 'details_explore.dart';
+import '../../../saved/data/services/wishlist_service.dart';
 
 class CityDetailsPage extends StatefulWidget {
   final Map<String, dynamic> city;
@@ -26,6 +28,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
   late TabController _tabController;
   bool _isLoading = false;
   bool _isFavorite = false;
+  final Set<int> _favoriteActivityIds = <int>{};
   
   // API service
   late PublicApiService _apiService;
@@ -54,12 +57,14 @@ class _CityDetailsPageState extends State<CityDetailsPage>
     _apiService = PublicApiService();
     _loadFavoriteStatus();
     _loadCityDetails();
+    WishlistService.changes.addListener(_reloadWishlistState);
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     _tabController.dispose();
+    try { WishlistService.changes.removeListener(_reloadWishlistState); } catch (_) {}
     super.dispose();
   }
 
@@ -95,12 +100,26 @@ class _CityDetailsPageState extends State<CityDetailsPage>
         _statistics = details['statistics'] as Map<String, dynamic>?;
         _isLoadingDetails = false;
       });
+      // hydrate wishlist state for activities
+      _reloadWishlistState();
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
         _isLoadingDetails = false;
       });
     }
+  }
+
+  Future<void> _reloadWishlistState() async {
+    try {
+      final favs = await WishlistService().fetchFavorites();
+      if (!mounted) return;
+      setState(() {
+        _favoriteActivityIds
+          ..clear()
+          ..addAll(favs.where((f) => f['type'] == 'activity' && f['itemId'] != null).map((f) => (f['itemId'] as num).toInt()));
+      });
+    } catch (_) {}
   }
 
   List<Map<String, dynamic>> get _currentActivities {
@@ -138,21 +157,37 @@ class _CityDetailsPageState extends State<CityDetailsPage>
   }
 
   Future<void> _toggleFavorite() async {
-    setState(() {
-      _isFavorite = !_isFavorite;
-    });
-
-    // TODO: Sauvegarder dans SharedPreferences ou envoyer à l'API
+    final cityId = widget.city['id'] as int?;
+    if (cityId == null) return;
+    final prev = _isFavorite;
+    setState(() { _isFavorite = !prev; });
+    try {
+      final cityData = _cityDetails?['city'] ?? widget.city;
+      await WishlistService.saveSnapshot(
+        type: 'city',
+        itemId: cityId,
+        data: {
+          'id': cityId,
+          'name': cityData['nomVille'] ?? cityData['name'] ?? '',
+          'country': cityData['paysNom'] ?? cityData['country'] ?? '',
+          'image': cityData['image'] ?? cityData['imageUrl'] ?? '',
+        },
+      );
+      final res = await WishlistService().toggleFavorite(type: 'city', itemId: cityId);
+      final action = res['action'] as String?;
+      final added = action == 'added';
+      if (mounted) {
+        setState(() { _isFavorite = added; });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-            _isFavorite
-                ? 'Added to favorites'
-                : 'Removed from favorites'
-        ),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+          SnackBar(content: Text(added ? 'Added to favorites' : 'Removed from favorites')),
+        );
+      }
+    } catch (e) {
+      if (mounted) setState(() { _isFavorite = prev; });
+      if (e is UnauthorizedException && mounted) {
+        Navigator.pushNamed(context, '/login');
+      }
+    }
   }
 
   Future<void> _shareCity() async {
@@ -984,14 +1019,219 @@ class _CityDetailsPageState extends State<CityDetailsPage>
       ),
       child: InkWell(
         onTap: () {
-          // TODO: Navigate to activity details
+          // Open details page with full activity data
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DetailsExplorePage(
+                destination: {
+                  'id': _extractActivityId(activity),
+                  'title': activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? 'Activity',
+                  'image': activity['image'] ?? activity['imageUrl'] ?? '',
+                  'description': activity['description'] ?? '',
+                  'prix': activity['prix'],
+                  'dureeMinimun': activity['dureeMinimun'],
+                  'dureeMaximun': activity['dureeMaximun'],
+                  'saison': activity['saison'],
+                  'niveauDificulta': activity['niveauDificulta'],
+                  'categorie': activity['categorie'] ?? activity['typeActivite'] ?? activity['type'],
+                },
+              ),
+            ),
+          );
         },
         borderRadius: BorderRadius.circular(16),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildActivityImage(activity, isTablet, isDesktop),
-            Expanded(
-              child: _buildActivityInfo(activity, colorScheme, isTablet, isDesktop),
+            // Image section with overlay
+            Stack(
+              children: [
+                _buildActivityImage(activity, isTablet, isDesktop),
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: InkWell(
+                    onTap: () => _toggleActivityFavorite(activity),
+                    child: Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.35),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        _favoriteActivityIds.contains(_extractActivityId(activity)) ? Icons.favorite : Icons.favorite_border,
+                        color: _favoriteActivityIds.contains(_extractActivityId(activity)) ? Colors.redAccent : Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            // Content section
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? 'Unknown Activity',
+                          style: TextStyle(
+                            fontSize: isDesktop ? 18 : (isTablet ? 16 : 14),
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                      if (activity['noteMoyenne'] != null || activity['rating'] != null)
+                        Row(
+                          children: [
+                            Icon(Icons.star, size: 16, color: Colors.amber),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${activity['noteMoyenne'] ?? activity['rating'] ?? 0.0}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: colorScheme.onSurface.withOpacity(0.8),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Category and season badges
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      if (activity['categorie'] != null || activity['typeActivite'] != null || activity['type'] != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            activity['categorie'] ?? activity['typeActivite'] ?? activity['type'] ?? 'Activity',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      if (activity['saison'] != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Season: ${activity['saison']}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.blue,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Description
+                  if (activity['description'] != null && activity['description'].toString().isNotEmpty)
+                    Text(
+                      activity['description'],
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  const SizedBox(height: 8),
+                  // Activity details
+                  Row(
+                    children: [
+                      if (activity['dureeMinimun'] != null)
+                        Row(
+                          children: [
+                            Icon(Icons.access_time, size: 14, color: colorScheme.onSurface.withOpacity(0.6)),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${activity['dureeMinimun']}-${activity['dureeMaximun'] ?? activity['dureeMinimun']} min',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colorScheme.onSurface.withOpacity(0.7),
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (activity['niveauDificulta'] != null)
+                        Padding(
+                          padding: EdgeInsets.only(left: 16),
+                          child: Row(
+                            children: [
+                              Icon(Icons.trending_up, size: 14, color: colorScheme.onSurface.withOpacity(0.6)),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Difficulty: ${activity['niveauDificulta']}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: colorScheme.onSurface.withOpacity(0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Price and Book button row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (activity['prix'] != null)
+                        Text(
+                          '${activity['prix']} MAD',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        )
+                      else
+                        Text(
+                          'Contact for price',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: colorScheme.onSurface.withOpacity(0.6),
+                          ),
+                        ),
+                      ElevatedButton.icon(
+                        onPressed: () => _bookActivity(activity),
+                        icon: Icon(Icons.book_online, size: 16),
+                        label: Text('Book Now'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -1000,24 +1240,18 @@ class _CityDetailsPageState extends State<CityDetailsPage>
   }
 
   Widget _buildActivityImage(Map<String, dynamic> activity, bool isTablet, bool isDesktop) {
-    final size = isDesktop ? 120.0 : (isTablet ? 100.0 : 80.0);
+    final height = isDesktop ? 200.0 : (isTablet ? 180.0 : 160.0);
 
     return Container(
-      width: size,
-      height: size,
+      width: double.infinity,
+      height: height,
       decoration: const BoxDecoration(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16),
-          bottomLeft: Radius.circular(16),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(16),
-          bottomLeft: Radius.circular(16),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         child: CachedNetworkImage(
-          imageUrl: activity['image'] ?? '',
+          imageUrl: activity['image'] ?? activity['imageUrl'] ?? '',
           fit: BoxFit.cover,
           placeholder: (context, url) => Container(
             color: Colors.grey[300],
@@ -1036,142 +1270,178 @@ class _CityDetailsPageState extends State<CityDetailsPage>
     );
   }
 
-  Widget _buildActivityInfo(Map<String, dynamic> activity, ColorScheme colorScheme, bool isTablet, bool isDesktop) {
-    // Calculate duration range
-    String durationText = 'N/A';
-    if (activity['dureeMinimun'] != null && activity['dureeMaximun'] != null) {
-      durationText = '${activity['dureeMinimun']}-${activity['dureeMaximun']}h';
-    } else if (activity['dureeMinimun'] != null) {
-      durationText = '${activity['dureeMinimun']}h+';
-    } else if (activity['dureeMaximun'] != null) {
-      durationText = 'Up to ${activity['dureeMaximun']}h';
-    }
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? 'Unknown Activity',
-            style: TextStyle(
-              fontSize: isDesktop ? 18 : (isTablet ? 16 : 14),
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
+  int _extractActivityId(Map<String, dynamic> activity) {
+    final dynamic rawId = activity['id'] ?? activity['idActivite'] ?? activity['id_activity'] ?? activity['idAct'];
+    if (rawId is int) return rawId;
+    if (rawId is num) return rawId.toInt();
+    return 0;
+  }
+
+  Future<void> _toggleActivityFavorite(Map<String, dynamic> activity) async {
+    final int id = _extractActivityId(activity);
+    if (id == 0) return; // Skip invalid activities
+    final bool wasFav = _favoriteActivityIds.contains(id);
+    setState(() {
+      if (wasFav) {
+        _favoriteActivityIds.remove(id);
+      } else {
+        _favoriteActivityIds.add(id);
+      }
+    });
+    try {
+      await WishlistService.saveSnapshot(
+        type: 'activity',
+        itemId: id,
+        data: {
+          'id': id,
+          'nom': activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? '',
+          'title': activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? '',
+          'image': activity['image'] ?? activity['imageUrl'] ?? '',
+          'imageUrl': activity['image'] ?? activity['imageUrl'] ?? '',
+          'prix': activity['prix'],
+          'dureeMinimun': activity['dureeMinimun'],
+          'dureeMaximun': activity['dureeMaximun'],
+          'saison': activity['saison'],
+          'niveauDificulta': activity['niveauDificulta'],
+          'categorie': activity['categorie'] ?? activity['typeActivite'] ?? activity['type'],
+        },
+      );
+      final res = await WishlistService().toggleFavorite(type: 'activity', itemId: id);
+      final action = res['action'] as String?;
+      final added = action == 'added';
+      if (mounted) {
+        setState(() {
+          if (added) {
+            _favoriteActivityIds.add(id);
+            WishlistService.addLocalId('activity', id);
+          } else {
+            _favoriteActivityIds.remove(id);
+            WishlistService.removeLocalId('activity', id);
+            WishlistService.removeSnapshot(type: 'activity', itemId: id);
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(added ? 'Added to wishlist' : 'Removed from wishlist'),
+            duration: Duration(seconds: 2),
           ),
-          const SizedBox(height: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: colorScheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              activity['categorie'] ?? activity['typeActivite'] ?? activity['type'] ?? 'Activity',
-              style: TextStyle(
-                fontSize: 12,
-                color: colorScheme.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Season information
-          if (activity['saison'] != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'Season: ${activity['saison']}',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.blue,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          const SizedBox(height: 8),
-          // Difficulty level
-          if (activity['niveauDificulta'] != null)
-            Row(
-              children: [
-                Icon(Icons.trending_up, size: 12, color: colorScheme.onSurface.withOpacity(0.6)),
-                const SizedBox(width: 4),
-                Text(
-                  'Difficulty: ${activity['niveauDificulta']}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: colorScheme.onSurface.withOpacity(0.6),
-                  ),
-                ),
-              ],
-            ),
-          const SizedBox(height: 4),
-          // Special conditions
-          if (activity['conditionsSpeciales'] != null)
-            Row(
-              children: [
-                Icon(Icons.info_outline, size: 12, color: colorScheme.onSurface.withOpacity(0.6)),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    activity['conditionsSpeciales'],
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: colorScheme.onSurface.withOpacity(0.6),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(Icons.access_time, size: 14, color: colorScheme.onSurface.withOpacity(0.6)),
-              const SizedBox(width: 4),
-              Text(
-                durationText,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: colorScheme.onSurface.withOpacity(0.6),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Icon(Icons.attach_money, size: 14, color: colorScheme.onSurface.withOpacity(0.6)),
-              const SizedBox(width: 4),
-              Text(
-                activity['prix'] != null ? '${activity['prix']} MAD' : activity['price'] ?? 'Contact for price',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: colorScheme.onSurface.withOpacity(0.6),
-                ),
-              ),
-              const Spacer(),
-              Row(
+        );
+      }
+    } catch (e) {
+      if (e is UnauthorizedException) {
+        if (!wasFav) {
+          await WishlistService.addLocalId('activity', id);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Added to wishlist')),
+            );
+          }
+        } else {
+          await WishlistService.removeLocalId('activity', id);
+          await WishlistService.removeSnapshot(type: 'activity', itemId: id);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Removed from wishlist')),
+            );
+          }
+        }
+        return;
+      }
+      if (mounted) {
+        setState(() {
+          if (wasFav) {
+            _favoriteActivityIds.add(id);
+          } else {
+            _favoriteActivityIds.remove(id);
+          }
+        });
+      }
+    }
+  }
+
+  Future<void> _bookActivity(Map<String, dynamic> activity) async {
+    try {
+      // Add to wishlist first
+      await _toggleActivityFavorite(activity);
+      
+      // Show booking confirmation
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Activity Booked!'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.star, size: 14, color: Colors.amber),
-                  const SizedBox(width: 2),
+                  Text('You have successfully booked:'),
+                  SizedBox(height: 8),
                   Text(
-                    '${activity['noteMoyenne'] ?? activity['rating'] ?? 0.0}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colorScheme.onSurface.withOpacity(0.8),
-                      fontWeight: FontWeight.w600,
-                    ),
+                    activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? 'Activity',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
+                  if (activity['prix'] != null) ...[
+                    SizedBox(height: 4),
+                    Text('Price: ${activity['prix']} MAD'),
+                  ],
+                  if (activity['dureeMinimun'] != null) ...[
+                    SizedBox(height: 4),
+                    Text('Duration: ${activity['dureeMinimun']}-${activity['dureeMaximun'] ?? activity['dureeMinimun']} minutes'),
+                  ],
+                  if (activity['saison'] != null) ...[
+                    SizedBox(height: 4),
+                    Text('Season: ${activity['saison']}'),
+                  ],
                 ],
               ),
-            ],
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('OK'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    // Open details page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailsExplorePage(
+                          destination: {
+                            'id': _extractActivityId(activity),
+                            'title': activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? 'Activity',
+                            'image': activity['image'] ?? activity['imageUrl'] ?? '',
+                            'description': activity['description'] ?? '',
+                            'prix': activity['prix'],
+                            'dureeMinimun': activity['dureeMinimun'],
+                            'dureeMaximun': activity['dureeMaximun'],
+                            'saison': activity['saison'],
+                            'niveauDificulta': activity['niveauDificulta'],
+                            'categorie': activity['categorie'] ?? activity['typeActivite'] ?? activity['type'],
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text('View Details'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error booking activity: ${e.toString()}'),
+            backgroundColor: Colors.red,
           ),
-        ],
-      ),
-    );
+        );
+      }
+    }
   }
 
   Widget _buildMonumentsTab(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
