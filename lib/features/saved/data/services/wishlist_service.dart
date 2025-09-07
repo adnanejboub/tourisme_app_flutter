@@ -3,35 +3,84 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/network/dio_client.dart';
+import '../../../../core/services/guest_mode_service.dart';
 
 class WishlistService {
   final Dio _dio = DioClient.instance;
   static final ValueNotifier<int> changes = ValueNotifier<int>(0);
 
   Future<List<Map<String, dynamic>>> fetchFavorites() async {
-    final res = await _dio.get('/api/user/favorites');
-    if (res.statusCode == 200) {
-      final data = res.data as Map<String, dynamic>;
-      final items = (data['favorites'] as List?) ?? [];
-      return items.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    // Vérifier si l'utilisateur est en mode invité
+    final guestModeService = GuestModeService();
+    await guestModeService.loadGuestModeState();
+    
+    if (guestModeService.isGuestMode) {
+      // En mode invité, retourner une liste vide
+      return [];
     }
-    if (res.statusCode == 401) throw UnauthorizedException();
-    throw Exception('Failed to load favorites');
+    
+    try {
+      final res = await _dio.get('/api/user/favorites');
+      if (res.statusCode == 200) {
+        final data = res.data as Map<String, dynamic>;
+        final items = (data['favorites'] as List?) ?? [];
+        return items.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      }
+      if (res.statusCode == 401) throw UnauthorizedException();
+      throw Exception('Failed to load favorites');
+    } catch (e) {
+      if (e is UnauthorizedException) {
+        throw e;
+      }
+      // En cas d'erreur réseau, retourner une liste vide
+      return [];
+    }
   }
 
   Future<Map<String, dynamic>> toggleFavorite({required String type, required int itemId}) async {
-    final res = await _dio.post('/api/user/favorites', data: {
-      'type': type,
-      'itemId': itemId,
-    });
-    if (res.statusCode == 200) {
-      final data = Map<String, dynamic>.from(res.data as Map);
-      // Notify listeners that favorites changed
-      try { changes.value = changes.value + 1; } catch (_) {}
-      return data;
+    // Vérifier si l'utilisateur est en mode invité
+    final guestModeService = GuestModeService();
+    await guestModeService.loadGuestModeState();
+    
+    if (guestModeService.isGuestMode) {
+      // En mode invité, utiliser le stockage local
+      final ids = await loadLocalIds(type);
+      if (ids.contains(itemId)) {
+        await removeLocalId(type, itemId);
+        return {'isFavorite': false};
+      } else {
+        await addLocalId(type, itemId);
+        return {'isFavorite': true};
+      }
     }
-    if (res.statusCode == 401) throw UnauthorizedException();
-    throw Exception('Failed to toggle favorite');
+    
+    try {
+      final res = await _dio.post('/api/user/favorites', data: {
+        'type': type,
+        'itemId': itemId,
+      });
+      if (res.statusCode == 200) {
+        final data = Map<String, dynamic>.from(res.data as Map);
+        // Notify listeners that favorites changed
+        try { changes.value = changes.value + 1; } catch (_) {}
+        return data;
+      }
+      if (res.statusCode == 401) throw UnauthorizedException();
+      throw Exception('Failed to toggle favorite');
+    } catch (e) {
+      if (e is UnauthorizedException) {
+        throw e;
+      }
+      // En cas d'erreur réseau, utiliser le stockage local
+      final ids = await loadLocalIds(type);
+      if (ids.contains(itemId)) {
+        await removeLocalId(type, itemId);
+        return {'isFavorite': false};
+      } else {
+        await addLocalId(type, itemId);
+        return {'isFavorite': true};
+      }
+    }
   }
 
   // Local snapshot cache for rendering identical UI in wishlist

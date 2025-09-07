@@ -51,6 +51,7 @@ dependencies:
   dio: ^5.4.0
   flutter_secure_storage: ^9.0.0
   provider: ^6.0.5
+  google_fonts: ^6.2.1
 
 
 dev_dependencies:
@@ -81,6 +82,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/logos/applogo/
+    - assets/images/cities/
+    - assets/images/activities/
 
 
   fonts:

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/services/localization_service.dart';
+import '../../../../core/services/image_service.dart';
 import '../../../../core/constants/constants.dart';
 import 'details_explore.dart';
 import 'city_details_page.dart';
@@ -344,19 +345,12 @@ class _ExplorePageState extends State<ExplorePage> {
               borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
               child: Stack(
                 children: [
-                  Image.network(
-                    city.imageUrl ?? '',
-                width: double.infinity,
-                height: 200,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
+                  _buildSmartImage(
+                    imageUrl: city.imageUrl ?? '',
                     width: double.infinity,
                     height: 200,
-                    color: colorScheme.onSurface.withOpacity(0.1),
-                    child: Icon(Icons.image, size: 64, color: colorScheme.onSurface.withOpacity(0.6)),
-                  );
-                },
+                    fit: BoxFit.cover,
+                    colorScheme: colorScheme,
                   ),
                   Positioned.fill(
                     child: DecoratedBox(
@@ -525,19 +519,12 @@ class _ExplorePageState extends State<ExplorePage> {
               borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
               child: Stack(
                 children: [
-                  Image.network(
-                    activity.imageUrl ?? '',
+                  _buildSmartImage(
+                    imageUrl: activity.imageUrl ?? '',
                     width: double.infinity,
                     height: 180,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: double.infinity,
-                        height: 180,
-                        color: colorScheme.onSurface.withOpacity(0.1),
-                        child: Icon(Icons.image, size: 64, color: colorScheme.onSurface.withOpacity(0.6)),
-                      );
-                    },
+                    colorScheme: colorScheme,
                   ),
                   Positioned.fill(
                     child: DecoratedBox(
@@ -1082,5 +1069,55 @@ class _ExplorePageState extends State<ExplorePage> {
     if (key.contains('tropical')) return Colors.green;
     if (key.contains('semi-arid') || key.contains('steppe')) return Colors.lime;
     return colorScheme.secondary;
+  }
+
+  /// Smart image widget that handles both local assets and network images
+  Widget _buildSmartImage({
+    required String imageUrl,
+    required double width,
+    required double height,
+    required BoxFit fit,
+    required ColorScheme colorScheme,
+  }) {
+    if (imageUrl.isEmpty) {
+      return Container(
+        width: width,
+        height: height,
+        color: colorScheme.onSurface.withOpacity(0.1),
+        child: Icon(Icons.image, size: 64, color: colorScheme.onSurface.withOpacity(0.6)),
+      );
+    }
+
+    if (ImageService.isLocalAsset(imageUrl)) {
+      return Image.asset(
+        imageUrl,
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: width,
+            height: height,
+            color: colorScheme.onSurface.withOpacity(0.1),
+            child: Icon(Icons.image, size: 64, color: colorScheme.onSurface.withOpacity(0.6)),
+          );
+        },
+      );
+    } else {
+      return Image.network(
+        imageUrl,
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: width,
+            height: height,
+            color: colorScheme.onSurface.withOpacity(0.1),
+            child: Icon(Icons.image, size: 64, color: colorScheme.onSurface.withOpacity(0.6)),
+          );
+        },
+      );
+    }
   }
 }

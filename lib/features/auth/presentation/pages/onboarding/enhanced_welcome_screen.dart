@@ -111,7 +111,7 @@ class _EnhancedWelcomeScreenState extends State<EnhancedWelcomeScreen>
               return Transform.translate(
                 offset: Offset(0, 50 * (1 - _slideAnimation.value)),
                 child: Opacity(
-                  opacity: _slideAnimation.value,
+                  opacity: _slideAnimation.value.clamp(0.0, 1.0),
                   child: _buildMainContent(colorScheme),
                 ),
               );

@@ -1,3 +1,5 @@
+import '../../../../core/services/image_service.dart';
+
 class CityDto {
   final int id;
   final String nom;
@@ -37,11 +39,16 @@ class CityDto {
 
   factory CityDto.fromJson(Map<String, dynamic> json) {
     final dynamic idValue = json['idVille'] ?? json['id'];
+    final String cityName = (json['nomVille'] ?? json['nom'] ?? '') as String;
+    final String? providedImageUrl = (json['imageUrl'] as String?) ?? (json['image'] as String?);
+    
     return CityDto(
       id: (idValue as num).toInt(),
-      nom: (json['nomVille'] ?? json['nom'] ?? '') as String,
+      nom: cityName,
       description: json['description'] as String?,
-      imageUrl: (json['imageUrl'] as String?) ?? (json['image'] as String?),
+      imageUrl: providedImageUrl?.isNotEmpty == true 
+          ? providedImageUrl 
+          : ImageService.getCityImage(cityName),
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       paysNom: json['paysNom'] as String?,

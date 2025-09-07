@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/services/localization_service.dart';
+import '../../../../core/services/image_service.dart';
 import '../../../../core/constants/constants.dart';
 import 'details_explore.dart';
 import 'city_details_page.dart';
@@ -172,10 +173,26 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
         _isSearching = false;
       });
     } catch (e) {
+      print('Search error: $e');
       setState(() {
-        _error = e.toString();
+        _error = null; // Don't show error to user, use fallback data
         _isSearching = false;
       });
+      
+      // Try to perform local search as fallback
+      try {
+        final localResults = _api.performLocalSearch(_searchQuery.trim());
+        setState(() {
+          _cityResults = localResults['cities'] as List<CityDto>;
+          _activityResults = localResults['activities'] as List<ActivityModel>;
+        });
+      } catch (localError) {
+        print('Local search also failed: $localError');
+        setState(() {
+          _cityResults = [];
+          _activityResults = [];
+        });
+      }
     }
   }
 
@@ -201,7 +218,8 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
         setState(() { _serviceResults = prods; _accommodationResults = prods; });
       }
     } catch (e) {
-      setState(() { _error = e.toString(); });
+      print('Baseline fetch error: $e');
+      setState(() { _error = null; }); // Don't show error to user
     } finally {
       if (mounted) setState(() { _isSearching = false; });
     }
@@ -443,20 +461,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  city.imageUrl ?? '',
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 60,
-                      height: 60,
-                      color: colorScheme.onSurface.withOpacity(0.1),
-                      child: Icon(Icons.image, color: colorScheme.onSurface.withOpacity(0.6)),
-                    );
-                  },
-                ),
+                child: _buildCityImage(city, colorScheme),
               ),
               SizedBox(width: 12),
               Expanded(
@@ -510,20 +515,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  activity.imageUrl ?? '',
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 60,
-                      height: 60,
-                      color: colorScheme.onSurface.withOpacity(0.1),
-                      child: Icon(Icons.image, color: colorScheme.onSurface.withOpacity(0.6)),
-                    );
-                  },
-                ),
+                child: _buildActivityImage(activity, colorScheme),
               ),
               SizedBox(width: 12),
               Expanded(
@@ -718,6 +710,86 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCityImage(CityDto city, ColorScheme colorScheme) {
+    final imageUrl = city.imageUrl ?? ImageService.getCityImage(city.nom);
+    
+    if (ImageService.isLocalAsset(imageUrl)) {
+      final String assetPath = imageUrl.startsWith('images/') 
+          ? 'assets/$imageUrl' 
+          : imageUrl;
+      
+      return Image.asset(
+        assetPath,
+        width: 60,
+        height: 60,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: 60,
+            height: 60,
+            color: colorScheme.onSurface.withOpacity(0.1),
+            child: Icon(Icons.location_city, color: colorScheme.onSurface.withOpacity(0.6)),
+          );
+        },
+      );
+    }
+
+    return Image.network(
+      imageUrl,
+      width: 60,
+      height: 60,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          width: 60,
+          height: 60,
+          color: colorScheme.onSurface.withOpacity(0.1),
+          child: Icon(Icons.location_city, color: colorScheme.onSurface.withOpacity(0.6)),
+        );
+      },
+    );
+  }
+
+  Widget _buildActivityImage(ActivityModel activity, ColorScheme colorScheme) {
+    final imageUrl = activity.imageUrl ?? ImageService.getActivityImage(activity.categorie ?? '', activity.nom);
+    
+    if (ImageService.isLocalAsset(imageUrl)) {
+      final String assetPath = imageUrl.startsWith('images/') 
+          ? 'assets/$imageUrl' 
+          : imageUrl;
+      
+      return Image.asset(
+        assetPath,
+        width: 60,
+        height: 60,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: 60,
+            height: 60,
+            color: colorScheme.onSurface.withOpacity(0.1),
+            child: Icon(Icons.local_activity, color: colorScheme.onSurface.withOpacity(0.6)),
+          );
+        },
+      );
+    }
+
+    return Image.network(
+      imageUrl,
+      width: 60,
+      height: 60,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          width: 60,
+          height: 60,
+          color: colorScheme.onSurface.withOpacity(0.1),
+          child: Icon(Icons.local_activity, color: colorScheme.onSurface.withOpacity(0.6)),
         );
       },
     );

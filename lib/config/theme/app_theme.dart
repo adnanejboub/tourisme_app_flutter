@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
 
@@ -48,6 +49,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      fontFamily: 'Muli',
       primarySwatch: MaterialColor(
         primaryColor.toARGB32(),
         <int, Color>{
@@ -90,47 +92,47 @@ class AppTheme {
 
 
       textTheme: TextTheme(
-        displayLarge: TextStyle(
+        displayLarge: GoogleFonts.roboto(
           fontSize: 32,
           fontWeight: FontWeight.bold,
           color: textPrimaryColor,
         ),
-        displayMedium: TextStyle(
+        displayMedium: GoogleFonts.roboto(
           fontSize: 28,
           fontWeight: FontWeight.bold,
           color: textPrimaryColor,
         ),
-        displaySmall: TextStyle(
+        displaySmall: GoogleFonts.roboto(
           fontSize: 24,
           fontWeight: FontWeight.w600,
           color: textPrimaryColor,
         ),
-        headlineLarge: TextStyle(
+        headlineLarge: GoogleFonts.roboto(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: textPrimaryColor,
         ),
-        headlineMedium: TextStyle(
+        headlineMedium: GoogleFonts.roboto(
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: textPrimaryColor,
         ),
-        headlineSmall: TextStyle(
+        headlineSmall: GoogleFonts.roboto(
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: textPrimaryColor,
         ),
-        bodyLarge: TextStyle(
+        bodyLarge: GoogleFonts.roboto(
           fontSize: 16,
           fontWeight: FontWeight.normal,
           color: textPrimaryColor,
         ),
-        bodyMedium: TextStyle(
+        bodyMedium: GoogleFonts.roboto(
           fontSize: 14,
           fontWeight: FontWeight.normal,
           color: textSecondaryColor,
         ),
-        bodySmall: TextStyle(
+        bodySmall: GoogleFonts.roboto(
           fontSize: 12,
           fontWeight: FontWeight.normal,
           color: textHintColor,
@@ -246,6 +248,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      fontFamily: 'Muli',
       primarySwatch: MaterialColor(
         primaryColor.value,
         <int, Color>{
@@ -265,6 +268,45 @@ class AppTheme {
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
         brightness: Brightness.dark,
+      ),
+
+      textTheme: TextTheme(
+        displayLarge: GoogleFonts.roboto(
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+        ),
+        displayMedium: GoogleFonts.roboto(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+        ),
+        displaySmall: GoogleFonts.roboto(
+          fontSize: 24,
+          fontWeight: FontWeight.w600,
+        ),
+        headlineLarge: GoogleFonts.roboto(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+        headlineMedium: GoogleFonts.roboto(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
+        headlineSmall: GoogleFonts.roboto(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+        bodyLarge: GoogleFonts.roboto(
+          fontSize: 16,
+          fontWeight: FontWeight.normal,
+        ),
+        bodyMedium: GoogleFonts.roboto(
+          fontSize: 14,
+          fontWeight: FontWeight.normal,
+        ),
+        bodySmall: GoogleFonts.roboto(
+          fontSize: 12,
+          fontWeight: FontWeight.normal,
+        ),
       ),
     );
   }

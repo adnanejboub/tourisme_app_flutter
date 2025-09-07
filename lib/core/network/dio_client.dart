@@ -31,9 +31,9 @@ class DioClient {
     final dio = Dio(
       BaseOptions(
         baseUrl: _getBaseUrl(),
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
-        sendTimeout: const Duration(seconds: 30),
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+        sendTimeout: const Duration(seconds: 10),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -46,6 +46,9 @@ class DioClient {
 
     // Ajouter l'intercepteur pour les tokens
     dio.interceptors.add(_AuthInterceptor());
+
+    // Ajouter l'intercepteur de retry pour les erreurs de connexion
+    dio.interceptors.add(_RetryInterceptor());
 
     // Ajouter l'intercepteur pour les logs (en mode debug)
     if (kDebugMode) {
@@ -262,5 +265,56 @@ extension DioExtension on Dio {
       debugPrint('Erreur lors de la vérification du token: $e');
       return false;
     }
+  }
+}
+
+/// Intercepteur pour gérer les tentatives de reconnexion
+class _RetryInterceptor extends Interceptor {
+  static const int _maxRetries = 2;
+  static const Duration _retryDelay = Duration(seconds: 1);
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
+    // Ne pas retry pour les endpoints publics si le serveur n'est pas disponible
+    if (err.requestOptions.path.startsWith('/public')) {
+      debugPrint('RetryInterceptor: Public endpoint failed, not retrying: ${err.requestOptions.path}');
+      handler.next(err);
+      return;
+    }
+
+    // Retry seulement pour les erreurs de connexion
+    if (_shouldRetry(err) && err.requestOptions.extra['retryCount'] == null) {
+      final retryCount = (err.requestOptions.extra['retryCount'] as int?) ?? 0;
+      
+      if (retryCount < _maxRetries) {
+        debugPrint('RetryInterceptor: Retrying request (${retryCount + 1}/$_maxRetries): ${err.requestOptions.path}');
+        
+        // Attendre avant de retry
+        await Future.delayed(_retryDelay);
+        
+        // Mettre à jour le compteur de retry
+        err.requestOptions.extra['retryCount'] = retryCount + 1;
+        
+        try {
+          final response = await DioClient.instance.fetch(err.requestOptions);
+          handler.resolve(response);
+          return;
+        } catch (e) {
+          if (e is DioException) {
+            handler.next(e);
+            return;
+          }
+        }
+      }
+    }
+    
+    handler.next(err);
+  }
+
+  bool _shouldRetry(DioException err) {
+    return err.type == DioExceptionType.connectionTimeout ||
+           err.type == DioExceptionType.receiveTimeout ||
+           err.type == DioExceptionType.connectionError ||
+           (err.response?.statusCode != null && err.response!.statusCode! >= 500);
   }
 }

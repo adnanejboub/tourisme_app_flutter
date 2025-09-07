@@ -3,10 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/services/localization_service.dart';
+import '../../../../core/services/image_service.dart';
 import '../../../../core/constants/constants.dart';
 import '../../data/services/public_api_service.dart';
 import 'itinerary_planning_page.dart';
 import 'details_explore.dart';
+import 'monument_details_page.dart';
+import 'activity_details_page.dart';
 import '../../../saved/data/services/wishlist_service.dart';
 
 class CityDetailsPage extends StatefulWidget {
@@ -382,8 +385,43 @@ class _CityDetailsPageState extends State<CityDetailsPage>
 
   Widget _buildHeroImage() {
     final cityData = _cityDetails?['city'] ?? widget.city;
+    final String cityName = cityData['nomVille'] ?? cityData['name'] ?? '';
+    final String? providedImageUrl = cityData['image'] ?? cityData['imageUrl'];
+    
+    // Utiliser ImageService pour obtenir l'image appropriée
+    final String imageUrl = providedImageUrl?.isNotEmpty == true 
+        ? providedImageUrl! 
+        : ImageService.getCityImage(cityName);
+    
+    if (imageUrl.isEmpty) {
+      return Container(
+        color: Colors.grey[300],
+        child: const Center(
+          child: Icon(Icons.location_city, size: 80, color: Colors.grey),
+        ),
+      );
+    }
+
+    if (ImageService.isLocalAsset(imageUrl)) {
+      // Convert relative path to full asset path
+      final String assetPath = imageUrl.startsWith('images/') 
+          ? 'assets/$imageUrl' 
+          : imageUrl;
+      
+      return Image.asset(
+        assetPath,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: Colors.grey[300],
+          child: const Center(
+            child: Icon(Icons.location_city, size: 80, color: Colors.grey),
+          ),
+        ),
+      );
+    }
+
     return CachedNetworkImage(
-      imageUrl: cityData['image'] ?? cityData['imageUrl'] ?? '',
+      imageUrl: imageUrl,
       fit: BoxFit.cover,
       placeholder: (context, url) => Container(
         color: Colors.grey[300],
@@ -394,7 +432,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
       errorWidget: (context, url, error) => Container(
         color: Colors.grey[300],
         child: const Center(
-          child: Icon(Icons.error, size: 50, color: Colors.grey),
+          child: Icon(Icons.location_city, size: 80, color: Colors.grey),
         ),
       ),
     );
@@ -1019,15 +1057,15 @@ class _CityDetailsPageState extends State<CityDetailsPage>
       ),
       child: InkWell(
         onTap: () {
-          // Open details page with full activity data
+          // Open activity details page with full activity data
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => DetailsExplorePage(
-                destination: {
+              builder: (context) => ActivityDetailsPage(
+                activity: {
                   'id': _extractActivityId(activity),
-                  'title': activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? 'Activity',
-                  'image': activity['image'] ?? activity['imageUrl'] ?? '',
+                  'nom': activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? 'Activity',
+                  'imageUrl': activity['image'] ?? activity['imageUrl'] ?? '',
                   'description': activity['description'] ?? '',
                   'prix': activity['prix'],
                   'dureeMinimun': activity['dureeMinimun'],
@@ -1035,6 +1073,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
                   'saison': activity['saison'],
                   'niveauDificulta': activity['niveauDificulta'],
                   'categorie': activity['categorie'] ?? activity['typeActivite'] ?? activity['type'],
+                  'ville': widget.city['nom'] ?? widget.city['name'],
                 },
               ),
             ),
@@ -1241,6 +1280,10 @@ class _CityDetailsPageState extends State<CityDetailsPage>
 
   Widget _buildActivityImage(Map<String, dynamic> activity, bool isTablet, bool isDesktop) {
     final height = isDesktop ? 200.0 : (isTablet ? 180.0 : 160.0);
+    final imageUrl = activity['image'] ?? activity['imageUrl'] ?? ImageService.getActivityImage(
+      activity['categorie'] ?? activity['typeActivite'] ?? activity['type'] ?? '',
+      activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? ''
+    );
 
     return Container(
       width: double.infinity,
@@ -1250,21 +1293,48 @@ class _CityDetailsPageState extends State<CityDetailsPage>
       ),
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        child: CachedNetworkImage(
-          imageUrl: activity['image'] ?? activity['imageUrl'] ?? '',
-          fit: BoxFit.cover,
-          placeholder: (context, url) => Container(
+        child: _buildImageWidget(imageUrl, height),
+      ),
+    );
+  }
+
+  Widget _buildImageWidget(String imageUrl, double height) {
+    if (ImageService.isLocalAsset(imageUrl)) {
+      final String assetPath = imageUrl.startsWith('images/') 
+          ? 'assets/$imageUrl' 
+          : imageUrl;
+      
+      return Image.asset(
+        assetPath,
+        width: double.infinity,
+        height: height,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
             color: Colors.grey[300],
             child: const Center(
-              child: CircularProgressIndicator(),
+              child: Icon(Icons.local_activity, color: Colors.grey, size: 48),
             ),
-          ),
-          errorWidget: (context, url, error) => Container(
-            color: Colors.grey[300],
-            child: const Center(
-              child: Icon(Icons.image_not_supported, color: Colors.grey),
-            ),
-          ),
+          );
+        },
+      );
+    }
+
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
+      width: double.infinity,
+      height: height,
+      fit: BoxFit.cover,
+      placeholder: (context, url) => Container(
+        color: Colors.grey[300],
+        child: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      errorWidget: (context, url, error) => Container(
+        color: Colors.grey[300],
+        child: const Center(
+          child: Icon(Icons.local_activity, color: Colors.grey, size: 48),
         ),
       ),
     );
@@ -1480,7 +1550,12 @@ class _CityDetailsPageState extends State<CityDetailsPage>
       ),
       child: InkWell(
         onTap: () {
-          // TODO: Navigate to monument details
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MonumentDetailsPage(monument: monument),
+            ),
+          );
         },
         borderRadius: BorderRadius.circular(16),
         child: Column(

@@ -79,6 +79,7 @@ class ThemeProvider extends ChangeNotifier {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      fontFamily: 'Roboto',
       primarySwatch: MaterialColor(
         const Color(0xFF1E88E5).value,
         <int, Color>{
@@ -242,6 +243,7 @@ class ThemeProvider extends ChangeNotifier {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      fontFamily: 'Roboto',
       primarySwatch: MaterialColor(
         const Color(0xFF42A5F5).value,
         <int, Color>{

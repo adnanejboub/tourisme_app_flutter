@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/constants.dart';
 import '../../../../core/services/localization_service.dart';
+import '../../../../core/services/image_service.dart';
 import '../../../../shared/widgets/guest_mode_mixin.dart';
 import '../../../../config/routes/app_routes.dart';
 import '../../data/models/trip_model.dart';
@@ -103,15 +104,12 @@ class _SavedPageState extends State<SavedPage>
               height: 48,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child:
-                    (city['image'] as String?) != null &&
-                        (city['image'] as String).isNotEmpty
-                    ? Image.network(city['image'] as String, fit: BoxFit.cover)
-                    : Icon(
-                        Icons.location_city,
-                        color: colorScheme.primary,
-                        size: 32,
-                      ),
+                child: _buildSmartImage(
+                  imageUrl: (city['image'] ?? city['imageUrl'] ?? '') as String,
+                  fallbackIcon: Icons.location_city,
+                  colorScheme: colorScheme,
+                  size: 32,
+                ),
               ),
             ),
             title: Text(
@@ -755,18 +753,12 @@ class _SavedPageState extends State<SavedPage>
           height: 48,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: (() {
-              final img =
-                  (activity['image'] ?? activity['imageUrl']) as String?;
-              if (img != null && img.isNotEmpty) {
-                return Image.network(img, fit: BoxFit.cover);
-              }
-              return Icon(
-                Icons.local_activity,
-                color: colorScheme.primary,
-                size: 32,
-              );
-            })(),
+            child: _buildSmartImage(
+              imageUrl: (activity['image'] ?? activity['imageUrl'] ?? '') as String,
+              fallbackIcon: Icons.local_activity,
+              colorScheme: colorScheme,
+              size: 32,
+            ),
           ),
         ),
         title: Text(
@@ -874,19 +866,12 @@ class _SavedPageState extends State<SavedPage>
           height: 48,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child:
-                (product['image'] ?? product['imageUrl']) != null &&
-                    ((product['image'] ?? product['imageUrl']) as String)
-                        .isNotEmpty
-                ? Image.network(
-                    (product['image'] ?? product['imageUrl']) as String,
-                    fit: BoxFit.cover,
-                  )
-                : Icon(
-                    Icons.shopping_bag,
-                    color: colorScheme.primary,
-                    size: 32,
-                  ),
+            child: _buildSmartImage(
+              imageUrl: (product['image'] ?? product['imageUrl'] ?? '') as String,
+              fallbackIcon: Icons.shopping_bag,
+              colorScheme: colorScheme,
+              size: 32,
+            ),
           ),
         ),
         title: Text(
@@ -1057,5 +1042,47 @@ class _SavedPageState extends State<SavedPage>
         }
       }
     });
+  }
+
+  /// Smart image widget that handles both local assets and network images
+  Widget _buildSmartImage({
+    required String imageUrl,
+    required IconData fallbackIcon,
+    required ColorScheme colorScheme,
+    required double size,
+  }) {
+    if (imageUrl.isEmpty) {
+      return Icon(
+        fallbackIcon,
+        color: colorScheme.primary,
+        size: size,
+      );
+    }
+
+    if (ImageService.isLocalAsset(imageUrl)) {
+      return Image.asset(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Icon(
+            fallbackIcon,
+            color: colorScheme.primary,
+            size: size,
+          );
+        },
+      );
+    } else {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Icon(
+            fallbackIcon,
+            color: colorScheme.primary,
+            size: size,
+          );
+        },
+      );
+    }
   }
 }
