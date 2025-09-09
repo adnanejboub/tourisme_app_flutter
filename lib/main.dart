@@ -9,12 +9,16 @@ import 'shared/widgets/theme_aware_widget.dart';
 import 'core/services/localization_service.dart';
 import 'core/providers/theme_provider.dart';
 import 'core/services/guest_mode_service.dart';
+import 'core/services/currency_service.dart';
 import 'core/network/dio_client.dart';
 import 'features/auth/presentation/pages/onboarding/splash_screen.dart';
 import 'features/auth/di/auth_injection.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/profile/presentation/bloc/profile_bloc.dart';
 import 'core/di/profile_di.dart';
+import 'package:get_it/get_it.dart';
+
+final GetIt sl = GetIt.instance;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,11 +38,16 @@ void main() async {
   final guestModeService = GuestModeService();
   await guestModeService.loadGuestModeState();
 
+  // Initialiser le service de devise
+  final currencyService = CurrencyService();
+  await currencyService.load();
+
   // Initialiser l'injection de dépendances pour l'authentification
   AuthInjection.init();
   
   // Initialiser l'injection de dépendances pour le profil
   ProfileDI.setup();
+  
 
   runApp(
     MultiProvider(
@@ -46,6 +55,7 @@ void main() async {
         ChangeNotifierProvider.value(value: localizationService),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => GuestModeService()),
+        ChangeNotifierProvider.value(value: currencyService),
         BlocProvider<ProfileBloc>(
           create: (_) => ProfileDI.getProfileBloc(),
         ),

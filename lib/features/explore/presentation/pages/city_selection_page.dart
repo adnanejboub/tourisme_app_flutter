@@ -262,7 +262,7 @@ class _CitySelectionPageState extends State<CitySelectionPage> {
                     });
                   },
                   decoration: InputDecoration(
-                    hintText: 'Search cities, countries, or activities...',
+                    hintText: LocalizationService().translate('search_cities_countries_activities_hint'),
                     prefixIcon: Icon(Icons.search, color: colorScheme.onSurface.withOpacity(0.6)),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(

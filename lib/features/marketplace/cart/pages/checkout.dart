@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:tourisme_app_flutter/domain/order/entities/cart_item.dart';
 import 'package:tourisme_app_flutter/data/static_data.dart';
 import 'order_placed.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/services/currency_service.dart';
+import '../../../../core/services/localization_service.dart';
 
 class CheckoutPage extends StatefulWidget {
   final List<CartItemEntity> cartItems;
@@ -77,7 +80,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Checkout'),
+        title: Consumer<LocalizationService>(
+          builder: (context, l10n, _) => Text(l10n.translate('checkout')),
+        ),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back_ios),
@@ -129,16 +134,23 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Total:',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      Text(
-                        '\$${_total.toStringAsFixed(2)}',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
+                      Consumer<LocalizationService>(
+                        builder: (context, l10n, _) => Text(
+                          l10n.translate('total'),
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
+                      ),
+                      Consumer<CurrencyService>(
+                        builder: (context, currencyService, _) {
+                          final String totalText = currencyService.format(_total);
+                          return Text(
+                            totalText,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -153,7 +165,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Place Order'),
+                          : Consumer<LocalizationService>(
+                              builder: (context, l10n, _) => Text(l10n.translate('place_order')),
+                            ),
                     ),
                   ),
                 ],
@@ -172,9 +186,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Order Summary',
-              style: Theme.of(context).textTheme.titleLarge,
+            Consumer<LocalizationService>(
+              builder: (context, l10n, _) => Text(
+                l10n.translate('order_summary'),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
             ),
             const SizedBox(height: 16),
             ...widget.cartItems.map((item) {
@@ -218,18 +234,25 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          Text(
-                            'Qty: ${item.quantity}',
-                            style: Theme.of(context).textTheme.bodySmall,
+                          Consumer<LocalizationService>(
+                            builder: (context, l10n, _) => Text(
+                              '${l10n.translate('qty')}: ${item.quantity}',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    Text(
-                      '\$${(price * item.quantity).toStringAsFixed(2)}',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Consumer<CurrencyService>(
+                      builder: (context, currencyService, _) {
+                        final String linePrice = currencyService.format(price * item.quantity);
+                        return Text(
+                          linePrice,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -239,16 +262,23 @@ class _CheckoutPageState extends State<CheckoutPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Total:',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Text(
-                  '\$${_total.toStringAsFixed(2)}',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
+                Consumer<LocalizationService>(
+                  builder: (context, l10n, _) => Text(
+                    l10n.translate('total'),
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
+                ),
+                Consumer<CurrencyService>(
+                  builder: (context, currencyService, _) {
+                    final String totalText = currencyService.format(_total);
+                    return Text(
+                      totalText,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -265,20 +295,22 @@ class _CheckoutPageState extends State<CheckoutPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Shipping Information',
-              style: Theme.of(context).textTheme.titleLarge,
+            Consumer<LocalizationService>(
+              builder: (context, l10n, _) => Text(
+                l10n.translate('shipping_information'),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Full Name',
-                hintText: 'Enter your full name',
+              decoration: InputDecoration(
+                labelText: LocalizationService().translate('full_name_label'),
+                hintText: LocalizationService().translate('full_name_hint'),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your full name';
+                  return LocalizationService().translate('enter_full_name');
                 }
                 return null;
               },
@@ -286,17 +318,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                hintText: 'Enter your email address',
+              decoration: InputDecoration(
+                labelText: LocalizationService().translate('email_label'),
+                hintText: LocalizationService().translate('enter_email'),
               ),
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your email address';
+                  return LocalizationService().translate('enter_email');
                 }
                 if (!value.contains('@')) {
-                  return 'Please enter a valid email address';
+                  return LocalizationService().translate('enter_valid_email');
                 }
                 return null;
               },
@@ -304,14 +336,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _phoneController,
-              decoration: const InputDecoration(
-                labelText: 'Phone Number',
-                hintText: 'Enter your phone number',
+              decoration: InputDecoration(
+                labelText: LocalizationService().translate('phone_number'),
+                hintText: LocalizationService().translate('enter_phone_number'),
               ),
               keyboardType: TextInputType.phone,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your phone number';
+                  return LocalizationService().translate('enter_phone_number');
                 }
                 return null;
               },
@@ -319,13 +351,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _addressController,
-              decoration: const InputDecoration(
-                labelText: 'Address',
-                hintText: 'Enter your street address',
+              decoration: InputDecoration(
+                labelText: LocalizationService().translate('full_address'),
+                hintText: LocalizationService().translate('enter_address'),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your address';
+                  return LocalizationService().translate('enter_address');
                 }
                 return null;
               },
@@ -336,13 +368,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _cityController,
-                    decoration: const InputDecoration(
-                      labelText: 'City',
-                      hintText: 'Enter your city',
+                    decoration: InputDecoration(
+                      labelText: LocalizationService().translate('city'),
+                      hintText: LocalizationService().translate('enter_city'),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your city';
+                        return LocalizationService().translate('enter_city');
                       }
                       return null;
                     },
@@ -352,14 +384,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _zipController,
-                    decoration: const InputDecoration(
-                      labelText: 'ZIP Code',
-                      hintText: 'Enter ZIP code',
+                    decoration: InputDecoration(
+                      labelText: LocalizationService().translate('postal_code'),
+                      hintText: LocalizationService().translate('enter_postal_code'),
                     ),
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter ZIP code';
+                        return LocalizationService().translate('enter_postal_code');
                       }
                       return null;
                     },
@@ -380,14 +412,20 @@ class _CheckoutPageState extends State<CheckoutPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Payment Method',
-              style: Theme.of(context).textTheme.titleLarge,
+            Consumer<LocalizationService>(
+              builder: (context, l10n, _) => Text(
+                l10n.translate('payment_method'),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
             ),
             const SizedBox(height: 16),
             RadioListTile(
-              title: const Text('Credit Card'),
-              subtitle: const Text('Pay with your credit card'),
+              title: Consumer<LocalizationService>(
+                builder: (context, l10n, _) => Text(l10n.translate('credit_card')),
+              ),
+              subtitle: Consumer<LocalizationService>(
+                builder: (context, l10n, _) => Text(l10n.translate('pay_with_credit_card')),
+              ),
               value: 'Credit Card',
               groupValue: _selectedPaymentMethod,
               onChanged: (value) {
@@ -398,7 +436,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
             RadioListTile(
               title: const Text('PayPal'),
-              subtitle: const Text('Pay with your PayPal account'),
+              subtitle: Consumer<LocalizationService>(
+                builder: (context, l10n, _) => Text(l10n.translate('pay_with_paypal')),
+              ),
               value: 'PayPal',
               groupValue: _selectedPaymentMethod,
               onChanged: (value) {
@@ -408,8 +448,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
               },
             ),
             RadioListTile(
-              title: const Text('Cash on Delivery'),
-              subtitle: const Text('Pay when your order arrives'),
+              title: Consumer<LocalizationService>(
+                builder: (context, l10n, _) => Text(l10n.translate('cash_on_delivery')),
+              ),
+              subtitle: Consumer<LocalizationService>(
+                builder: (context, l10n, _) => Text(l10n.translate('pay_on_delivery')),
+              ),
               value: 'Cash on Delivery',
               groupValue: _selectedPaymentMethod,
               onChanged: (value) {

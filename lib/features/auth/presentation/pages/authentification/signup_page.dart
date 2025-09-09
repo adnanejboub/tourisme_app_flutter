@@ -227,6 +227,10 @@ class _SignUpPageState extends State<SignUpPage> {
           setState(() => _isLoading = false);
           // Inscription réussie, naviguer vers la page principale
           Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+        } else if (state is AuthNewUserNeedsPreferences) {
+          setState(() => _isLoading = false);
+          // Nouvel utilisateur: rediriger vers le questionnaire de préférences
+          Navigator.of(context).pushReplacementNamed(AppRoutes.newUserPreferences);
         } else if (state is AuthFailure) {
           setState(() => _isLoading = false);
           // Afficher l'erreur avec un style amélioré
@@ -304,8 +308,8 @@ class _SignUpPageState extends State<SignUpPage> {
                       // Champ nom d'utilisateur
                       _buildTextField(
                         controller: _usernameController,
-                        labelText: 'Nom d\'utilisateur',
-                        hintText: 'Entrez votre nom d\'utilisateur',
+                        labelText: LocalizationService().translate('username_label'),
+                        hintText: LocalizationService().translate('enter_username'),
                         prefixIcon: Icons.person,
                         dimensions: dimensions,
                         isDarkMode: isDarkMode,
@@ -318,8 +322,8 @@ class _SignUpPageState extends State<SignUpPage> {
                       // Champ prénom
                       _buildTextField(
                         controller: _firstNameController,
-                        labelText: 'Prénom',
-                        hintText: 'Entrez votre prénom',
+                        labelText: LocalizationService().translate('first_name'),
+                        hintText: LocalizationService().translate('enter_first_name'),
                         prefixIcon: Icons.person_outline,
                         dimensions: dimensions,
                         isDarkMode: isDarkMode,
@@ -332,8 +336,8 @@ class _SignUpPageState extends State<SignUpPage> {
                       // Champ nom
                       _buildTextField(
                         controller: _lastNameController,
-                        labelText: 'Nom',
-                        hintText: 'Entrez votre nom',
+                        labelText: LocalizationService().translate('last_name'),
+                        hintText: LocalizationService().translate('enter_last_name'),
                         prefixIcon: Icons.person_outline,
                         dimensions: dimensions,
                         isDarkMode: isDarkMode,

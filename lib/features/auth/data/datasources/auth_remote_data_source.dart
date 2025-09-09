@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import '../../../../core/network/dio_client.dart';
 import '../models/auth_model.dart';
+import '../models/social_auth_model.dart';
 import '../../domain/entities/auth_entities.dart';
+import '../../domain/entities/social_auth_entities.dart';
 
 /// Interface pour la source de données d'authentification
 abstract class AuthRemoteDataSource {
@@ -14,6 +16,10 @@ abstract class AuthRemoteDataSource {
   // New profile management methods
   Future<UserProfileModel> getCompleteProfile();
   Future<UserProfileModel> updateProfile(ProfileUpdateParams params);
+  
+  // Social authentication methods
+  Future<AuthModel> loginWithSocialAuth(SocialAuthParamsModel params);
+  Future<AuthModel> registerWithSocialAuth(SocialAuthParamsModel params);
 }
 
 /// Implémentation de la source de données d'authentification
@@ -90,13 +96,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           await _dio.updateAuthToken(authModel.accessToken);
           return authModel;
         } else {
-          // Si pas de token dans la réponse, retourner un modèle vide
-          return AuthModel(
-            accessToken: '',
-            refreshToken: '',
-            expiresIn: 0,
-            tokenType: 'Bearer',
-          );
+          // Pas de token: effectuer une connexion automatique avec les mêmes identifiants
+          final loginParams = LoginParams(identifier: params.username.isNotEmpty ? params.username : params.email, password: params.password);
+          final loginModel = await login(loginParams);
+          return loginModel;
         }
       } else {
         throw DioException(
@@ -299,6 +302,102 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       print('AuthRemoteDataSource: Unexpected error during profile update: $e');
       throw Exception('Erreur lors de la mise à jour du profil: $e');
+    }
+  }
+
+  @override
+  Future<AuthModel> loginWithSocialAuth(SocialAuthParamsModel params) async {
+    try {
+      print('🔗 Making social login request to: ${_dio.options.baseUrl}/auth/social/login');
+      print('📦 Request data: ${params.toJson()}');
+      
+      final response = await _dio.post(
+        '/auth/social/login',
+        data: params.toJson(),
+      );
+
+      print('✅ Social login response status: ${response.statusCode}');
+      print('📦 Response data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        final authModel = AuthModel.fromJson(response.data);
+        await _dio.updateAuthToken(authModel.accessToken);
+        return authModel;
+      } else {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } on DioException catch (e) {
+      print('❌ DioException during social login:');
+      print('   Status: ${e.response?.statusCode}');
+      print('   Message: ${e.message}');
+      print('   Response data: ${e.response?.data}');
+      
+      if (e.response?.statusCode == 401) {
+        throw Exception('Échec de l\'authentification sociale');
+      } else if (e.response?.statusCode == 400) {
+        final errorData = e.response?.data;
+        if (errorData is Map<String, dynamic> && errorData['message'] != null) {
+          throw Exception(errorData['message']);
+        }
+        throw Exception('Données d\'authentification sociale invalides');
+      } else {
+        throw Exception('Erreur lors de la connexion sociale: ${e.message}');
+      }
+    } catch (e) {
+      print('❌ Unexpected error during social login: $e');
+      throw Exception('Erreur lors de la connexion sociale: $e');
+    }
+  }
+
+  @override
+  Future<AuthModel> registerWithSocialAuth(SocialAuthParamsModel params) async {
+    try {
+      print('🔗 Making social register request to: ${_dio.options.baseUrl}/auth/social/register');
+      print('📦 Request data: ${params.toJson()}');
+      
+      final response = await _dio.post(
+        '/auth/social/register',
+        data: params.toJson(),
+      );
+
+      print('✅ Social register response status: ${response.statusCode}');
+      print('📦 Response data: ${response.data}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final authModel = AuthModel.fromJson(response.data);
+        await _dio.updateAuthToken(authModel.accessToken);
+        return authModel;
+      } else {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } on DioException catch (e) {
+      print('❌ DioException during social register:');
+      print('   Status: ${e.response?.statusCode}');
+      print('   Message: ${e.message}');
+      print('   Response data: ${e.response?.data}');
+      
+      if (e.response?.statusCode == 400) {
+        final errorData = e.response?.data;
+        if (errorData is Map<String, dynamic> && errorData['message'] != null) {
+          throw Exception(errorData['message']);
+        }
+        throw Exception('Données d\'enregistrement social invalides');
+      } else if (e.response?.statusCode == 409) {
+        throw Exception('Un compte avec cet email existe déjà');
+      } else {
+        throw Exception('Erreur lors de l\'enregistrement social: ${e.message}');
+      }
+    } catch (e) {
+      print('❌ Unexpected error during social register: $e');
+      throw Exception('Erreur lors de l\'enregistrement social: $e');
     }
   }
 }

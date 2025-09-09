@@ -399,7 +399,11 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
       padding: EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          Text('City:', style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7))),
+          Text(
+            Provider.of<LocalizationService>(context, listen: false)
+                .translate('city_label_colon'),
+            style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+          ),
           SizedBox(width: 8),
           Expanded(
             child: IgnorePointer(
@@ -407,9 +411,21 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
               child: DropdownButton<int?>(
                 isExpanded: true,
                 value: _selectedCityId,
-                hint: Text(_isLoadingCities ? 'Loading cities...' : 'All cities'),
+                hint: Text(
+                  _isLoadingCities
+                      ? Provider.of<LocalizationService>(context, listen: false)
+                          .translate('loading_cities')
+                      : Provider.of<LocalizationService>(context, listen: false)
+                          .translate('all_cities'),
+                ),
                 items: [
-                  DropdownMenuItem<int?>(value: null, child: Text('All cities')),
+                  DropdownMenuItem<int?>(
+                    value: null,
+                    child: Text(
+                      Provider.of<LocalizationService>(context, listen: false)
+                          .translate('all_cities'),
+                    ),
+                  ),
                   ..._allCities.map((c) => DropdownMenuItem<int?>(value: c.id, child: Text(c.nom))).toList(),
                 ],
                 onChanged: (val) {

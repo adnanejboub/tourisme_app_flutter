@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:tourisme_app_flutter/domain/product/entities/product.dart';
 import 'package:tourisme_app_flutter/features/marketplace/product_detail/pages/product_detail.dart';
 import 'package:tourisme_app_flutter/features/saved/data/services/wishlist_service.dart';
+import 'package:provider/provider.dart';
+import 'package:tourisme_app_flutter/core/services/currency_service.dart';
 
 class ProductCard extends StatefulWidget {
   final ProductEntity product;
@@ -146,30 +148,39 @@ class _ProductCardState extends State<ProductCard> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        if (widget.product.discountedPrice > 0) ...[
-                          Text(
-                            '\$${widget.product.discountedPrice}',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '\$${widget.product.price}',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              decoration: TextDecoration.lineThrough,
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
-                          ),
-                        ] else
-                          Text(
-                            '\$${widget.product.price}',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                        Consumer<CurrencyService>(
+                          builder: (context, currencyService, _) {
+                            final String mainPrice = currencyService.format(
+                              (widget.product.discountedPrice > 0
+                                  ? widget.product.discountedPrice.toDouble()
+                                  : widget.product.price),
+                            );
+                            final String? oldPrice = widget.product.discountedPrice > 0
+                                ? currencyService.format(widget.product.price)
+                                : null;
+                            return Row(
+                              children: [
+                                Text(
+                                  mainPrice,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: Theme.of(context).colorScheme.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                if (oldPrice != null) ...[
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    oldPrice,
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          decoration: TextDecoration.lineThrough,
+                                          color: Theme.of(context).colorScheme.outline,
+                                        ),
+                                  ),
+                                ],
+                              ],
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ],

@@ -35,7 +35,7 @@ class LocalizationService extends ChangeNotifier {
   Future<void> changeLanguage(String language) async {
     if (isLanguageSupported(language)) {
       _currentLanguage = language;
-      
+
       // Sauvegarder la langue dans les préférences
       try {
         final prefs = await SharedPreferences.getInstance();
@@ -43,17 +43,21 @@ class LocalizationService extends ChangeNotifier {
       } catch (e) {
         debugPrint('Error saving language preference: $e');
       }
-      
+
       notifyListeners();
     } else {
-      debugPrint('Warning: Language "$language" is not supported. Using current language: $_currentLanguage');
+      debugPrint(
+        'Warning: Language "$language" is not supported. Using current language: $_currentLanguage',
+      );
     }
   }
 
   String translate(String key) {
     final languageMap = _translations[_currentLanguage];
     if (languageMap == null) {
-      debugPrint('Warning: No translations found for language: $_currentLanguage');
+      debugPrint(
+        'Warning: No translations found for language: $_currentLanguage',
+      );
       return key;
     }
     return languageMap[key] ?? key;
@@ -61,7 +65,9 @@ class LocalizationService extends ChangeNotifier {
 
   // Méthode utilitaire pour obtenir la direction du texte
   TextDirection get textDirection {
-    return _currentLanguage == 'العربية' ? TextDirection.rtl : TextDirection.ltr;
+    return _currentLanguage == 'العربية'
+        ? TextDirection.rtl
+        : TextDirection.ltr;
   }
 
   // Méthode pour obtenir le code de langue (utile pour les APIs)
@@ -100,7 +106,8 @@ class LocalizationService extends ChangeNotifier {
     'English': {
       'skip': 'Skip',
       'welcome_title': 'Welcome To Morocco',
-      'welcome_subtitle': 'Discover a new way to connect and explore.\nGet started on your journey today!',
+      'welcome_subtitle':
+          'Discover a new way to connect and explore.\nGet started on your journey today!',
       'select_language': 'Select Language',
       'get_started': 'Get Started',
       'already_account': 'Already have an account? ',
@@ -131,16 +138,21 @@ class LocalizationService extends ChangeNotifier {
       'sign_up_apple': 'Sign up with Apple',
       'sign_up_facebook': 'Sign up with Facebook',
       'forgot_password_title': 'Forgotten Password ?',
-      'forgot_password_subtitle': 'Enter your email address to receive a password reset link.',
+      'forgot_password_subtitle':
+          'Enter your email address to receive a password reset link.',
       'forgot_password_email_hint': 'Enter your email address',
       'send_reset_link': 'Send password reset link',
       'back_to_login': 'Back to login',
-      'google_login_todo': 'Google Login - To be implemented with google_sign_in package',
-      'apple_login_todo': 'Apple Login - To be implemented with sign_in_with_apple package',
-      'facebook_login_todo': 'Facebook Login - To be implemented with flutter_facebook_auth package',
+      'google_login_todo':
+          'Google Login - To be implemented with google_sign_in package',
+      'apple_login_todo':
+          'Apple Login - To be implemented with sign_in_with_apple package',
+      'facebook_login_todo':
+          'Facebook Login - To be implemented with flutter_facebook_auth package',
       'email_label': 'Email',
       'reset_link_sent': 'Reset link sent!',
-      'reset_link_instructions': 'Please check your inbox mail and follow the instructions for the password reset link.',
+      'reset_link_instructions':
+          'Please check your inbox mail and follow the instructions for the password reset link.',
       'create_account': 'Create Account',
       'full_name_label': 'Full Name',
       'full_name_hint': 'Enter your full name',
@@ -164,6 +176,11 @@ class LocalizationService extends ChangeNotifier {
       'skip_button': 'Skip for later',
       'preferences_saved': '✅ Preferences saved successfully!',
       'preferences_saved_success': 'Preferences saved successfully!',
+      'welcome_preferences_title': 'Personalize your experience',
+      'welcome_preferences_subtitle':
+          'Help us recommend the best destinations for you',
+      'previous': 'Previous',
+      'next': 'Next',
       'budget_economic': 'Economic (< 500 DH/day)',
       'budget_moderate': 'Moderate (500-1500 DH/day)',
       'budget_luxury': 'Luxurious (> 1500 DH/day)',
@@ -215,7 +232,8 @@ class LocalizationService extends ChangeNotifier {
       'home_title': 'Home',
       'home_welcome': 'Welcome',
       'guest_ready_to_travel': 'Ready to start your journey?',
-      'guest_create_account_description': 'Create your account to save your preferences and access all features',
+      'guest_create_account_description':
+          'Create your account to save your preferences and access all features',
       'guest_login': 'Log In',
       'guest_signup': 'Sign Up',
       'guest_unlock_features': 'Unlock all features',
@@ -266,9 +284,11 @@ class LocalizationService extends ChangeNotifier {
       'profile_subtitle': 'Manage your profile and preferences',
       'of': 'of',
       'guest_mode_info': 'Guest mode - Limited features',
-      'guest_mode_description': 'You can explore the app, but some features require login',
+      'guest_mode_description':
+          'You can explore the app, but some features require login',
       'login_required': 'Login Required',
-      'login_required_message': 'This feature requires login. Would you like to login now?',
+      'login_required_message':
+          'This feature requires login. Would you like to login now?',
       'cancel': 'Cancel',
       'login': 'Login',
       // Trip management translations
@@ -278,7 +298,7 @@ class LocalizationService extends ChangeNotifier {
       'trip_details': 'Trip Details',
       'trip_name': 'Trip Name',
       'trip_name_required': 'Trip name is required',
-      'destination': 'Destination',
+
       'destination_required': 'Destination is required',
       'start_date': 'Start Date',
       'end_date': 'End Date',
@@ -286,9 +306,11 @@ class LocalizationService extends ChangeNotifier {
       'activities': 'Activities',
       'add_activity': 'Add Activity',
       'no_activities_added': 'No activities added yet',
-      'add_activities_description': 'Tap the buttons above to add activities to your trip',
+      'add_activities_description':
+          'Tap the buttons above to add activities to your trip',
       'save_changes': 'Save Changes',
-      'create_your_first_trip': 'Create your first trip and start planning your adventure',
+      'create_your_first_trip':
+          'Create your first trip and start planning your adventure',
       'no_trips_saved': 'No trips saved yet',
       'created': 'Created',
       'edit_activity': 'Edit Activity',
@@ -305,7 +327,8 @@ class LocalizationService extends ChangeNotifier {
       'add': 'Add',
       'save': 'Save',
       'delete_trip': 'Delete Trip',
-      'delete_trip_confirmation': 'Are you sure you want to delete this trip? This action cannot be undone.',
+      'delete_trip_confirmation':
+          'Are you sure you want to delete this trip? This action cannot be undone.',
       'delete': 'Delete',
       'trip_created_successfully': 'Trip created successfully!',
       'trip_saved_successfully': 'Trip saved successfully!',
@@ -340,8 +363,49 @@ class LocalizationService extends ChangeNotifier {
       'select_activities': 'Select activities you\'d like to include',
       'generate_itinerary': 'Generate Itinerary',
       'itinerary_generated': 'Itinerary Generated!',
-      'itinerary_success': 'Your personalized itinerary has been created successfully.',
+      'itinerary_success':
+          'Your personalized itinerary has been created successfully.',
       'ok': 'OK',
+      'share': 'Share',
+      'activity_booked_title': 'Activity Booked!',
+      'activity_booked_success': 'You have successfully booked:',
+      'season': 'Season',
+      'all_year': 'All year',
+      'share_functionality_coming_soon': 'Share functionality coming soon!',
+      'route_not_found': 'Route not found',
+      'search_title': 'Search',
+      'search_page_title': 'Search Page',
+      'coming_soon': 'Coming soon...',
+
+      'destination_detail': 'Destination Detail',
+      'detail_page_coming_soon': 'Detail page coming soon...',
+
+      'activity_detail': 'Activity Detail',
+
+      'product_detail': 'Product Detail',
+      'collection': 'Collection',
+      'seasonal_collection': 'Seasonal Collection',
+      'collection_page_coming_soon': 'Collection page coming soon...',
+      'settings': 'Settings',
+      'settings_page_coming_soon': 'Settings page coming soon...',
+      'help_support': 'Help & Support',
+      'help_page_coming_soon': 'Help page coming soon...',
+      'error_skipping_questionnaire': 'Error while skipping the questionnaire',
+      'error_saving_preferences': 'Error while saving preferences',
+      'retry': 'Retry',
+      'book_now': 'Book Now',
+      'added_to_wishlist': 'Added to wishlist',
+      'removed_from_wishlist': 'Removed from wishlist',
+      'view_details': 'View Details',
+      'error_booking_activity': 'Error booking activity',
+      'city_label_colon': 'City:',
+      'loading_cities': 'Loading cities...',
+      'all_cities': 'All cities',
+      'get_directions': 'Get Directions',
+      'directions_functionality_coming_soon': 'Directions functionality coming soon!',
+      'phone_hint_example': '+212 6XX XX XX XX',
+      'search_cities_countries_activities_hint': 'Search cities, countries, or activities...',
+      'otp_hint': '------',
       'activity_sightseeing': 'Sightseeing',
       'activity_food_tour': 'Food Tour',
       'activity_cultural_visit': 'Cultural Visit',
@@ -424,7 +488,8 @@ class LocalizationService extends ChangeNotifier {
       'wishlist': 'Wishlist',
       'products': 'Products',
       'no_activities_saved': 'No activities saved yet',
-      'start_exploring_activities': 'Start exploring and save your favorite activities',
+      'start_exploring_activities':
+          'Start exploring and save your favorite activities',
       'explore_activities': 'Explore Activities',
       'no_cities_saved': 'No cities saved yet',
       'save_cities_visit': 'Save cities you want to visit',
@@ -464,7 +529,8 @@ class LocalizationService extends ChangeNotifier {
       // Search page translations
       'search_morocco': 'Search Morocco',
       'search_cities_activities_hint': 'Search cities, activities...',
-      'search_for_cities_activities': 'Search for cities, activities, or attractions',
+      'search_for_cities_activities':
+          'Search for cities, activities, or attractions',
       'no_results_found': 'No results found for',
       'try_different_keywords': 'Try different keywords or check spelling',
       // Details page translations
@@ -489,11 +555,33 @@ class LocalizationService extends ChangeNotifier {
       'new_trip': 'New Trip',
       'explore': 'Explore',
       'logout': 'Logout',
+      // Cart & Checkout
+      'shopping_cart': 'Shopping Cart',
+      'failed_load_cart_items': 'Failed to load cart items',
+      'cart_empty_title': 'Your cart is empty',
+      'cart_empty_subtitle': 'Add some products to get started!',
+      'continue_shopping': 'Continue Shopping',
+      'total': 'Total:',
+      'proceed_to_checkout': 'Proceed to Checkout',
+      'checkout': 'Checkout',
+      'place_order': 'Place Order',
+      'order_summary': 'Order Summary',
+      'qty': 'Qty',
+      'shipping_information': 'Shipping Information',
+      'enter_full_name': 'Please enter your full name',
+      'enter_valid_email': 'Please enter a valid email address',
+      'enter_phone_number': 'Please enter your phone number',
+      'credit_card': 'Credit Card',
+      'pay_with_credit_card': 'Pay with your credit card',
+      'pay_with_paypal': 'Pay with your PayPal account',
+      'cash_on_delivery': 'Cash on Delivery',
+      'pay_on_delivery': 'Pay when your order arrives',
     },
     'Français': {
       'skip': 'Passer',
       'welcome_title': 'Bienvenue au Maroc',
-      'welcome_subtitle': 'Découvrez une nouvelle façon de vous connecter et d\'explorer.\nCommencez votre voyage aujourd\'hui!',
+      'welcome_subtitle':
+          'Découvrez une nouvelle façon de vous connecter et d\'explorer.\nCommencez votre voyage aujourd\'hui!',
       'select_language': 'Sélectionner la langue',
       'get_started': 'Commencer',
       'already_account': 'Vous avez déjà un compte? ',
@@ -504,11 +592,14 @@ class LocalizationService extends ChangeNotifier {
       'email_phone_label': 'Email ou Téléphone',
       'email_phone_hint': 'Entrez votre email ou téléphone',
       'email_phone_error': 'Veuillez entrer votre email ou téléphone',
-      'email_phone_invalid': 'Veuillez entrer un email ou numéro de téléphone valide',
+      'email_phone_invalid':
+          'Veuillez entrer un email ou numéro de téléphone valide',
       'username_email_label': 'Nom d\'utilisateur ou Email',
       'username_email_hint': 'Entrez votre nom d\'utilisateur ou email',
-      'username_email_error': 'Veuillez entrer votre nom d\'utilisateur ou email',
-      'username_email_invalid': 'Veuillez entrer un nom d\'utilisateur ou email valide',
+      'username_email_error':
+          'Veuillez entrer votre nom d\'utilisateur ou email',
+      'username_email_invalid':
+          'Veuillez entrer un nom d\'utilisateur ou email valide',
       'password_label': 'Mot de passe',
       'password_hint': 'Entrez votre mot de passe',
       'password_error': 'Veuillez entrer votre mot de passe',
@@ -524,16 +615,21 @@ class LocalizationService extends ChangeNotifier {
       'sign_up_apple': 'Se connecter avec Apple',
       'sign_up_facebook': 'Se connecter avec Facebook',
       'forgot_password_title': 'Mot de passe oublié ?',
-      'forgot_password_subtitle': 'Entrez votre adresse email pour recevoir un lien de réinitialisation.',
+      'forgot_password_subtitle':
+          'Entrez votre adresse email pour recevoir un lien de réinitialisation.',
       'forgot_password_email_hint': 'Entrez votre adresse email',
       'send_reset_link': 'Envoyer le lien de réinitialisation',
       'back_to_login': 'Retour à la connexion',
-      'google_login_todo': 'Connexion Google - À implémenter avec google_sign_in package',
-      'apple_login_todo': 'Connexion Apple - À implémenter avec sign_in_with_apple package',
-      'facebook_login_todo': 'Connexion Facebook - À implémenter avec flutter_facebook_auth package',
+      'google_login_todo':
+          'Connexion Google - À implémenter avec google_sign_in package',
+      'apple_login_todo':
+          'Connexion Apple - À implémenter avec sign_in_with_apple package',
+      'facebook_login_todo':
+          'Connexion Facebook - À implémenter avec flutter_facebook_auth package',
       'email_label': 'Email',
       'reset_link_sent': 'Lien de réinitialisation envoyé !',
-      'reset_link_instructions': 'Veuillez vérifier votre boîte de réception et suivre les instructions du lien de réinitialisation du mot de passe.',
+      'reset_link_instructions':
+          'Veuillez vérifier votre boîte de réception et suivre les instructions du lien de réinitialisation du mot de passe.',
       'create_account': 'Créer un compte',
       'full_name_label': 'Nom complet',
       'full_name_hint': 'Entrez votre nom complet',
@@ -551,12 +647,19 @@ class LocalizationService extends ChangeNotifier {
       'group_size_question': 'Avec qui voyagez-vous ?',
       'group_size_question_title': 'Taille du groupe',
       'transportation_question_title': 'Préférence de transport',
-      'multiple_choice_instruction': 'Sélectionnez toutes les options qui vous intéressent',
+      'multiple_choice_instruction':
+          'Sélectionnez toutes les options qui vous intéressent',
       'Next': 'Suivant',
       'finish': 'Terminer',
       'skip_button': 'Passer pour plus tard',
       'preferences_saved': '✅ Préférences enregistrées avec succès !',
       'preferences_saved_success': 'Préférences enregistrées avec succès !',
+      'welcome_preferences_title': 'Personnalisez votre expérience',
+      'welcome_preferences_subtitle':
+          'Aidez-nous à vous recommander les meilleures destinations',
+      'previous': 'Précédent',
+      'next': 'Suivant',
+
       'budget_economic': 'Économique (< 500 DH/jour)',
       'budget_moderate': 'Modéré (500-1500 DH/jour)',
       'budget_luxury': 'Luxueux (> 1500 DH/jour)',
@@ -608,7 +711,8 @@ class LocalizationService extends ChangeNotifier {
       'home_title': 'Accueil',
       'home_welcome': 'Bienvenue',
       'guest_ready_to_travel': 'Prêt à commencer votre voyage ?',
-      'guest_create_account_description': 'Créez votre compte pour sauvegarder vos préférences et accéder à toutes les fonctionnalités',
+      'guest_create_account_description':
+          'Créez votre compte pour sauvegarder vos préférences et accéder à toutes les fonctionnalités',
       'guest_login': 'Se connecter',
       'guest_signup': 'S\'inscrire',
       'guest_unlock_features': 'Débloquez toutes les fonctionnalités',
@@ -620,9 +724,11 @@ class LocalizationService extends ChangeNotifier {
       'home_search_hint': 'Rechercher des destinations, activités...',
       'home_recommendations_title': 'Recommandations près de chez vous',
       'rec_park_title': 'Parc Central',
-      'rec_park_subtitle': 'Un magnifique parc urbain avec des lacs et des sentiers.',
+      'rec_park_subtitle':
+          'Un magnifique parc urbain avec des lacs et des sentiers.',
       'rec_museum_title': 'Musée du Louvre',
-      'rec_museum_subtitle': 'Explorez des collections d\'art mondialement célèbres.',
+      'rec_museum_subtitle':
+          'Explorez des collections d\'art mondialement célèbres.',
       'home_trending_title': 'Destinations tendances',
       'trending_paris_name': 'Paris',
       'trending_paris_subtitle': 'La Ville Lumière vous attend.',
@@ -630,9 +736,11 @@ class LocalizationService extends ChangeNotifier {
       'trending_kyoto_subtitle': 'Découvrez des temples et jardins anciens.',
       'home_seasonal_title': 'Points forts saisonniers',
       'seasonal_summer_title': 'Évasions estivales',
-      'seasonal_summer_subtitle': 'Des spots parfaits pour le soleil et la mer.',
+      'seasonal_summer_subtitle':
+          'Des spots parfaits pour le soleil et la mer.',
       'seasonal_autumn_title': 'Aventures automnales',
-      'seasonal_autumn_subtitle': 'Explorez les feuillages d\'automne et le temps frais.',
+      'seasonal_autumn_subtitle':
+          'Explorez les feuillages d\'automne et le temps frais.',
       'home_featured_cities_title': 'Villes en vedette',
       'city_nyc_name': 'New York City',
       'city_paris_name': 'Paris',
@@ -654,14 +762,17 @@ class LocalizationService extends ChangeNotifier {
       'products_title': 'Produits Marocains',
       'products_subtitle': 'Achetez des produits artisanaux authentiques',
       'saved_title': 'Vos Éléments Enregistrés',
-      'saved_subtitle': 'Lieux, activités et produits que vous avez enregistrés',
+      'saved_subtitle':
+          'Lieux, activités et produits que vous avez enregistrés',
       'profile_name': 'Nasreddine Bikikre',
       'profile_subtitle': 'Gérez votre profil et vos préférences',
       'of': 'de',
       'guest_mode_info': 'Mode invité - Fonctionnalités limitées',
-      'guest_mode_description': 'Vous pouvez explorer l\'application, mais certaines fonctionnalités nécessitent une connexion',
+      'guest_mode_description':
+          'Vous pouvez explorer l\'application, mais certaines fonctionnalités nécessitent une connexion',
       'login_required': 'Connexion requise',
-      'login_required_message': 'Cette fonctionnalité nécessite une connexion. Souhaitez-vous vous connecter maintenant ?',
+      'login_required_message':
+          'Cette fonctionnalité nécessite une connexion. Souhaitez-vous vous connecter maintenant ?',
       'cancel': 'Annuler',
       'login': 'Se connecter',
       'plan_your_itinerary': 'Planifiez Votre Itinéraire',
@@ -681,11 +792,40 @@ class LocalizationService extends ChangeNotifier {
       'select_date': 'Sélectionner une Date',
       'activities': 'Activités',
       'activities_interests': 'Activités et Intérêts',
-      'select_activities': 'Sélectionnez les activités que vous aimeriez inclure',
+      'select_activities':
+          'Sélectionnez les activités que vous aimeriez inclure',
       'generate_itinerary': 'Générer l\'Itinéraire',
       'itinerary_generated': 'Itinéraire Généré !',
-      'itinerary_success': 'Votre itinéraire personnalisé a été créé avec succès.',
+      'itinerary_success':
+          'Votre itinéraire personnalisé a été créé avec succès.',
       'ok': 'OK',
+      'share': 'Partager',
+      'activity_booked_title': 'Activité réservée !',
+      'activity_booked_success': 'Vous avez réservé avec succès :',
+      'season': 'Saison',
+      'all_year': 'Toute l\'année',
+      'share_functionality_coming_soon': 'Le partage arrive bientôt !',
+      'route_not_found': 'Route introuvable',
+      'search_title': 'Recherche',
+      'search_page_title': 'Page de recherche',
+      'coming_soon': 'Bientôt disponible...',
+      'destination': 'Destination',
+      'destination_detail': 'Détail de la destination',
+      'detail_page_coming_soon': 'Page de détail bientôt disponible...',
+
+      'activity_detail': 'Détail de l\'activité',
+
+      'product_detail': 'Détail du produit',
+      'collection': 'Collection',
+      'seasonal_collection': 'Collection saisonnière',
+      'collection_page_coming_soon': 'Page de collection bientôt disponible...',
+      'settings': 'Paramètres',
+      'settings_page_coming_soon': 'Page des paramètres bientôt disponible...',
+      'help_support': 'Aide & Support',
+      'help_page_coming_soon': 'Page d\'aide bientôt disponible...',
+      'error_skipping_questionnaire': 'Erreur lors du saut du questionnaire',
+      'error_saving_preferences':
+          'Erreur lors de la sauvegarde des préférences',
       'activity_sightseeing': 'Tourisme',
       'activity_food_tour': 'Tour Gastronomique',
       'activity_cultural_visit': 'Visite Culturelle',
@@ -770,15 +910,17 @@ class LocalizationService extends ChangeNotifier {
       'trip_details': 'Détails du Voyage',
       'trip_name': 'Nom du Voyage',
       'trip_name_required': 'Le nom du voyage est obligatoire',
-      'destination': 'Destination',
+
       'destination_required': 'La destination est obligatoire',
       'end_date': 'Date de Fin',
       'notes': 'Notes',
       'add_activity': 'Ajouter une Activité',
       'no_activities_added': 'Aucune activité ajoutée pour le moment',
-      'add_activities_description': 'Appuyez sur les boutons ci-dessus pour ajouter des activités à votre voyage',
+      'add_activities_description':
+          'Appuyez sur les boutons ci-dessus pour ajouter des activités à votre voyage',
       'save_changes': 'Enregistrer les Modifications',
-      'create_your_first_trip': 'Créez votre premier voyage et commencez à planifier votre aventure',
+      'create_your_first_trip':
+          'Créez votre premier voyage et commencez à planifier votre aventure',
       'no_trips_saved': 'Aucun voyage enregistré pour le moment',
       'created': 'Créé',
       'edit_activity': 'Modifier l\'Activité',
@@ -794,19 +936,24 @@ class LocalizationService extends ChangeNotifier {
       'transport': 'Transport',
       'add': 'Ajouter',
       'delete_trip': 'Supprimer le Voyage',
-      'delete_trip_confirmation': 'Êtes-vous sûr de vouloir supprimer ce voyage ? Cette action ne peut pas être annulée.',
+      'delete_trip_confirmation':
+          'Êtes-vous sûr de vouloir supprimer ce voyage ? Cette action ne peut pas être annulée.',
       'delete': 'Supprimer',
       'trip_created_successfully': 'Voyage créé avec succès !',
       'trip_saved_successfully': 'Voyage enregistré avec succès !',
       'error_creating_trip': 'Erreur lors de la création du voyage',
       'error_saving_trip': 'Erreur lors de l\'enregistrement du voyage',
-      'please_select_dates': 'Veuillez sélectionner les dates de début et de fin',
-      'start_date_after_end_date': 'La date de début doit être antérieure à la date de fin',
-      'please_select_destination': 'Veuillez d\'abord sélectionner une destination',
+      'please_select_dates':
+          'Veuillez sélectionner les dates de début et de fin',
+      'start_date_after_end_date':
+          'La date de début doit être antérieure à la date de fin',
+      'please_select_destination':
+          'Veuillez d\'abord sélectionner une destination',
       'add_existing_activities': 'Ajouter des Activités Existantes',
       'add_activities_from': 'Ajouter des Activités de',
       'search_activities': 'Rechercher des activités...',
-      'no_attractions_found': 'Aucune attraction trouvée pour cette destination',
+      'no_attractions_found':
+          'Aucune attraction trouvée pour cette destination',
       'save_selected': 'Enregistrer',
       'selected_activities': 'Activités Sélectionnées',
       'trip_deleted_successfully': 'Voyage supprimé avec succès',
@@ -816,7 +963,8 @@ class LocalizationService extends ChangeNotifier {
       // Wishlist/Saved page translations
       'products': 'Produits',
       'no_activities_saved': 'Aucune activité sauvegardée pour le moment',
-      'start_exploring_activities': 'Commencez à explorer et sauvegardez vos activités préférées',
+      'start_exploring_activities':
+          'Commencez à explorer et sauvegardez vos activités préférées',
       'explore_activities': 'Explorer les Activités',
       'no_cities_saved': 'Aucune ville sauvegardée pour le moment',
       'save_cities_visit': 'Sauvegardez les villes que vous voulez visiter',
@@ -856,9 +1004,11 @@ class LocalizationService extends ChangeNotifier {
       // Search page translations
       'search_morocco': 'Rechercher le Maroc',
       'search_cities_activities_hint': 'Rechercher des villes, activités...',
-      'search_for_cities_activities': 'Recherchez des villes, activités ou attractions',
+      'search_for_cities_activities':
+          'Recherchez des villes, activités ou attractions',
       'no_results_found': 'Aucun résultat trouvé pour',
-      'try_different_keywords': 'Essayez différents mots-clés ou vérifiez l\'orthographe',
+      'try_different_keywords':
+          'Essayez différents mots-clés ou vérifiez l\'orthographe',
       // Details page translations
       'key_attractions': 'Attractions Principales',
       'location_on_map': 'Emplacement sur la Carte',
@@ -878,7 +1028,8 @@ class LocalizationService extends ChangeNotifier {
       'language': 'Langue',
       // Reservations page translations
       'no_reservations_yet': 'Pas encore de réservations ? Corrigeons cela !',
-      'book_before_you_go': 'Réservez avant de partir pour découvrir le meilleur sur place.',
+      'book_before_you_go':
+          'Réservez avant de partir pour découvrir le meilleur sur place.',
       'start_planning': 'Commencer à planifier',
       'new_trip': 'Nouveau Voyage',
       'explore': 'Explorer',
@@ -896,11 +1047,48 @@ class LocalizationService extends ChangeNotifier {
       'euro': 'Euro',
       'mad': 'Dirham marocain',
       'dollar': 'Dollar américain',
+      'retry': 'Réessayer',
+      'book_now': 'Réserver maintenant',
+      'added_to_wishlist': 'Ajouté à la liste de souhaits',
+      'removed_from_wishlist': 'Supprimé de la liste de souhaits',
+      'view_details': 'Voir les détails',
+      'error_booking_activity': 'Erreur lors de la réservation de l\'activité',
+      'city_label_colon': 'Ville :',
+      'loading_cities': 'Chargement des villes...',
+      'all_cities': 'Toutes les villes',
+      'get_directions': 'Obtenir l\'itinéraire',
+      'directions_functionality_coming_soon': 'Fonctionnalité d\'itinéraire bientôt disponible !',
+      'phone_hint_example': '+212 6XX XX XX XX',
+      'search_cities_countries_activities_hint': 'Rechercher des villes, pays ou activités...',
+      'otp_hint': '------',
+      // Panier & Paiement
+      'shopping_cart': 'Panier',
+      'failed_load_cart_items': 'Échec du chargement du panier',
+      'cart_empty_title': 'Votre panier est vide',
+      'cart_empty_subtitle': 'Ajoutez des produits pour commencer !',
+      'continue_shopping': 'Continuer vos achats',
+      'total': 'Total :',
+      'proceed_to_checkout': 'Passer au paiement',
+      'checkout': 'Paiement',
+      'place_order': 'Passer la commande',
+      'order_summary': 'Récapitulatif de la commande',
+      'qty': 'Qté',
+      'shipping_information': 'Informations de livraison',
+      'enter_full_name': 'Veuillez entrer votre nom complet',
+      'enter_valid_email': 'Veuillez entrer une adresse email valide',
+      'enter_phone_number': 'Veuillez entrer votre numéro de téléphone',
+
+      'credit_card': 'Carte bancaire',
+      'pay_with_credit_card': 'Payer avec votre carte bancaire',
+      'pay_with_paypal': 'Payer avec votre compte PayPal',
+      'cash_on_delivery': 'Paiement à la livraison',
+      'pay_on_delivery': 'Payer à la réception de la commande',
     },
     'العربية': {
       'skip': 'تخطي',
       'welcome_title': 'مرحباً بك في المغرب',
-      'welcome_subtitle': 'اكتشف طريقة جديدة للتواصل والاستكشاف.\nابدأ رحلتك اليوم!',
+      'welcome_subtitle':
+          'اكتشف طريقة جديدة للتواصل والاستكشاف.\nابدأ رحلتك اليوم!',
       'select_language': 'اختر اللغة',
       'get_started': 'ابدأ',
       'already_account': 'هل لديك حساب بالفعل؟ ',
@@ -931,16 +1119,21 @@ class LocalizationService extends ChangeNotifier {
       'sign_up_apple': 'تسجيل الدخول باستخدام Apple',
       'sign_up_facebook': 'تسجيل الدخول باستخدام Facebook',
       'forgot_password_title': 'نسيت كلمة المرور ؟',
-      'forgot_password_subtitle': 'أدخل بريدك الإلكتروني لتلقي رابط إعادة تعيين كلمة المرور.',
+      'forgot_password_subtitle':
+          'أدخل بريدك الإلكتروني لتلقي رابط إعادة تعيين كلمة المرور.',
       'forgot_password_email_hint': 'أدخل بريدك الإلكتروني',
       'send_reset_link': 'إرسال رابط إعادة تعيين كلمة المرور',
       'back_to_login': 'العودة إلى تسجيل الدخول',
-      'google_login_todo': 'تسجيل الدخول بجوجل - سيتم تنفيذه مع google_sign_in package',
-      'apple_login_todo': 'تسجيل الدخول بآبل - سيتم تنفيذه مع sign_in_with_apple package',
-      'facebook_login_todo': 'تسجيل الدخول بفيسبوك - سيتم تنفيذه مع flutter_facebook_auth package',
+      'google_login_todo':
+          'تسجيل الدخول بجوجل - سيتم تنفيذه مع google_sign_in package',
+      'apple_login_todo':
+          'تسجيل الدخول بآبل - سيتم تنفيذه مع sign_in_with_apple package',
+      'facebook_login_todo':
+          'تسجيل الدخول بفيسبوك - سيتم تنفيذه مع flutter_facebook_auth package',
       'email_label': 'البريد الإلكتروني',
       'reset_link_sent': 'تم إرسال رابط إعادة التعيين!',
-      'reset_link_instructions': 'يرجى التحقق من بريدك الوارد واتباع التعليمات الخاصة برابط إعادة تعيين كلمة المرور.',
+      'reset_link_instructions':
+          'يرجى التحقق من بريدك الوارد واتباع التعليمات الخاصة برابط إعادة تعيين كلمة المرور.',
       'create_account': 'إنشاء حساب',
       'full_name_label': 'الاسم الكامل',
       'full_name_hint': 'أدخل اسمك الكامل',
@@ -964,6 +1157,10 @@ class LocalizationService extends ChangeNotifier {
       'skip_button': 'تأجيل لاحقًا',
       'preferences_saved': '✅ تم حفظ التفضيلات بنجاح!',
       'preferences_saved_success': 'تم حفظ التفضيلات بنجاح!',
+      'welcome_preferences_title': 'خصص تجربتك',
+      'welcome_preferences_subtitle': 'ساعدنا في التوصية بأفضل الوجهات لك',
+      'previous': 'السابق',
+
       'budget_economic': 'اقتصادي (< 500 درهم/يوم)',
       'budget_moderate': 'متوسط (500-1500 درهم/يوم)',
       'budget_luxury': 'فاخر (> 1500 درهم/يوم)',
@@ -1015,7 +1212,8 @@ class LocalizationService extends ChangeNotifier {
       'home_title': 'الرئيسية',
       'home_welcome': 'أهلاً',
       'guest_ready_to_travel': 'هل أنت مستعد لبدء رحلتك؟',
-      'guest_create_account_description': 'أنشئ حسابك لحفظ تفضيلاتك والوصول إلى جميع الميزات',
+      'guest_create_account_description':
+          'أنشئ حسابك لحفظ تفضيلاتك والوصول إلى جميع الميزات',
       'guest_login': 'تسجيل الدخول',
       'guest_signup': 'إنشاء حساب',
       'guest_unlock_features': 'افتح جميع الميزات',
@@ -1072,7 +1270,7 @@ class LocalizationService extends ChangeNotifier {
       'trip_details': 'تفاصيل الرحلة',
       'trip_name': 'اسم الرحلة',
       'trip_name_required': 'اسم الرحلة مطلوب',
-      'destination': 'الوجهة',
+
       'destination_required': 'الوجهة مطلوبة',
       'start_date': 'تاريخ البداية',
       'end_date': 'تاريخ النهاية',
@@ -1080,7 +1278,8 @@ class LocalizationService extends ChangeNotifier {
       'activities': 'الأنشطة',
       'add_activity': 'إضافة نشاط',
       'no_activities_added': 'لم يتم إضافة أنشطة بعد',
-      'add_activities_description': 'اضغط على الأزرار أعلاه لإضافة أنشطة لرحلتك',
+      'add_activities_description':
+          'اضغط على الأزرار أعلاه لإضافة أنشطة لرحلتك',
       'save_changes': 'حفظ التغييرات',
       'create_your_first_trip': 'أنشئ رحلتك الأولى وابدأ في تخطيط مغامرتك',
       'no_trips_saved': 'لم يتم حفظ رحلات بعد',
@@ -1100,14 +1299,16 @@ class LocalizationService extends ChangeNotifier {
       'add': 'إضافة',
       'save': 'حفظ',
       'delete_trip': 'حذف الرحلة',
-      'delete_trip_confirmation': 'هل أنت متأكد من أنك تريد حذف هذه الرحلة؟ لا يمكن التراجع عن هذا الإجراء.',
+      'delete_trip_confirmation':
+          'هل أنت متأكد من أنك تريد حذف هذه الرحلة؟ لا يمكن التراجع عن هذا الإجراء.',
       'delete': 'حذف',
       'trip_created_successfully': 'تم إنشاء الرحلة بنجاح!',
       'trip_saved_successfully': 'تم حفظ الرحلة بنجاح!',
       'error_creating_trip': 'خطأ في إنشاء الرحلة',
       'error_saving_trip': 'خطأ في حفظ الرحلة',
       'please_select_dates': 'يرجى تحديد تواريخ البداية والنهاية',
-      'start_date_after_end_date': 'يجب أن تكون تاريخ البداية قبل تاريخ النهاية',
+      'start_date_after_end_date':
+          'يجب أن تكون تاريخ البداية قبل تاريخ النهاية',
       'please_select_destination': 'يرجى تحديد وجهة أولاً',
       'add_existing_activities': 'إضافة أنشطة موجودة',
       'add_activities_from': 'إضافة أنشطة من',
@@ -1118,9 +1319,11 @@ class LocalizationService extends ChangeNotifier {
       'trip_deleted_successfully': 'تم حذف الرحلة بنجاح',
       'error_deleting_trip': 'خطأ في حذف الرحلة',
       'guest_mode_info': 'الوضع الضيف - ميزات محدودة',
-      'guest_mode_description': 'يمكنك استكشاف التطبيق، لكن بعض الميزات تتطلب تسجيل الدخول',
+      'guest_mode_description':
+          'يمكنك استكشاف التطبيق، لكن بعض الميزات تتطلب تسجيل الدخول',
       'login_required': 'تسجيل الدخول مطلوب',
-      'login_required_message': 'هذه الميزة تتطلب تسجيل الدخول. هل تريد تسجيل الدخول الآن؟',
+      'login_required_message':
+          'هذه الميزة تتطلب تسجيل الدخول. هل تريد تسجيل الدخول الآن؟',
       'login': 'تسجيل الدخول',
       'plan_your_itinerary': 'خطط رحلتك',
       'trip_duration': 'مدة الرحلة',
@@ -1142,6 +1345,32 @@ class LocalizationService extends ChangeNotifier {
       'itinerary_generated': 'تم إنشاء رحلتك!',
       'itinerary_success': 'تم إنشاء رحلتك الشخصية بنجاح.',
       'ok': 'موافق',
+      'share': 'مشاركة',
+      'activity_booked_title': 'تم حجز النشاط!',
+      'activity_booked_success': 'لقد تم الحجز بنجاح:',
+      'season': 'الموسم',
+      'all_year': 'طوال العام',
+      'share_functionality_coming_soon': 'ميزة المشاركة قريباً!',
+      'route_not_found': 'المسار غير موجود',
+      'search_title': 'بحث',
+      'search_page_title': 'صفحة البحث',
+      'coming_soon': 'قريباً...',
+      'destination': 'الوجهة',
+      'destination_detail': 'تفاصيل الوجهة',
+      'detail_page_coming_soon': 'صفحة التفاصيل قريباً...',
+
+      'activity_detail': 'تفاصيل النشاط',
+
+      'product_detail': 'تفاصيل المنتج',
+      'collection': 'المجموعة',
+      'seasonal_collection': 'مجموعة موسمية',
+      'collection_page_coming_soon': 'صفحة المجموعة قريباً...',
+      'settings': 'الإعدادات',
+      'settings_page_coming_soon': 'صفحة الإعدادات قريباً...',
+      'help_support': 'المساعدة والدعم',
+      'help_page_coming_soon': 'صفحة المساعدة قريباً...',
+      'error_skipping_questionnaire': 'خطأ أثناء تجاوز الاستبيان',
+      'error_saving_preferences': 'خطأ أثناء حفظ التفضيلات',
       'activity_sightseeing': 'جولة سياحية',
       'activity_food_tour': 'جولة طعام',
       'activity_cultural_visit': 'زيارة ثقافية',
@@ -1264,7 +1493,8 @@ class LocalizationService extends ChangeNotifier {
       // Search page translations
       'search_morocco': 'البحث في المغرب',
       'search_cities_activities_hint': 'البحث عن المدن والأنشطة...',
-      'search_for_cities_activities': 'ابحث عن المدن أو الأنشطة أو المعالم السياحية',
+      'search_for_cities_activities':
+          'ابحث عن المدن أو الأنشطة أو المعالم السياحية',
       'no_results_found': 'لم يتم العثور على نتائج لـ',
       'try_different_keywords': 'جرب كلمات مفتاحية مختلفة أو تحقق من الإملاء',
       // Details page translations
@@ -1304,11 +1534,47 @@ class LocalizationService extends ChangeNotifier {
       'euro': 'يورو',
       'mad': 'درهم مغربي',
       'dollar': 'دولار أمريكي',
+      'retry': 'إعادة المحاولة',
+      'book_now': 'احجز الآن',
+      'added_to_wishlist': 'تمت الإضافة إلى قائمة الرغبات',
+      'removed_from_wishlist': 'تمت الإزالة من قائمة الرغبات',
+      'view_details': 'عرض التفاصيل',
+      'error_booking_activity': 'خطأ أثناء حجز النشاط',
+      'city_label_colon': 'المدينة:',
+      'loading_cities': 'جاري تحميل المدن...',
+      'all_cities': 'كل المدن',
+      'get_directions': 'احصل على الاتجاهات',
+      'directions_functionality_coming_soon': 'ميزة الاتجاهات قريبًا!',
+      'phone_hint_example': '+212 6XX XX XX XX',
+      'search_cities_countries_activities_hint': 'ابحث عن المدن أو البلدان أو الأنشطة...',
+      'otp_hint': '------',
+      // عربة التسوق والدفع
+      'shopping_cart': 'سلة التسوق',
+      'failed_load_cart_items': 'فشل في تحميل عناصر السلة',
+      'cart_empty_title': 'سلة التسوق فارغة',
+      'cart_empty_subtitle': 'أضف بعض المنتجات للبدء!',
+      'continue_shopping': 'متابعة التسوق',
+      'total': 'الإجمالي:',
+      'proceed_to_checkout': 'المتابعة للدفع',
+      'checkout': 'الدفع',
+      'place_order': 'إتمام الطلب',
+      'order_summary': 'ملخص الطلب',
+      'qty': 'الكمية',
+      'shipping_information': 'معلومات الشحن',
+      'enter_full_name': 'يرجى إدخال اسمك الكامل',
+      'enter_valid_email': 'يرجى إدخال بريد إلكتروني صالح',
+
+      'credit_card': 'بطاقة ائتمان',
+      'pay_with_credit_card': 'الدفع بواسطة بطاقة الائتمان',
+      'pay_with_paypal': 'الدفع بواسطة حساب باي بال',
+      'cash_on_delivery': 'الدفع عند الاستلام',
+      'pay_on_delivery': 'ادفع عند وصول طلبك',
     },
     'Español': {
       'skip': 'Saltar',
       'welcome_title': 'Bienvenido a Marruecos',
-      'welcome_subtitle': 'Descubre una nueva forma de conectar y explorar.\n¡Comienza tu viaje hoy!',
+      'welcome_subtitle':
+          'Descubre una nueva forma de conectar y explorar.\n¡Comienza tu viaje hoy!',
       'select_language': 'Seleccionar idioma',
       'get_started': 'Empezar',
       'already_account': '¿Ya tienes una cuenta? ',
@@ -1319,11 +1585,13 @@ class LocalizationService extends ChangeNotifier {
       'email_phone_label': 'Email o Teléfono',
       'email_phone_hint': 'Ingresa tu email o teléfono',
       'email_phone_error': 'Por favor ingresa tu email o teléfono',
-      'email_phone_invalid': 'Por favor ingresa un email o número de teléfono válido',
+      'email_phone_invalid':
+          'Por favor ingresa un email o número de teléfono válido',
       'username_email_label': 'Nombre de usuario o Email',
       'username_email_hint': 'Ingresa tu nombre de usuario o email',
       'username_email_error': 'Por favor ingresa tu nombre de usuario o email',
-      'username_email_invalid': 'Por favor ingresa un nombre de usuario o email válido',
+      'username_email_invalid':
+          'Por favor ingresa un nombre de usuario o email válido',
       'password_label': 'Contraseña',
       'password_hint': 'Ingresa tu contraseña',
       'password_error': 'Por favor ingresa tu contraseña',
@@ -1339,16 +1607,21 @@ class LocalizationService extends ChangeNotifier {
       'sign_up_apple': 'Iniciar sesión con Apple',
       'sign_up_facebook': 'Iniciar sesión con Facebook',
       'forgot_password_title': '¿Contraseña olvidada?',
-      'forgot_password_subtitle': 'Ingresa tu correo electrónico para recibir un enlace de restablecimiento.',
+      'forgot_password_subtitle':
+          'Ingresa tu correo electrónico para recibir un enlace de restablecimiento.',
       'forgot_password_email_hint': 'Ingresa tu correo electrónico',
       'send_reset_link': 'Enviar enlace de restablecimiento',
       'back_to_login': 'Volver al inicio de sesión',
-      'google_login_todo': 'Login Google - A implementar con google_sign_in package',
-      'apple_login_todo': 'Login Apple - A implementar con sign_in_with_apple package',
-      'facebook_login_todo': 'Login Facebook - A implementar con flutter_facebook_auth package',
+      'google_login_todo':
+          'Login Google - A implementar con google_sign_in package',
+      'apple_login_todo':
+          'Login Apple - A implementar con sign_in_with_apple package',
+      'facebook_login_todo':
+          'Login Facebook - A implementar con flutter_facebook_auth package',
       'email_label': 'Correo electrónico',
       'reset_link_sent': '¡Enlace de restablecimiento enviado!',
-      'reset_link_instructions': 'Por favor revisa tu bandeja de entrada y sigue las instrucciones del enlace de restablecimiento de contraseña.',
+      'reset_link_instructions':
+          'Por favor revisa tu bandeja de entrada y sigue las instrucciones del enlace de restablecimiento de contraseña.',
       'create_account': 'Crear cuenta',
       'full_name_label': 'Nombre completo',
       'full_name_hint': 'Ingresa tu nombre completo',
@@ -1366,12 +1639,19 @@ class LocalizationService extends ChangeNotifier {
       'group_size_question': '¿Con quién viajas?',
       'group_size_question_title': 'Tamaño del grupo',
       'transportation_question_title': 'Preferencia de transporte',
-      'multiple_choice_instruction': 'Selecciona todas las opciones que te interesen',
+      'multiple_choice_instruction':
+          'Selecciona todas las opciones que te interesen',
       'Next': 'Siguiente',
       'finish': 'Finalizar',
       'skip_button': 'Omitir para más tarde',
       'preferences_saved': '✅ ¡Preferencias guardadas con éxito!',
       'preferences_saved_success': '¡Preferencias guardadas con éxito!',
+      'welcome_preferences_title': 'Personaliza tu experiencia',
+      'welcome_preferences_subtitle':
+          'Ayúdanos a recomendarte los mejores destinos',
+      'previous': 'Anterior',
+      'next': 'Siguiente',
+
       'budget_economic': 'Económico (< 500 DH/día)',
       'budget_moderate': 'Moderado (500-1500 DH/día)',
       'budget_luxury': 'Lujoso (> 1500 DH/día)',
@@ -1423,7 +1703,8 @@ class LocalizationService extends ChangeNotifier {
       'home_title': 'Inicio',
       'home_welcome': 'Bienvenido',
       'guest_ready_to_travel': '¿Listo para comenzar tu viaje?',
-      'guest_create_account_description': 'Crea tu cuenta para guardar tus preferencias y acceder a todas las funciones',
+      'guest_create_account_description':
+          'Crea tu cuenta para guardar tus preferencias y acceder a todas las funciones',
       'guest_login': 'Iniciar sesión',
       'guest_signup': 'Registrarse',
       'guest_unlock_features': 'Desbloquea todas las funciones',
@@ -1447,7 +1728,8 @@ class LocalizationService extends ChangeNotifier {
       'seasonal_summer_title': 'Escapadas de verano',
       'seasonal_summer_subtitle': 'Lugares perfectos para el sol y el mar.',
       'seasonal_autumn_title': 'Aventuras de otoño',
-      'seasonal_autumn_subtitle': 'Explora el follaje de otoño y el clima fresco.',
+      'seasonal_autumn_subtitle':
+          'Explora el follaje de otoño y el clima fresco.',
       'home_featured_cities_title': 'Ciudades destacadas',
       'city_nyc_name': 'Nueva York',
       'city_paris_name': 'París',
@@ -1474,9 +1756,11 @@ class LocalizationService extends ChangeNotifier {
       'profile_subtitle': 'Administra tu perfil y preferencias',
       'of': 'de',
       'guest_mode_info': 'Modo invitado - Funciones limitadas',
-      'guest_mode_description': 'Puedes explorar la aplicación, pero algunas funciones requieren inicio de sesión',
+      'guest_mode_description':
+          'Puedes explorar la aplicación, pero algunas funciones requieren inicio de sesión',
       'login_required': 'Inicio de sesión requerido',
-      'login_required_message': 'Esta función requiere inicio de sesión. ¿Te gustaría iniciar sesión ahora?',
+      'login_required_message':
+          'Esta función requiere inicio de sesión. ¿Te gustaría iniciar sesión ahora?',
       'cancel': 'Cancelar',
       'login': 'Iniciar sesión',
       'plan_your_itinerary': 'Planifica tu Itinerario',
@@ -1499,8 +1783,50 @@ class LocalizationService extends ChangeNotifier {
       'select_activities': 'Selecciona las actividades que te gustaría incluir',
       'generate_itinerary': 'Generar Itinerario',
       'itinerary_generated': '¡Itinerario Generado!',
-      'itinerary_success': 'Tu itinerario personalizado ha sido creado con éxito.',
+      'itinerary_success':
+          'Tu itinerario personalizado ha sido creado con éxito.',
       'ok': 'OK',
+      'share': 'Compartir',
+      'activity_booked_title': '¡Actividad reservada!',
+      'activity_booked_success': 'Has reservado con éxito:',
+      'season': 'Temporada',
+      'all_year': 'Todo el año',
+      'share_functionality_coming_soon':
+          '¡La función de compartir llegará pronto!',
+      'route_not_found': 'Ruta no encontrada',
+      'search_title': 'Buscar',
+      'search_page_title': 'Página de búsqueda',
+      'coming_soon': 'Próximamente...',
+
+      'destination_detail': 'Detalle del destino',
+      'detail_page_coming_soon': 'Página de detalles próximamente...',
+
+      'activity_detail': 'Detalle de la actividad',
+
+      'product_detail': 'Detalle del producto',
+      'collection': 'Colección',
+      'seasonal_collection': 'Colección de temporada',
+      'collection_page_coming_soon': 'Página de colección próximamente...',
+      'settings': 'Configuración',
+      'settings_page_coming_soon': 'Página de configuración próximamente...',
+      'help_support': 'Ayuda y Soporte',
+      'help_page_coming_soon': 'Página de ayuda próximamente...',
+      'error_skipping_questionnaire': 'Error al saltar el cuestionario',
+      'error_saving_preferences': 'Error al guardar las preferencias',
+      'retry': 'Reintentar',
+      'book_now': 'Reservar ahora',
+      'added_to_wishlist': 'Añadido a favoritos',
+      'removed_from_wishlist': 'Eliminado de favoritos',
+      'view_details': 'Ver detalles',
+      'error_booking_activity': 'Error al reservar la actividad',
+      'city_label_colon': 'Ciudad:',
+      'loading_cities': 'Cargando ciudades...',
+      'all_cities': 'Todas las ciudades',
+      'get_directions': 'Obtener indicaciones',
+      'directions_functionality_coming_soon': '¡La función de indicaciones llegará pronto!',
+      'phone_hint_example': '+212 6XX XX XX XX',
+      'search_cities_countries_activities_hint': 'Buscar ciudades, países o actividades...',
+      'otp_hint': '------',
       'activity_sightseeing': 'Turismo',
       'activity_food_tour': 'Tour Gastronómico',
       'activity_cultural_visit': 'Visita Cultural',
@@ -1583,7 +1909,8 @@ class LocalizationService extends ChangeNotifier {
       // Wishlist/Saved page translations
       'products': 'Productos',
       'no_activities_saved': 'No hay actividades guardadas aún',
-      'start_exploring_activities': 'Comienza a explorar y guarda tus actividades favoritas',
+      'start_exploring_activities':
+          'Comienza a explorar y guarda tus actividades favoritas',
       'explore_activities': 'Explorar Actividades',
       'no_cities_saved': 'No hay ciudades guardadas aún',
       'save_cities_visit': 'Guarda las ciudades que quieres visitar',
@@ -1614,8 +1941,8 @@ class LocalizationService extends ChangeNotifier {
       'kelaat_mgouna': 'Kelaat M\'Gouna',
       'june_10_15': '10-15 Junio',
       'may_10_12': '10-12 Mayo',
-      // Products page translations
 
+      // Products page translations
       '2_4_hours': '2-4 horas',
       '3_4_hours': '3-4 horas',
       '2_3_hours': '2-3 horas',
@@ -1624,9 +1951,11 @@ class LocalizationService extends ChangeNotifier {
       // Search page translations
       'search_morocco': 'Buscar Marruecos',
       'search_cities_activities_hint': 'Buscar ciudades, actividades...',
-      'search_for_cities_activities': 'Busca ciudades, actividades o atracciones',
+      'search_for_cities_activities':
+          'Busca ciudades, actividades o atracciones',
       'no_results_found': 'No se encontraron resultados para',
-      'try_different_keywords': 'Intenta diferentes palabras clave o verifica la ortografía',
+      'try_different_keywords':
+          'Intenta diferentes palabras clave o verifica la ortografía',
       // Details page translations
       'key_attractions': 'Atracciones Principales',
 
@@ -1647,7 +1976,8 @@ class LocalizationService extends ChangeNotifier {
       'language': 'Idioma',
       // Reservations page translations
       'no_reservations_yet': '¿Aún no tienes reservas? ¡Vamos a solucionarlo!',
-      'book_before_you_go': 'Reserva antes de ir para descubrir lo mejor en el sitio.',
+      'book_before_you_go':
+          'Reserva antes de ir para descubrir lo mejor en el sitio.',
       'start_planning': 'Comenzar a planificar',
       'new_trip': 'Nuevo Viaje',
       'explore': 'Explorar',
@@ -1678,11 +2008,35 @@ class LocalizationService extends ChangeNotifier {
       'notes': 'Notas',
       'add_activity': 'Agregar Actividad',
       'no_activities_added': 'No se han agregado actividades aún',
-      'add_activities_description': 'Toca los botones de arriba para agregar actividades a tu viaje',
+      'add_activities_description':
+          'Toca los botones de arriba para agregar actividades a tu viaje',
       'save_changes': 'Guardar Cambios',
-      'create_your_first_trip': 'Crea tu primer viaje y comienza a planificar tu aventura',
+      'create_your_first_trip':
+          'Crea tu primer viaje y comienza a planificar tu aventura',
       'no_trips_saved': 'No hay viajes guardados aún',
       'created': 'Creado',
+      // Carrito y Pago
+      'shopping_cart': 'Carrito de compras',
+      'failed_load_cart_items': 'Error al cargar los artículos del carrito',
+      'cart_empty_title': 'Tu carrito está vacío',
+      'cart_empty_subtitle': '¡Agrega algunos productos para comenzar!',
+      'continue_shopping': 'Continuar comprando',
+      'total': 'Total:',
+      'proceed_to_checkout': 'Proceder al pago',
+      'checkout': 'Pago',
+      'place_order': 'Realizar pedido',
+      'order_summary': 'Resumen del pedido',
+      'qty': 'Cant.',
+      'shipping_information': 'Información de envío',
+      'enter_full_name': 'Por favor ingresa tu nombre completo',
+      'enter_valid_email': 'Por favor ingresa un correo válido',
+      'enter_phone_number': 'Por favor ingresa tu número de teléfono',
+
+      'credit_card': 'Tarjeta de crédito',
+      'pay_with_credit_card': 'Pagar con tu tarjeta de crédito',
+      'pay_with_paypal': 'Pagar con tu cuenta de PayPal',
+      'cash_on_delivery': 'Pago contra entrega',
+      'pay_on_delivery': 'Paga cuando llegue tu pedido',
     },
   };
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/services/localization_service.dart';
+import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/services/localization_service.dart';
@@ -196,9 +198,12 @@ class _CityDetailsPageState extends State<CityDetailsPage>
   Future<void> _shareCity() async {
     // TODO: Implémenter le partage avec share_plus package
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Share functionality coming soon!'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(
+          Provider.of<LocalizationService>(context, listen: false)
+              .translate('share_functionality_coming_soon'),
+        ),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -295,7 +300,10 @@ class _CityDetailsPageState extends State<CityDetailsPage>
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _loadCityDetails,
-                child: const Text('Retry'),
+                child: Text(
+                  Provider.of<LocalizationService>(context, listen: false)
+                      .translate('retry'),
+                ),
               ),
             ],
           ),
@@ -1257,7 +1265,10 @@ class _CityDetailsPageState extends State<CityDetailsPage>
                       ElevatedButton.icon(
                         onPressed: () => _bookActivity(activity),
                         icon: Icon(Icons.book_online, size: 16),
-                        label: Text('Book Now'),
+                        label: Text(
+                          Provider.of<LocalizationService>(context, listen: false)
+                              .translate('book_now'),
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: colorScheme.primary,
                           foregroundColor: Colors.white,
@@ -1404,7 +1415,12 @@ class _CityDetailsPageState extends State<CityDetailsPage>
           await WishlistService.addLocalId('activity', id);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Added to wishlist')),
+              SnackBar(
+                content: Text(
+                  Provider.of<LocalizationService>(context, listen: false)
+                      .translate('added_to_wishlist'),
+                ),
+              ),
             );
           }
         } else {
@@ -1412,7 +1428,12 @@ class _CityDetailsPageState extends State<CityDetailsPage>
           await WishlistService.removeSnapshot(type: 'activity', itemId: id);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Removed from wishlist')),
+              SnackBar(
+                content: Text(
+                  Provider.of<LocalizationService>(context, listen: false)
+                      .translate('removed_from_wishlist'),
+                ),
+              ),
             );
           }
         }
@@ -1441,12 +1462,18 @@ class _CityDetailsPageState extends State<CityDetailsPage>
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Activity Booked!'),
+              title: Text(
+                Provider.of<LocalizationService>(context, listen: false)
+                    .translate('activity_booked_title'),
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('You have successfully booked:'),
+                  Text(
+                    Provider.of<LocalizationService>(context, listen: false)
+                        .translate('activity_booked_success'),
+                  ),
                   SizedBox(height: 8),
                   Text(
                     activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? 'Activity',
@@ -1454,22 +1481,32 @@ class _CityDetailsPageState extends State<CityDetailsPage>
                   ),
                   if (activity['prix'] != null) ...[
                     SizedBox(height: 4),
-                    Text('Price: ${activity['prix']} MAD'),
+                    Text(
+                      '${Provider.of<LocalizationService>(context, listen: false).translate('price')}: ${activity['prix']} MAD',
+                    ),
                   ],
                   if (activity['dureeMinimun'] != null) ...[
                     SizedBox(height: 4),
-                    Text('Duration: ${activity['dureeMinimun']}-${activity['dureeMaximun'] ?? activity['dureeMinimun']} minutes'),
+                    Text(
+                      '${Provider.of<LocalizationService>(context, listen: false).translate('duration')}: '
+                      '${activity['dureeMinimun']}-${activity['dureeMaximun'] ?? activity['dureeMinimun']} minutes',
+                    ),
                   ],
                   if (activity['saison'] != null) ...[
                     SizedBox(height: 4),
-                    Text('Season: ${activity['saison']}'),
+                    Text(
+                      '${Provider.of<LocalizationService>(context, listen: false).translate('season')}: ${activity['saison']}',
+                    ),
                   ],
                 ],
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Text('OK'),
+                  child: Text(
+                    Provider.of<LocalizationService>(context, listen: false)
+                        .translate('ok'),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -1495,7 +1532,10 @@ class _CityDetailsPageState extends State<CityDetailsPage>
                       ),
                     );
                   },
-                  child: Text('View Details'),
+                  child: Text(
+                    Provider.of<LocalizationService>(context, listen: false)
+                        .translate('view_details'),
+                  ),
                 ),
               ],
             );
@@ -1506,7 +1546,9 @@ class _CityDetailsPageState extends State<CityDetailsPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error booking activity: ${e.toString()}'),
+            content: Text(
+              '${Provider.of<LocalizationService>(context, listen: false).translate('error_booking_activity')}: ${e.toString()}',
+            ),
             backgroundColor: Colors.red,
           ),
         );

@@ -11,6 +11,7 @@ import 'package:tourisme_app_flutter/features/auth/presentation/pages/verificati
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/verification/two_factor_auth_page.dart';
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/authentification/logout_screen.dart';
 import 'package:tourisme_app_flutter/features/auth/presentation/pages/onboarding/travel_preferences_page.dart';
+import 'package:tourisme_app_flutter/features/auth/presentation/pages/onboarding/new_user_preferences_page.dart';
 import 'package:tourisme_app_flutter/features/home/presentation/pages/main_navigation_page.dart';
 import 'package:tourisme_app_flutter/features/home/presentation/pages/home_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/explore_page.dart';
@@ -27,6 +28,7 @@ import 'package:tourisme_app_flutter/features/profile/presentation/pages/profile
 import 'package:tourisme_app_flutter/features/profile/presentation/pages/reservations_page.dart';
 import 'package:tourisme_app_flutter/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:tourisme_app_flutter/features/profile/presentation/pages/preferences_page.dart';
+import 'package:tourisme_app_flutter/core/services/localization_service.dart';
 
 class AppRoutes {
 
@@ -40,6 +42,7 @@ class AppRoutes {
   static const String otpVerification = '/otp-verification';
   static const String twoFactorAuth = '/two-factor-auth';
   static const String travelPreferences = '/travel-preferences';
+  static const String newUserPreferences = '/new-user-preferences';
   static const String logout = '/logout';
   static const String home = '/home';
   static const String mainNavigation = '/main-navigation';
@@ -95,6 +98,9 @@ class AppRoutes {
 
       case travelPreferences:
         return _buildRoute(const TravelPreferencesPage(), settings);
+
+      case newUserPreferences:
+        return _buildRoute(const NewUserPreferencesPage(), settings);
 
       case logout:
         return _buildRoute(const LogoutPage(), settings);
@@ -161,7 +167,9 @@ class AppRoutes {
         return _buildRoute(
           Scaffold(
             body: Center(
-              child: Text('Route not found: ${settings.name}'),
+              child: Text(
+                '${LocalizationService().translate('route_not_found')}: ${settings.name}',
+              ),
             ),
           ),
           settings,
@@ -194,22 +202,25 @@ class AppRoutes {
   static Widget _buildSearchPage() {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Search'),
+        title: Text(LocalizationService().translate('search_title')),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0,
       ),
-      body: const Center(
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search, size: 64, color: Colors.blue),
-            SizedBox(height: 16),
+            const Icon(Icons.search, size: 64, color: Colors.blue),
+            const SizedBox(height: 16),
             Text(
-              'Search Page',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              LocalizationService().translate('search_page_title'),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            Text('Coming soon...', style: TextStyle(color: Colors.grey)),
+            Text(
+              LocalizationService().translate('coming_soon'),
+              style: const TextStyle(color: Colors.grey),
+            ),
           ],
         ),
       ),
@@ -219,7 +230,7 @@ class AppRoutes {
   static Widget _buildDestinationDetailPage(Map<String, dynamic>? destination) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(destination?['name'] ?? 'Destination'),
+        title: Text(destination?['name'] ?? LocalizationService().translate('destination')),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0,
@@ -231,10 +242,13 @@ class AppRoutes {
             const Icon(Icons.place, size: 64, color: Colors.blue),
             const SizedBox(height: 16),
             Text(
-              destination?['name'] ?? 'Destination Detail',
+              destination?['name'] ?? LocalizationService().translate('destination_detail'),
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            const Text('Detail page coming soon...', style: TextStyle(color: Colors.grey)),
+            Text(
+              LocalizationService().translate('detail_page_coming_soon'),
+              style: const TextStyle(color: Colors.grey),
+            ),
           ],
         ),
       ),
@@ -244,7 +258,7 @@ class AppRoutes {
   static Widget _buildActivityDetailPage(Map<String, dynamic>? activity) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(activity?['title'] ?? 'Activity'),
+        title: Text(activity?['title'] ?? LocalizationService().translate('activity')),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0,
@@ -256,10 +270,13 @@ class AppRoutes {
             const Icon(Icons.local_activity, size: 64, color: Colors.blue),
             const SizedBox(height: 16),
             Text(
-              activity?['title'] ?? 'Activity Detail',
+              activity?['title'] ?? LocalizationService().translate('activity_detail'),
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            const Text('Detail page coming soon...', style: TextStyle(color: Colors.grey)),
+            Text(
+              LocalizationService().translate('detail_page_coming_soon'),
+              style: const TextStyle(color: Colors.grey),
+            ),
           ],
         ),
       ),
@@ -270,7 +287,7 @@ class AppRoutes {
   static Widget _buildProductDetailPage(Map<String, dynamic>? product) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(product?['name'] ?? 'Product'),
+        title: Text(product?['name'] ?? LocalizationService().translate('product')),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0,
@@ -282,10 +299,13 @@ class AppRoutes {
             const Icon(Icons.shopping_bag, size: 64, color: Colors.blue),
             const SizedBox(height: 16),
             Text(
-              product?['name'] ?? 'Product Detail',
+              product?['name'] ?? LocalizationService().translate('product_detail'),
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            const Text('Detail page coming soon...', style: TextStyle(color: Colors.grey)),
+            Text(
+              LocalizationService().translate('detail_page_coming_soon'),
+              style: const TextStyle(color: Colors.grey),
+            ),
           ],
         ),
       ),
@@ -295,7 +315,7 @@ class AppRoutes {
   static Widget _buildSeasonalCollectionPage(Map<String, dynamic>? collection) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(collection?['title'] ?? 'Collection'),
+        title: Text(collection?['title'] ?? LocalizationService().translate('collection')),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0,
@@ -307,10 +327,13 @@ class AppRoutes {
             const Icon(Icons.collections, size: 64, color: Colors.blue),
             const SizedBox(height: 16),
             Text(
-              collection?['title'] ?? 'Seasonal Collection',
+              collection?['title'] ?? LocalizationService().translate('seasonal_collection'),
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            const Text('Collection page coming soon...', style: TextStyle(color: Colors.grey)),
+            Text(
+              LocalizationService().translate('collection_page_coming_soon'),
+              style: const TextStyle(color: Colors.grey),
+            ),
           ],
         ),
       ),
@@ -320,22 +343,25 @@ class AppRoutes {
   static Widget _buildCartPage() {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Shopping Cart'),
+        title: Text(LocalizationService().translate('shopping_cart')),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0,
       ),
-      body: const Center(
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.shopping_cart, size: 64, color: Colors.blue),
-            SizedBox(height: 16),
+            const Icon(Icons.shopping_cart, size: 64, color: Colors.blue),
+            const SizedBox(height: 16),
             Text(
-              'Shopping Cart',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              LocalizationService().translate('shopping_cart'),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            Text('Cart functionality coming soon...', style: TextStyle(color: Colors.grey)),
+            Text(
+              LocalizationService().translate('cart_functionality_coming_soon'),
+              style: const TextStyle(color: Colors.grey),
+            ),
           ],
         ),
       ),
@@ -345,22 +371,25 @@ class AppRoutes {
   static Widget _buildSettingsPage() {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(LocalizationService().translate('settings')),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0,
       ),
-      body: const Center(
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.settings, size: 64, color: Colors.blue),
-            SizedBox(height: 16),
+            const Icon(Icons.settings, size: 64, color: Colors.blue),
+            const SizedBox(height: 16),
             Text(
-              'Settings',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              LocalizationService().translate('settings'),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            Text('Settings page coming soon...', style: TextStyle(color: Colors.grey)),
+            Text(
+              LocalizationService().translate('settings_page_coming_soon'),
+              style: const TextStyle(color: Colors.grey),
+            ),
           ],
         ),
       ),
@@ -370,22 +399,25 @@ class AppRoutes {
   static Widget _buildHelpPage() {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Help & Support'),
+        title: Text(LocalizationService().translate('help_support')),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0,
       ),
-      body: const Center(
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.help, size: 64, color: Colors.blue),
-            SizedBox(height: 16),
+            const Icon(Icons.help, size: 64, color: Colors.blue),
+            const SizedBox(height: 16),
             Text(
-              'Help & Support',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              LocalizationService().translate('help_support'),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            Text('Help page coming soon...', style: TextStyle(color: Colors.grey)),
+            Text(
+              LocalizationService().translate('help_page_coming_soon'),
+              style: const TextStyle(color: Colors.grey),
+            ),
           ],
         ),
       ),
@@ -436,6 +468,10 @@ class AppRoutes {
 
   static void navigateToTravelPreferences(BuildContext context) {
     Navigator.pushReplacementNamed(context, travelPreferences);
+  }
+
+  static void navigateToNewUserPreferences(BuildContext context) {
+    Navigator.pushReplacementNamed(context, newUserPreferences);
   }
 
   static void navigateToHome(BuildContext context) {

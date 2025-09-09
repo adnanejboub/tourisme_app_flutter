@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/services/localization_service.dart';
+import '../../../../core/services/currency_service.dart';
 import '../../../../core/constants/constants.dart';
 import '../../../auth/presentation/widgets/language_selector_widget.dart';
 import '../../../../shared/widgets/global_localization_widget.dart';
@@ -13,7 +14,7 @@ class PreferencesPage extends StatefulWidget {
 }
 
 class _PreferencesPageState extends State<PreferencesPage> {
-  String _selectedCurrency = 'Euro';
+  String _selectedCurrency = 'MAD';
   final _cardNumberController = TextEditingController();
   final _expiryController = TextEditingController();
   final _cvcController = TextEditingController();
@@ -28,13 +29,45 @@ class _PreferencesPageState extends State<PreferencesPage> {
     super.dispose();
   }
 
+  String _mapCurrencyToLabel(
+    AppCurrency currency,
+    LocalizationService localizationService,
+  ) {
+    switch (currency) {
+      case AppCurrency.usd:
+        return 'Dollar';
+      case AppCurrency.eur:
+        return 'Euro';
+      case AppCurrency.mad:
+      default:
+        return 'MAD';
+    }
+  }
+
+  AppCurrency _mapLabelToCurrency(String label) {
+    switch (label) {
+      case 'Dollar':
+        return AppCurrency.usd;
+      case 'Euro':
+        return AppCurrency.eur;
+      case 'MAD':
+      default:
+        return AppCurrency.mad;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Consumer<LocalizationService>(
-      builder: (context, localizationService, child) {
+    return Consumer2<LocalizationService, CurrencyService>(
+      builder: (context, localizationService, currencyService, child) {
+        // Sync dropdown with service
+        _selectedCurrency = _mapCurrencyToLabel(
+          currencyService.current,
+          localizationService,
+        );
         return Scaffold(
           backgroundColor: colorScheme.background,
           appBar: AppBar(
@@ -87,11 +120,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
                   children: [
                     CurrentLanguageDisplay(),
                     const Spacer(),
-                    Icon(
-                      Icons.language,
-                      color: colorScheme.primary,
-                      size: 24,
-                    ),
+                    Icon(Icons.language, color: colorScheme.primary, size: 24),
                   ],
                 ),
               ),
@@ -104,10 +133,14 @@ class _PreferencesPageState extends State<PreferencesPage> {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('${localizationService.translate('language')} ${localizationService.translate('save')}'),
+                        content: Text(
+                          '${localizationService.translate('language')} ${localizationService.translate('save')}',
+                        ),
                         backgroundColor: colorScheme.primary,
                         behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     );
                   }
@@ -127,40 +160,90 @@ class _PreferencesPageState extends State<PreferencesPage> {
               Container(
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: colorScheme.outline),
                   boxShadow: [
                     BoxShadow(
-                      color: colorScheme.shadow.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+                      color: colorScheme.shadow.withOpacity(0.06),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedCurrency,
-                    isExpanded: true,
-                    icon: Icon(Icons.keyboard_arrow_down, color: colorScheme.onSurface),
-                    dropdownColor: colorScheme.surface,
-                    style: TextStyle(color: colorScheme.onSurface),
-                    items: [
-                      DropdownMenuItem(
-                        value: 'Euro',
-                        child: Text(localizationService.translate('euro')),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.attach_money, color: colorScheme.primary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedCurrency,
+                          isExpanded: true,
+                          icon: Icon(
+                            Icons.keyboard_arrow_down,
+                            color: colorScheme.onSurface,
+                          ),
+                          dropdownColor: colorScheme.surface,
+                          style: TextStyle(color: colorScheme.onSurface),
+                          items: [
+                            DropdownMenuItem(
+                              value: 'Euro',
+                              child: Row(
+                                children: [
+                                  const Text('€  '),
+                                  Text(localizationService.translate('euro')),
+                                ],
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'MAD',
+                              child: Row(
+                                children: [
+                                  const Text('DH  '),
+                                  Text(localizationService.translate('mad')),
+                                ],
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Dollar',
+                              child: Row(
+                                children: [
+                                  const Text('\$  '),
+                                  Text(localizationService.translate('dollar')),
+                                ],
+                              ),
+                            ),
+                          ],
+                          onChanged: (val) async {
+                            if (val == null) return;
+                            setState(() => _selectedCurrency = val);
+                            final AppCurrency selected = _mapLabelToCurrency(
+                              val,
+                            );
+                            await currencyService.setCurrency(selected);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '${localizationService.translate('currency')} ${localizationService.translate('save')}',
+                                  ),
+                                  backgroundColor: colorScheme.primary,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                        ),
                       ),
-                      DropdownMenuItem(
-                        value: 'MAD',
-                        child: Text(localizationService.translate('mad')),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Dollar',
-                        child: Text(localizationService.translate('dollar')),
-                      ),
-                    ],
-                    onChanged: (val) => setState(() => _selectedCurrency = val!),
-                  ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),
@@ -242,7 +325,11 @@ class _PreferencesPageState extends State<PreferencesPage> {
                         ),
                         onPressed: () {
                           // TODO: Save payment info
-                          _showSuccessMessage(context, localizationService, colorScheme);
+                          _showSuccessMessage(
+                            context,
+                            localizationService,
+                            colorScheme,
+                          );
                         },
                         child: Text(
                           localizationService.translate('save'),
@@ -265,12 +352,12 @@ class _PreferencesPageState extends State<PreferencesPage> {
   }
 
   Widget _buildTextField(
-      TextEditingController controller,
-      String label,
-      ColorScheme colorScheme, {
-        String? hint,
-        TextInputType? keyboardType,
-      }) {
+    TextEditingController controller,
+    String label,
+    ColorScheme colorScheme, {
+    String? hint,
+    TextInputType? keyboardType,
+  }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
@@ -292,14 +379,21 @@ class _PreferencesPageState extends State<PreferencesPage> {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: colorScheme.outline, width: 1),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         fillColor: colorScheme.surface,
         filled: true,
       ),
     );
   }
 
-  void _showSuccessMessage(BuildContext context, LocalizationService localizationService, ColorScheme colorScheme) {
+  void _showSuccessMessage(
+    BuildContext context,
+    LocalizationService localizationService,
+    ColorScheme colorScheme,
+  ) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(localizationService.translate('payment_info_saved')),

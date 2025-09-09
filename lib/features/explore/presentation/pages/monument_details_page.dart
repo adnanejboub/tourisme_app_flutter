@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/services/localization_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/services/image_service.dart';
 import '../../../../core/constants/constants.dart';
@@ -603,7 +605,10 @@ class MonumentDetailsPage extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () => _getDirections(context),
                   icon: const Icon(Icons.directions, size: 18),
-                  label: const Text('Get Directions'),
+                  label: Text(
+                    Provider.of<LocalizationService>(context, listen: false)
+                        .translate('get_directions'),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: Colors.white,
@@ -619,7 +624,10 @@ class MonumentDetailsPage extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () => _shareMonument(context),
                   icon: const Icon(Icons.share, size: 18),
-                  label: const Text('Share'),
+                  label: Text(
+                    Provider.of<LocalizationService>(context, listen: false)
+                        .translate('share'),
+                  ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colorScheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 12),
@@ -639,9 +647,12 @@ class MonumentDetailsPage extends StatelessWidget {
   void _getDirections(BuildContext context) {
     // TODO: Implement directions functionality
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Directions functionality coming soon!'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(
+          Provider.of<LocalizationService>(context, listen: false)
+              .translate('directions_functionality_coming_soon'),
+        ),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -649,9 +660,12 @@ class MonumentDetailsPage extends StatelessWidget {
   void _shareMonument(BuildContext context) {
     // TODO: Implement share functionality
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Share functionality coming soon!'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(
+          Provider.of<LocalizationService>(context, listen: false)
+              .translate('share_functionality_coming_soon'),
+        ),
+        duration: const Duration(seconds: 2),
       ),
     );
   }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tourisme_app_flutter/domain/order/entities/cart_item.dart';
+import 'package:provider/provider.dart';
+import 'package:tourisme_app_flutter/core/services/currency_service.dart';
 
 class CartItemWidget extends StatelessWidget {
   final CartItemEntity item;
@@ -15,7 +17,7 @@ class CartItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final price = item.product.discountedPrice > 0 
+    final priceMAD = item.product.discountedPrice > 0 
         ? item.product.discountedPrice.toDouble()
         : item.product.price;
     
@@ -68,12 +70,17 @@ class CartItemWidget extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '\$${price.toStringAsFixed(2)}',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Consumer<CurrencyService>(
+                        builder: (context, currencyService, _) {
+                          final String priceText = currencyService.format(priceMAD);
+                          return Text(
+                            priceText,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          );
+                        },
                       ),
                       Row(
                         children: [

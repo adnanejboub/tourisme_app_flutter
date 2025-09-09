@@ -648,7 +648,10 @@ class _ExplorePageState extends State<ExplorePage> {
                     child: ElevatedButton.icon(
                       onPressed: () => _bookActivity(activity),
                       icon: Icon(Icons.book_online, size: 18),
-                      label: Text('Book Now'),
+                      label: Text(
+                        Provider.of<LocalizationService>(context, listen: false)
+                            .translate('book_now'),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.primary,
                         foregroundColor: Colors.white,
@@ -802,12 +805,18 @@ class _ExplorePageState extends State<ExplorePage> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Activity Booked!'),
+              title: Text(
+                Provider.of<LocalizationService>(context, listen: false)
+                    .translate('activity_booked_title'),
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('You have successfully booked:'),
+                  Text(
+                    Provider.of<LocalizationService>(context, listen: false)
+                        .translate('activity_booked_success'),
+                  ),
                   SizedBox(height: 8),
                   Text(
                     activity.nom,
@@ -815,25 +824,36 @@ class _ExplorePageState extends State<ExplorePage> {
                   ),
                   if (activity.prix != null) ...[
                     SizedBox(height: 4),
-                    Text('Price: ${activity.prix!.toStringAsFixed(2)} MAD'),
+                    Text(
+                      '${Provider.of<LocalizationService>(context, listen: false).translate('price')}: ${activity.prix!.toStringAsFixed(2)} MAD',
+                    ),
                   ],
                   if (activity.dureeMinimun != null) ...[
                     SizedBox(height: 4),
-                    Text('Duration: ${activity.dureeMinimun}-${activity.dureeMaximun ?? activity.dureeMinimun} minutes'),
+                    Text(
+                      '${Provider.of<LocalizationService>(context, listen: false).translate('duration')}: '
+                      '${activity.dureeMinimun}-${activity.dureeMaximun ?? activity.dureeMinimun} minutes',
+                    ),
                   ],
                 ],
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Text('OK'),
+                  child: Text(
+                    Provider.of<LocalizationService>(context, listen: false)
+                        .translate('ok'),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                     _openActivityDetails(activity);
                   },
-                  child: Text('View Details'),
+                  child: Text(
+                    Provider.of<LocalizationService>(context, listen: false)
+                        .translate('view_details'),
+                  ),
                 ),
               ],
             );
@@ -844,7 +864,9 @@ class _ExplorePageState extends State<ExplorePage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error booking activity: ${e.toString()}'),
+            content: Text(
+              '${Provider.of<LocalizationService>(context, listen: false).translate('error_booking_activity')}: ${e.toString()}',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -968,7 +990,12 @@ class _ExplorePageState extends State<ExplorePage> {
           await WishlistService.addLocalId('activity', activityId);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Added to wishlist')),
+              SnackBar(
+                content: Text(
+                  Provider.of<LocalizationService>(context, listen: false)
+                      .translate('added_to_wishlist'),
+                ),
+              ),
             );
           }
         } else {
@@ -976,7 +1003,12 @@ class _ExplorePageState extends State<ExplorePage> {
           await WishlistService.removeSnapshot(type: 'activity', itemId: activityId);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Removed from wishlist')),
+              SnackBar(
+                content: Text(
+                  Provider.of<LocalizationService>(context, listen: false)
+                      .translate('removed_from_wishlist'),
+                ),
+              ),
             );
           }
         }

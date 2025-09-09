@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/services/localization_service.dart';
 import 'package:tourisme_app_flutter/config/routes/app_routes.dart';
 
 class OtpVerificationPage extends StatefulWidget {
@@ -61,7 +62,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                 textAlign: TextAlign.center,
                 maxLength: 6,
                 decoration: InputDecoration(
-                  hintText: '------',
+                  hintText: LocalizationService().translate('otp_hint'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,

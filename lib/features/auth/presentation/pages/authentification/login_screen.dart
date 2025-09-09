@@ -101,6 +101,9 @@ class _LoginScreenState extends State<LoginScreen>
         } else if (state is AuthAuthenticated) {
           // Utilisateur déjà authentifié, naviguer vers la page principale
           Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+        } else if (state is AuthNewUserNeedsPreferences) {
+          // Nouvel utilisateur, naviguer vers le questionnaire de préférences
+          Navigator.of(context).pushReplacementNamed(AppRoutes.newUserPreferences);
         } else if (state is AuthFailure) {
           // Afficher l'erreur
           _showErrorDialog(context, state.message);
@@ -447,25 +450,34 @@ class _LoginScreenState extends State<LoginScreen>
   Future<void> _handleGoogleLogin() async {
     debugPrint('Google Login pressed');
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_localizationService.translate('google_login_todo'))),
-    );
+    
+    // Désactiver le mode invité lors de la connexion
+    _guestModeService.disableGuestMode();
+    
+    // Déclencher l'événement de connexion Google via le BLoC
+    context.read<AuthBloc>().add(GoogleSignInRequested());
   }
 
   Future<void> _handleAppleLogin() async {
     debugPrint('Apple Login pressed');
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_localizationService.translate('apple_login_todo'))),
-    );
+    
+    // Désactiver le mode invité lors de la connexion
+    _guestModeService.disableGuestMode();
+    
+    // Déclencher l'événement de connexion Apple via le BLoC
+    context.read<AuthBloc>().add(AppleSignInRequested());
   }
 
   Future<void> _handleFacebookLogin() async {
     debugPrint('Facebook Login pressed');
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_localizationService.translate('facebook_login_todo'))),
-    );
+    
+    // Désactiver le mode invité lors de la connexion
+    _guestModeService.disableGuestMode();
+    
+    // Déclencher l'événement de connexion Facebook via le BLoC
+    context.read<AuthBloc>().add(FacebookSignInRequested());
   }
 
   void _showErrorDialog(BuildContext context, String message) {

@@ -505,28 +505,41 @@ class _CreateEditTripPageState extends State<CreateEditTripPage> {
             children: [
               TextField(
                 controller: nameController,
-                decoration: InputDecoration(labelText: 'Activity Name'),
+                decoration: InputDecoration(
+                  labelText: LocalizationService().translate('activity_name'),
+                ),
               ),
               TextField(
                 controller: descriptionController,
-                decoration: InputDecoration(labelText: 'Description (Optional)'),
+                decoration: InputDecoration(
+                  labelText: LocalizationService().translate('description_optional'),
+                ),
                 maxLines: 2,
               ),
               TextField(
                 controller: locationController,
-                decoration: InputDecoration(labelText: 'Location (Optional)'),
+                decoration: InputDecoration(
+                  labelText: LocalizationService().translate('location_optional'),
+                ),
               ),
               TextField(
                 controller: durationController,
-                decoration: InputDecoration(labelText: 'Duration in minutes (Optional)'),
+                decoration: InputDecoration(
+                  labelText: LocalizationService().translate('duration_minutes'),
+                ),
                 keyboardType: TextInputType.number,
               ),
               SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: selectedType,
-                decoration: InputDecoration(labelText: 'Type'),
+                decoration: InputDecoration(
+                  labelText: LocalizationService().translate('type'),
+                ),
                 items: [
-                  DropdownMenuItem(value: 'custom', child: Text('Custom')),
+                  DropdownMenuItem(
+                    value: 'custom',
+                    child: Text(LocalizationService().translate('custom')),
+                  ),
                   DropdownMenuItem(value: 'attraction', child: Text('Attraction')),
                   DropdownMenuItem(value: 'restaurant', child: Text('Restaurant')),
                   DropdownMenuItem(value: 'hotel', child: Text('Hotel')),

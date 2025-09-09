@@ -1,8 +1,11 @@
 import 'package:get_it/get_it.dart';
 import '../data/datasources/auth_remote_data_source.dart';
 import '../data/repositories/auth_repository_impl.dart';
+import '../data/repositories/social_auth_repository_impl.dart';
 import '../domain/repositories/auth_repository.dart';
+import '../domain/repositories/social_auth_repository.dart';
 import '../domain/usecases/auth_usecases.dart';
+import '../domain/usecases/social_auth_usecases.dart';
 import '../presentation/bloc/auth_bloc.dart';
 
 /// Configuration de l'injection de dépendances pour l'authentification
@@ -19,6 +22,10 @@ class AuthInjection {
     // Repositories
     _getIt.registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(_getIt<AuthRemoteDataSource>()),
+    );
+
+    _getIt.registerLazySingleton<SocialAuthRepository>(
+      () => SocialAuthRepositoryImpl(_getIt<AuthRemoteDataSource>()),
     );
 
     // Use cases
@@ -38,6 +45,19 @@ class AuthInjection {
       () => GetCurrentUserUseCase(_getIt<AuthRepository>()),
     );
 
+    // Social auth use cases
+    _getIt.registerLazySingleton<SignInWithGoogleUseCase>(
+      () => SignInWithGoogleUseCase(_getIt<SocialAuthRepository>()),
+    );
+
+    _getIt.registerLazySingleton<SignInWithAppleUseCase>(
+      () => SignInWithAppleUseCase(_getIt<SocialAuthRepository>()),
+    );
+
+    _getIt.registerLazySingleton<SignInWithFacebookUseCase>(
+      () => SignInWithFacebookUseCase(_getIt<SocialAuthRepository>()),
+    );
+
     // BLoC
     _getIt.registerFactory<AuthBloc>(
       () => AuthBloc(
@@ -45,6 +65,9 @@ class AuthInjection {
         registerUseCase: _getIt<RegisterUseCase>(),
         logoutUseCase: _getIt<LogoutUseCase>(),
         getCurrentUserUseCase: _getIt<GetCurrentUserUseCase>(),
+        signInWithGoogleUseCase: _getIt<SignInWithGoogleUseCase>(),
+        signInWithAppleUseCase: _getIt<SignInWithAppleUseCase>(),
+        signInWithFacebookUseCase: _getIt<SignInWithFacebookUseCase>(),
       ),
     );
   }

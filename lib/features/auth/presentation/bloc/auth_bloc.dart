@@ -2,7 +2,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/auth_entities.dart';
 import '../../domain/usecases/auth_usecases.dart';
+import '../../domain/usecases/social_auth_usecases.dart';
 import '../../../../core/services/guest_mode_service.dart';
+import '../../../../core/services/new_user_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Events
@@ -35,6 +37,12 @@ class RegisterRequested extends AuthEvent {
 class LogoutRequested extends AuthEvent {}
 
 class GetCurrentUserRequested extends AuthEvent {}
+
+class GoogleSignInRequested extends AuthEvent {}
+
+class AppleSignInRequested extends AuthEvent {}
+
+class FacebookSignInRequested extends AuthEvent {}
 
 // States
 abstract class AuthState extends Equatable {
@@ -70,6 +78,15 @@ class AuthSuccess extends AuthState {
   List<Object?> get props => [auth];
 }
 
+class AuthNewUserNeedsPreferences extends AuthState {
+  final AuthEntity auth;
+
+  const AuthNewUserNeedsPreferences(this.auth);
+
+  @override
+  List<Object?> get props => [auth];
+}
+
 class AuthFailure extends AuthState {
   final String message;
 
@@ -85,6 +102,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final RegisterUseCase _registerUseCase;
   final LogoutUseCase _logoutUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
+  final SignInWithGoogleUseCase _signInWithGoogleUseCase;
+  final SignInWithAppleUseCase _signInWithAppleUseCase;
+  final SignInWithFacebookUseCase _signInWithFacebookUseCase;
 
   //ysser code:
   static const _storage = FlutterSecureStorage();
@@ -99,15 +119,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required RegisterUseCase registerUseCase,
     required LogoutUseCase logoutUseCase,
     required GetCurrentUserUseCase getCurrentUserUseCase,
+    required SignInWithGoogleUseCase signInWithGoogleUseCase,
+    required SignInWithAppleUseCase signInWithAppleUseCase,
+    required SignInWithFacebookUseCase signInWithFacebookUseCase,
   }) : _loginUseCase = loginUseCase,
        _registerUseCase = registerUseCase,
        _logoutUseCase = logoutUseCase,
        _getCurrentUserUseCase = getCurrentUserUseCase,
+       _signInWithGoogleUseCase = signInWithGoogleUseCase,
+       _signInWithAppleUseCase = signInWithAppleUseCase,
+       _signInWithFacebookUseCase = signInWithFacebookUseCase,
        super(AuthInitial()) {
     on<LoginRequested>(_onLoginRequested);
     on<RegisterRequested>(_onRegisterRequested);
     on<LogoutRequested>(_onLogoutRequested);
     on<GetCurrentUserRequested>(_onGetCurrentUserRequested);
+    on<GoogleSignInRequested>(_onGoogleSignInRequested);
+    on<AppleSignInRequested>(_onAppleSignInRequested);
+    on<FacebookSignInRequested>(_onFacebookSignInRequested);
   }
 
   Future<void> _onLoginRequested(
@@ -127,6 +156,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       //yasser code:
       // ✅ Save the token as soon as login succeeds
       await saveToken(auth.accessToken);
+      
+      // Vérifier si l'utilisateur est nouveau et doit compléter ses préférences
+      final shouldShowPreferences = await NewUserService.shouldShowPreferencesQuestionnaire();
+      if (shouldShowPreferences) {
+        emit(AuthNewUserNeedsPreferences(auth));
+        return;
+      }
+      
       emit(AuthSuccess(auth));
 
       // Récupérer automatiquement le profil utilisateur
@@ -162,6 +199,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     try {
       final auth = await _registerUseCase(event.params);
+      
+      // Marquer l'utilisateur comme nouveau lors de l'inscription
+      await NewUserService.markAsNewUser();
+      
+      // Vérifier si l'utilisateur doit compléter ses préférences
+      final shouldShowPreferences = await NewUserService.shouldShowPreferencesQuestionnaire();
+      if (shouldShowPreferences) {
+        emit(AuthNewUserNeedsPreferences(auth));
+        return;
+      }
+      
       emit(AuthSuccess(auth));
 
       // Récupérer automatiquement le profil utilisateur si l'inscription inclut une connexion
@@ -230,6 +278,135 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         errorMessage = e.message;
       } else if (e.toString().contains('AuthException:')) {
         // Extract message from AuthException string representation
+        final regex = RegExp(r'AuthException: (.+?) \(Type:');
+        final match = regex.firstMatch(e.toString());
+        if (match != null && match.group(1) != null) {
+          errorMessage = match.group(1)!.trim();
+        }
+      }
+      emit(AuthFailure(errorMessage));
+    }
+  }
+
+  Future<void> _onGoogleSignInRequested(
+    GoogleSignInRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      final auth = await _signInWithGoogleUseCase();
+
+      // Save the token as soon as login succeeds
+      await saveToken(auth.accessToken);
+      
+      // Vérifier si l'utilisateur est nouveau et doit compléter ses préférences
+      final shouldShowPreferences = await NewUserService.shouldShowPreferencesQuestionnaire();
+      if (shouldShowPreferences) {
+        emit(AuthNewUserNeedsPreferences(auth));
+        return;
+      }
+      
+      emit(AuthSuccess(auth));
+
+      // Automatically get user profile
+      try {
+        final user = await _getCurrentUserUseCase(null);
+        emit(AuthAuthenticated(user));
+      } catch (e) {
+        print('Impossible de récupérer le profil utilisateur: $e');
+      }
+    } catch (e) {
+      String errorMessage = e.toString();
+      if (e is AuthException) {
+        errorMessage = e.message;
+      } else if (e.toString().contains('AuthException:')) {
+        final regex = RegExp(r'AuthException: (.+?) \(Type:');
+        final match = regex.firstMatch(e.toString());
+        if (match != null && match.group(1) != null) {
+          errorMessage = match.group(1)!.trim();
+        }
+      }
+      emit(AuthFailure(errorMessage));
+    }
+  }
+
+  Future<void> _onAppleSignInRequested(
+    AppleSignInRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      final auth = await _signInWithAppleUseCase();
+
+      // Save the token as soon as login succeeds
+      await saveToken(auth.accessToken);
+      
+      // Vérifier si l'utilisateur est nouveau et doit compléter ses préférences
+      final shouldShowPreferences = await NewUserService.shouldShowPreferencesQuestionnaire();
+      if (shouldShowPreferences) {
+        emit(AuthNewUserNeedsPreferences(auth));
+        return;
+      }
+      
+      emit(AuthSuccess(auth));
+
+      // Automatically get user profile
+      try {
+        final user = await _getCurrentUserUseCase(null);
+        emit(AuthAuthenticated(user));
+      } catch (e) {
+        print('Impossible de récupérer le profil utilisateur: $e');
+      }
+    } catch (e) {
+      String errorMessage = e.toString();
+      if (e is AuthException) {
+        errorMessage = e.message;
+      } else if (e.toString().contains('AuthException:')) {
+        final regex = RegExp(r'AuthException: (.+?) \(Type:');
+        final match = regex.firstMatch(e.toString());
+        if (match != null && match.group(1) != null) {
+          errorMessage = match.group(1)!.trim();
+        }
+      }
+      emit(AuthFailure(errorMessage));
+    }
+  }
+
+  Future<void> _onFacebookSignInRequested(
+    FacebookSignInRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      final auth = await _signInWithFacebookUseCase();
+
+      // Save the token as soon as login succeeds
+      await saveToken(auth.accessToken);
+      
+      // Vérifier si l'utilisateur est nouveau et doit compléter ses préférences
+      final shouldShowPreferences = await NewUserService.shouldShowPreferencesQuestionnaire();
+      if (shouldShowPreferences) {
+        emit(AuthNewUserNeedsPreferences(auth));
+        return;
+      }
+      
+      emit(AuthSuccess(auth));
+
+      // Automatically get user profile
+      try {
+        final user = await _getCurrentUserUseCase(null);
+        emit(AuthAuthenticated(user));
+      } catch (e) {
+        print('Impossible de récupérer le profil utilisateur: $e');
+      }
+    } catch (e) {
+      String errorMessage = e.toString();
+      if (e is AuthException) {
+        errorMessage = e.message;
+      } else if (e.toString().contains('AuthException:')) {
         final regex = RegExp(r'AuthException: (.+?) \(Type:');
         final match = regex.firstMatch(e.toString());
         if (match != null && match.group(1) != null) {

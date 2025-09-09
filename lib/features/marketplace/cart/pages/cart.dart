@@ -3,6 +3,9 @@ import 'package:tourisme_app_flutter/data/static_data.dart';
 import 'package:tourisme_app_flutter/domain/order/entities/cart_item.dart';
 import '../widgets/cart_item_widget.dart';
 import 'checkout.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/services/currency_service.dart';
+import '../../../../core/services/localization_service.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({Key? key}) : super(key: key);
@@ -16,7 +19,9 @@ class _CartPageState extends State<CartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Shopping Cart'),
+        title: Consumer<LocalizationService>(
+          builder: (context, l10n, _) => Text(l10n.translate('shopping_cart')),
+        ),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back_ios),
@@ -29,7 +34,11 @@ class _CartPageState extends State<CartPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Failed to load cart items'));
+            return Center(
+              child: Consumer<LocalizationService>(
+                builder: (context, l10n, _) => Text(l10n.translate('failed_load_cart_items')),
+              ),
+            );
           }
           final cartItems = snapshot.data ?? [];
           final total = cartItems.fold(0.0, (sum, item) {
@@ -50,20 +59,26 @@ class _CartPageState extends State<CartPage> {
                     color: Theme.of(context).colorScheme.outline,
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'Your cart is empty',
-                    style: Theme.of(context).textTheme.headlineMedium,
+                  Consumer<LocalizationService>(
+                    builder: (context, l10n, _) => Text(
+                      l10n.translate('cart_empty_title'),
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'Add some products to get started!',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
+                  Consumer<LocalizationService>(
+                    builder: (context, l10n, _) => Text(
+                      l10n.translate('cart_empty_subtitle'),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Continue Shopping'),
+                    child: Consumer<LocalizationService>(
+                      builder: (context, l10n, _) => Text(l10n.translate('continue_shopping')),
+                    ),
                   ),
                 ],
               ),
@@ -110,16 +125,23 @@ class _CartPageState extends State<CartPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Total:',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          Text(
-                            '\$${total.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
+                          Consumer<LocalizationService>(
+                            builder: (context, l10n, _) => Text(
+                              l10n.translate('total'),
+                              style: Theme.of(context).textTheme.titleLarge,
                             ),
+                          ),
+                          Consumer<CurrencyService>(
+                            builder: (context, currencyService, _) {
+                              final String totalText = currencyService.format(total);
+                              return Text(
+                                totalText,
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      color: Theme.of(context).colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -135,7 +157,11 @@ class _CartPageState extends State<CartPage> {
                               ),
                             );
                           },
-                          child: const Text('Proceed to Checkout'),
+                          child: Consumer<LocalizationService>(
+                            builder: (context, l10n, _) => Text(
+                              l10n.translate('proceed_to_checkout'),
+                            ),
+                          ),
                         ),
                       ),
                     ],

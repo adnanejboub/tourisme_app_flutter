@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/services/localization_service.dart';
 import 'package:flutter/services.dart';
 import '../../../../../config/theme/app_theme.dart';
 
@@ -231,8 +232,8 @@ class EmailTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomTextFieldWidget(
       controller: controller,
-      label: 'Email',
-      hintText: 'Enter your email address',
+      label: LocalizationService().translate('email_label'),
+      hintText: LocalizationService().translate('enter_email'),
       prefixIcon: Icons.email_outlined,
       keyboardType: TextInputType.emailAddress,
       validator: validator,
@@ -334,8 +335,8 @@ class PhoneTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomTextFieldWidget(
       controller: controller,
-      label: 'Phone Number',
-      hintText: '+212 6XX XX XX XX',
+      label: LocalizationService().translate('phone_number'),
+      hintText: LocalizationService().translate('phone_hint_example'),
       prefixIcon: Icons.phone_outlined,
       keyboardType: TextInputType.phone,
       validator: validator,
