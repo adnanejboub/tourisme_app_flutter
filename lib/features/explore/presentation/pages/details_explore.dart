@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
 import 'itinerary_planning_page.dart';
@@ -80,7 +81,7 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
                 data: {
                   'id': id,
                   'name': widget.destination['name'] ?? '',
-                  'image': widget.destination['imageUrl'] ?? '',
+                  'image': widget.destination['image'] ?? widget.destination['imageUrl'] ?? '',
                 },
               );
               final res = await WishlistService().toggleFavorite(type: type, itemId: id);
@@ -100,20 +101,21 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
             }
           },
         ),
+        IconButton(
+          icon: Icon(
+            Icons.share,
+            color: colorScheme.onBackground,
+          ),
+          onPressed: () => _showShareOptions(),
+        ),
       ],
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
           fit: StackFit.expand,
           children: [
-            Image.network(
-              widget.destination['imageUrl'] ?? 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5',
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: colorScheme.onSurface.withOpacity(0.1),
-                  child: Icon(Icons.image, size: 100, color: colorScheme.onSurface.withOpacity(0.6)),
-                );
-              },
+            _buildSmartImage(
+              imageUrl: widget.destination['image'] ?? widget.destination['imageUrl'] ?? '',
+              colorScheme: colorScheme,
             ),
             Container(
               decoration: BoxDecoration(
@@ -141,12 +143,15 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
         children: [
           _buildDestinationInfo(localizationService, colorScheme),
           SizedBox(height: 32),
-          _buildKeyAttractions(localizationService, colorScheme),
-          SizedBox(height: 32),
-          _buildRecommendedActivities(localizationService, colorScheme),
-          SizedBox(height: 32),
-          _buildLocationMap(localizationService, colorScheme),
-          SizedBox(height: 32),
+          // Afficher les sections seulement pour les villes, pas pour les activités
+          if (widget.destination['categorie'] == null) ...[
+            _buildKeyAttractions(localizationService, colorScheme),
+            SizedBox(height: 32),
+            _buildRecommendedActivities(localizationService, colorScheme),
+            SizedBox(height: 32),
+            _buildLocationMap(localizationService, colorScheme),
+            SizedBox(height: 32),
+          ],
           _buildActionButton(localizationService, colorScheme),
         ],
       ),
@@ -154,11 +159,14 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
   }
 
   Widget _buildDestinationInfo(LocalizationService localizationService, ColorScheme colorScheme) {
+    // Vérifier si c'est une activité ou une ville
+    final isActivity = widget.destination['categorie'] != null;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          widget.destination['name'] ?? 'Destination',
+          widget.destination['title'] ?? widget.destination['name'] ?? 'Destination',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -166,13 +174,37 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
           ),
         ),
         SizedBox(height: 8),
-        Text(
-          widget.destination['arabicName'] ?? 'The Red City',
-          style: TextStyle(
-            fontSize: 18,
-            color: colorScheme.onSurface.withOpacity(0.6),
+        if (isActivity) ...[
+          // Affichage spécifique pour les activités
+          if (widget.destination['categorie'] != null)
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                widget.destination['categorie'],
+                style: TextStyle(
+                  fontSize: 14,
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          SizedBox(height: 16),
+          // Informations détaillées de l'activité
+          _buildActivityDetails(colorScheme),
+        ] else ...[
+          // Affichage pour les villes
+          Text(
+            widget.destination['arabicName'] ?? 'The Red City',
+            style: TextStyle(
+              fontSize: 18,
+              color: colorScheme.onSurface.withOpacity(0.6),
+            ),
           ),
-        ),
+        ],
         SizedBox(height: 16),
         Text(
           widget.destination['description'] ?? 'A vibrant city in Morocco, known for its bustling souks, historic palaces, and beautiful gardens. It\'s a major economic center and tourist destination, offering a rich cultural experience with its ancient medina, lively squares, and stunning architecture.',
@@ -183,6 +215,93 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildActivityDetails(ColorScheme colorScheme) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.onSurface.withOpacity(0.1)),
+      ),
+      child: Column(
+        children: [
+          // Prix
+          if (widget.destination['prix'] != null && widget.destination['prix'] > 0)
+            _buildDetailRow(
+              icon: Icons.attach_money,
+              label: 'Prix',
+              value: '${widget.destination['prix'].toStringAsFixed(0)} MAD',
+              colorScheme: colorScheme,
+            ),
+          // Durée
+          if (widget.destination['dureeMinimun'] != null)
+            _buildDetailRow(
+              icon: Icons.access_time,
+              label: 'Durée',
+              value: widget.destination['dureeMaximun'] != null 
+                ? '${widget.destination['dureeMinimun']}-${widget.destination['dureeMaximun']} minutes'
+                : '${widget.destination['dureeMinimun']} minutes',
+              colorScheme: colorScheme,
+            ),
+          // Saison
+          if (widget.destination['saison'] != null)
+            _buildDetailRow(
+              icon: Icons.calendar_today,
+              label: 'Saison',
+              value: widget.destination['saison'],
+              colorScheme: colorScheme,
+            ),
+          // Niveau de difficulté
+          if (widget.destination['niveauDificulta'] != null)
+            _buildDetailRow(
+              icon: Icons.trending_up,
+              label: 'Difficulté',
+              value: widget.destination['niveauDificulta'],
+              colorScheme: colorScheme,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    required ColorScheme colorScheme,
+  }) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 20,
+            color: colorScheme.primary,
+          ),
+          SizedBox(width: 12),
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                color: colorScheme.onSurface.withOpacity(0.7),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -384,17 +503,25 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
   }
 
   Widget _buildActionButton(LocalizationService localizationService, ColorScheme colorScheme) {
+    final isActivity = widget.destination['categorie'] != null;
+    
     return Container(
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ItineraryPlanningPage(destination: widget.destination),
-            ),
-          );
+          if (isActivity) {
+            // Pour les activités, afficher une confirmation de réservation
+            _showBookingConfirmation(localizationService, colorScheme);
+          } else {
+            // Pour les villes, aller à la planification d'itinéraire
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ItineraryPlanningPage(destination: widget.destination),
+              ),
+            );
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: colorScheme.primary,
@@ -405,13 +532,230 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
           elevation: 0,
         ),
         child: Text(
-          localizationService.translate('plan_your_itinerary'),
+          isActivity 
+            ? 'Réserver cette activité'
+            : localizationService.translate('plan_your_itinerary'),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: colorScheme.onPrimary,
           ),
         ),
+      ),
+    );
+  }
+
+  void _showBookingConfirmation(LocalizationService localizationService, ColorScheme colorScheme) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Confirmation de réservation',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Voulez-vous réserver cette activité ?',
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+              SizedBox(height: 16),
+              Text(
+                widget.destination['title'] ?? 'Activité',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
+              ),
+              if (widget.destination['prix'] != null && widget.destination['prix'] > 0) ...[
+                SizedBox(height: 8),
+                Text(
+                  'Prix: ${widget.destination['prix'].toStringAsFixed(0)} MAD',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Annuler',
+                style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Activité réservée avec succès !'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              child: Text('Confirmer'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSmartImage({
+    required String imageUrl,
+    required ColorScheme colorScheme,
+  }) {
+    if (imageUrl.isEmpty) {
+      return Container(
+        color: colorScheme.onSurface.withOpacity(0.1),
+        child: Icon(Icons.image, size: 100, color: colorScheme.onSurface.withOpacity(0.6)),
+      );
+    }
+
+    // Vérifier si c'est une image locale (assets)
+    if (imageUrl.startsWith('assets/') || imageUrl.startsWith('images/')) {
+      final assetPath = imageUrl.startsWith('images/') ? 'assets/$imageUrl' : imageUrl;
+      return Image.asset(
+        assetPath,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: colorScheme.onSurface.withOpacity(0.1),
+            child: Icon(Icons.image, size: 100, color: colorScheme.onSurface.withOpacity(0.6)),
+          );
+        },
+      );
+    } else {
+      // Image réseau
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: colorScheme.onSurface.withOpacity(0.1),
+            child: Icon(Icons.image, size: 100, color: colorScheme.onSurface.withOpacity(0.6)),
+          );
+        },
+      );
+    }
+  }
+
+  void _showShareOptions() {
+    final destination = widget.destination;
+    final name = destination['name'] ?? destination['title'] ?? 'Destination';
+    final description = destination['description'] ?? 'Découvrez cette magnifique destination';
+    final type = destination['categorie'] != null ? 'activité' : 'ville';
+    
+    final shareText = '''
+🌟 Découvrez cette magnifique $type : $name
+
+$description
+
+Téléchargez l'application de tourisme pour découvrir plus de destinations incroyables ! 🚀
+
+#Tourisme #Maroc #$name
+''';
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Partager $name',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildShareOption(
+                  icon: Icons.share,
+                  label: 'Partager',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText);
+                  },
+                ),
+                _buildShareOption(
+                  icon: Icons.message,
+                  label: 'WhatsApp',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText, subject: 'Découvrez $name');
+                  },
+                ),
+                _buildShareOption(
+                  icon: Icons.facebook,
+                  label: 'Facebook',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText, subject: 'Découvrez $name');
+                  },
+                ),
+                _buildShareOption(
+                  icon: Icons.email,
+                  label: 'Email',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText, subject: 'Découvrez $name');
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShareOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              size: 32,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

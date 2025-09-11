@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'config/routes/app_routes.dart';
 import 'config/theme/app_theme.dart';
 import 'shared/widgets/global_localization_widget.dart';
@@ -33,6 +34,10 @@ void main() async {
   // Initialiser le service de localisation
   final localizationService = LocalizationService();
   await localizationService.initializeLanguage();
+
+  // Initialiser le formatage des dates pour intl
+  await initializeDateFormatting('fr_FR', null);
+  await initializeDateFormatting('en_US', null);
 
   // Initialiser le service de mode invité
   final guestModeService = GuestModeService();

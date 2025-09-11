@@ -536,6 +536,17 @@ class _SavedPageState extends State<SavedPage>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
+                        onPressed: () => _viewTripDetails(trip),
+                        icon: Icon(
+                          Icons.visibility,
+                          color: colorScheme.primary,
+                          size: 20,
+                        ),
+                        tooltip:
+                            localizationService.translate('view_trip') ??
+                            'View Trip Details',
+                      ),
+                      IconButton(
                         onPressed: () => _editTrip(trip),
                         icon: Icon(
                           Icons.edit,
@@ -1085,4 +1096,40 @@ class _SavedPageState extends State<SavedPage>
       );
     }
   }
+
+  void _viewTripDetails(TripModel trip) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TripDetailsPage(trip: trip),
+      ),
+    );
+  }
+
+
+
+  Future<void> _deleteTripConfirmed(TripModel trip) async {
+    try {
+      await _tripService.deleteTrip(trip.id);
+      await _loadTrips();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Trip deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting trip: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
 }

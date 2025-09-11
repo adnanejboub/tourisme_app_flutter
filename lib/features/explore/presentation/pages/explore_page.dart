@@ -14,7 +14,9 @@ import '../../data/models/activity.dart';
 import '../../../saved/data/services/wishlist_service.dart';
 
 class ExplorePage extends StatefulWidget {
-  const ExplorePage({Key? key}) : super(key: key);
+  final String? initialTab;
+  
+  const ExplorePage({Key? key, this.initialTab}) : super(key: key);
 
   @override
   State<ExplorePage> createState() => _ExplorePageState();
@@ -34,10 +36,15 @@ class _ExplorePageState extends State<ExplorePage> {
   Set<String> _activeActivityFilters = {};
   bool _isLoading = true;
   String? _error;
+  final Map<int, int> _cityRatings = {}; // cityId -> rating (1-5)
 
   @override
   void initState() {
     super.initState();
+    // Set initial tab if provided
+    if (widget.initialTab != null) {
+      _selectedCategory = widget.initialTab!;
+    }
     _loadData();
     WishlistService.changes.addListener(_reloadFavoritesFromStore);
   }
@@ -57,6 +64,7 @@ class _ExplorePageState extends State<ExplorePage> {
         _cities = results[0] as List<CityDto>;
         _activities = results[1] as List<ActivityModel>;
         _filteredCities = _cities;
+        // Inclure toutes les activités (y compris celles de Casablanca)
         _filteredActivities = _activities;
         // hydrate favorites sets with null safety
         final favs = results[2] as List<Map<String, dynamic>>;
@@ -400,6 +408,8 @@ class _ExplorePageState extends State<ExplorePage> {
                       color: colorScheme.onSurface,
                     ),
                   ),
+                  SizedBox(height: 6),
+                  _buildStarRating(city.id, colorScheme),
                   SizedBox(height: 6),
                   Row(
                     children: [
@@ -1151,5 +1161,62 @@ class _ExplorePageState extends State<ExplorePage> {
         },
       );
     }
+  }
+
+  Widget _buildStarRating(int cityId, ColorScheme colorScheme) {
+    final currentRating = _cityRatings[cityId] ?? 0;
+    
+    return Row(
+      children: List.generate(5, (index) {
+        final starIndex = index + 1;
+        final isFilled = starIndex <= currentRating;
+        
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              _cityRatings[cityId] = starIndex;
+            });
+            _showRatingFeedback(starIndex);
+          },
+          child: Container(
+            margin: EdgeInsets.only(right: 2),
+            child: Icon(
+              isFilled ? Icons.star : Icons.star_border,
+              size: 16,
+              color: isFilled ? Colors.amber : colorScheme.onSurface.withOpacity(0.3),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  void _showRatingFeedback(int rating) {
+    String message = '';
+    switch (rating) {
+      case 1:
+        message = 'Pas terrible';
+        break;
+      case 2:
+        message = 'Bof';
+        break;
+      case 3:
+        message = 'Correct';
+        break;
+      case 4:
+        message = 'Très bien';
+        break;
+      case 5:
+        message = 'Excellent !';
+        break;
+    }
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Note: $rating/5 - $message'),
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 }

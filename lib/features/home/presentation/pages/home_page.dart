@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
 import '../../../../core/services/guest_mode_service.dart';
@@ -10,6 +11,7 @@ import '../../../explore/data/models/city_dto.dart';
 import '../../../explore/data/models/activity.dart';
 import '../../../../core/services/new_user_service.dart';
 import '../../../../core/services/recommendation_service.dart' as rec;
+import '../../../../core/services/personalized_recommendation_service.dart';
 import '../../../auth/data/datasources/auth_remote_data_source.dart';
 import '../../../explore/presentation/pages/city_details_page.dart';
 import '../../../explore/presentation/pages/details_explore.dart';
@@ -34,11 +36,18 @@ class _HomePageState extends State<HomePage> {
   LocationInfo? _locationInfo;
   CityDto? _guestCity;
   List<ActivityModel> _guestCityActivities = [];
+  List<ActivityModel> _guestCityMonuments = [];
   String? _userDisplayName;
 
   // New user suggestions
   rec.Destination? _suggestedDestination;
   List<rec.Activity> _suggestedActivities = [];
+
+  // Personalized recommendations
+  final PersonalizedRecommendationService _personalizedService = PersonalizedRecommendationService();
+  Map<String, dynamic>? _recommendedCity;
+  List<ActivityModel> _recommendedActivities = [];
+  List<ActivityModel> _recommendedMonuments = [];
 
   // Notification drawer
   bool _showNotificationDrawer = false;
@@ -47,16 +56,113 @@ class _HomePageState extends State<HomePage> {
     final category = (activity.categorie ?? '').toLowerCase();
     final name = activity.nom.toLowerCase();
     return category.contains('monument') ||
-        category.contains('culture') ||
         category.contains('historique') ||
         category.contains('patrimoine') ||
-        category.contains('mosquée') ||
-        category.contains('palais') ||
-        category.contains('médina') ||
         name.contains('mosquée') ||
         name.contains('quartier des habous') ||
         name.contains('médina') ||
         name.contains('kasbah');
+  }
+
+  List<ActivityModel> _createCasablancaActivities() {
+    return [
+      ActivityModel(
+        id: 1001,
+        nom: 'Shopping à Casablanca',
+        description: 'Découvrez les centres commerciaux modernes et souks traditionnels de Casablanca. De Morocco Mall aux souks de la médina, explorez la diversité commerciale de la ville.',
+        dureeMinimun: 120,
+        dureeMaximun: 300,
+        saison: 'Toute l\'année',
+        niveauDificulta: 'Facile',
+        categorie: 'TOURS',
+        ville: 'Casablanca',
+        prix: 0,
+        imageUrl: 'assets/images/activities/casablanca_shopping.jpg',
+      ),
+      ActivityModel(
+        id: 1002,
+        nom: 'Restaurants de Casablanca',
+        description: 'Savourez la gastronomie marocaine authentique dans les meilleurs restaurants de la ville. De la cuisine traditionnelle aux spécialités modernes.',
+        dureeMinimun: 90,
+        dureeMaximun: 180,
+        saison: 'Toute l\'année',
+        niveauDificulta: 'Facile',
+        categorie: 'EVENEMENTS',
+        ville: 'Casablanca',
+        prix: 0,
+        imageUrl: 'assets/images/activities/casablanca_restaurants.jpg',
+      ),
+      ActivityModel(
+        id: 1003,
+        nom: 'Vie nocturne à Casablanca',
+        description: 'Explorez les bars, clubs et cafés de la ville moderne. Découvrez l\'ambiance nocturne dynamique de la métropole marocaine.',
+        dureeMinimun: 180,
+        dureeMaximun: 360,
+        saison: 'Toute l\'année',
+        niveauDificulta: 'Facile',
+        categorie: 'EVENEMENTS',
+        ville: 'Casablanca',
+        prix: 0,
+        imageUrl: 'assets/images/activities/casablanca_nightlife.jpg',
+      ),
+      ActivityModel(
+        id: 1006,
+        nom: 'Galerie d\'art de Casablanca',
+        description: 'Découvrez l\'art contemporain marocain et international. Expositions, vernissages et rencontres avec les artistes locaux.',
+        dureeMinimun: 90,
+        dureeMaximun: 150,
+        saison: 'Toute l\'année',
+        niveauDificulta: 'Facile',
+        categorie: 'EVENEMENTS',
+        ville: 'Casablanca',
+        prix: 0,
+        imageUrl: 'assets/images/activities/casablanca_art_gallery.jpg',
+      ),
+      ActivityModel(
+        id: 1007,
+        nom: 'Business à Casablanca',
+        description: 'Découvrez le centre d\'affaires de Casablanca. Tours modernes, centres de conférences et l\'économie dynamique du Maroc.',
+        dureeMinimun: 120,
+        dureeMaximun: 240,
+        saison: 'Toute l\'année',
+        niveauDificulta: 'Facile',
+        categorie: 'TOURS',
+        ville: 'Casablanca',
+        prix: 0,
+        imageUrl: 'assets/images/activities/casablanca_business.jpg',
+      ),
+    ];
+  }
+
+  List<ActivityModel> _createCasablancaMonuments() {
+    return [
+      ActivityModel(
+        id: 2001,
+        nom: 'Mosquée Hassan II',
+        description: 'L\'une des plus grandes mosquées du monde avec un minaret de 200 mètres. Chef-d\'œuvre architectural marocain surplombant l\'océan Atlantique.',
+        dureeMinimun: 90,
+        dureeMaximun: 180,
+        saison: 'Toute l\'année',
+        niveauDificulta: 'Facile',
+        categorie: 'MONUMENT',
+        ville: 'Casablanca',
+        prix: 120,
+        imageUrl: 'assets/images/monuments/hassan_ii_mosque.jpg',
+      ),
+      ActivityModel(
+        id: 2002,
+        nom: 'Quartier des Habous',
+        description: 'Quartier traditionnel avec architecture marocaine authentique. Découvrez les souks, les mosquées et l\'artisanat local dans un cadre historique préservé.',
+        dureeMinimun: 120,
+        dureeMaximun: 240,
+        saison: 'Toute l\'année',
+        niveauDificulta: 'Facile',
+        categorie: 'MONUMENT',
+        ville: 'Casablanca',
+        prix: 0,
+        imageUrl: 'assets/images/monuments/habous_quarter.jpg',
+      ),
+    ];
   }
 
   @override
@@ -194,6 +300,132 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _openPersonalizedCityDetails(Map<String, dynamic> city) async {
+    try {
+      // Récupérer toutes les villes depuis l'API
+      final cities = await _publicApi.getAllCities();
+      
+      // Chercher la ville correspondante par nom
+      final cityName = city['name'] as String;
+      final matchingCity = cities.firstWhere(
+        (c) => c.nom.toLowerCase() == cityName.toLowerCase(),
+        orElse: () => CityDto(
+          id: 0,
+          nom: cityName,
+          description: city['description'] as String? ?? '',
+          imageUrl: city['image'] as String? ?? '',
+          paysNom: 'Maroc',
+          latitude: 0.0,
+          longitude: 0.0,
+          climatNom: 'Méditerranéen',
+          isPlage: city['characteristics']?.contains('isPlage') ?? false,
+          isMontagne: city['characteristics']?.contains('isMontagne') ?? false,
+          isDesert: city['characteristics']?.contains('isDesert') ?? false,
+          isRiviera: city['characteristics']?.contains('isRiviera') ?? false,
+          isHistorique: city['characteristics']?.contains('isHistorique') ?? false,
+          isCulturelle: city['characteristics']?.contains('isCulturelle') ?? false,
+          isModerne: city['characteristics']?.contains('isModerne') ?? false,
+        ),
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CityDetailsPage(city: matchingCity.toCityDetailsMap()),
+        ),
+      );
+    } catch (e) {
+      // En cas d'erreur, créer une ville par défaut
+      final cityDto = CityDto(
+        id: 0,
+        nom: city['name'] as String,
+        description: city['description'] as String? ?? '',
+        imageUrl: city['image'] as String? ?? '',
+        paysNom: 'Maroc',
+        latitude: 0.0,
+        longitude: 0.0,
+        climatNom: 'Méditerranéen',
+        isPlage: city['characteristics']?.contains('isPlage') ?? false,
+        isMontagne: city['characteristics']?.contains('isMontagne') ?? false,
+        isDesert: city['characteristics']?.contains('isDesert') ?? false,
+        isRiviera: city['characteristics']?.contains('isRiviera') ?? false,
+        isHistorique: city['characteristics']?.contains('isHistorique') ?? false,
+        isCulturelle: city['characteristics']?.contains('isCulturelle') ?? false,
+        isModerne: city['characteristics']?.contains('isModerne') ?? false,
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CityDetailsPage(city: cityDto.toCityDetailsMap()),
+        ),
+      );
+    }
+  }
+
+  void _openRecommendedDestinationDetails(Map<String, dynamic> destination) async {
+    try {
+      // Récupérer toutes les villes depuis l'API
+      final cities = await _publicApi.getAllCities();
+      
+      // Chercher la ville correspondante par nom
+      final cityName = destination['name'] ?? '';
+      final matchingCity = cities.firstWhere(
+        (city) => city.nom.toLowerCase() == cityName.toLowerCase(),
+        orElse: () => CityDto(
+          id: destination['id'] ?? 0,
+          nom: cityName,
+          description: destination['subtitle'] ?? destination['description'] ?? '',
+          imageUrl: destination['image'] ?? '',
+          paysNom: 'Maroc',
+          latitude: destination['latitude'],
+          longitude: destination['longitude'],
+          climatNom: destination['climate'],
+          isPlage: destination['isPlage'] ?? false,
+          isMontagne: destination['isMontagne'] ?? false,
+          isDesert: destination['isDesert'] ?? false,
+          isRiviera: destination['isRiviera'] ?? false,
+          isHistorique: destination['isHistorique'] ?? false,
+          isCulturelle: destination['isCulturelle'] ?? false,
+          isModerne: destination['isModerne'] ?? false,
+        ),
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CityDetailsPage(city: matchingCity.toCityDetailsMap()),
+        ),
+      );
+    } catch (e) {
+      // En cas d'erreur, utiliser les données de destination
+      final cityDto = CityDto(
+        id: destination['id'] ?? 0,
+        nom: destination['name'] ?? 'Destination',
+        description: destination['subtitle'] ?? destination['description'] ?? '',
+        imageUrl: destination['image'] ?? '',
+        paysNom: 'Maroc',
+        latitude: destination['latitude'],
+        longitude: destination['longitude'],
+        climatNom: destination['climate'],
+        isPlage: destination['isPlage'] ?? false,
+        isMontagne: destination['isMontagne'] ?? false,
+        isDesert: destination['isDesert'] ?? false,
+        isRiviera: destination['isRiviera'] ?? false,
+        isHistorique: destination['isHistorique'] ?? false,
+        isCulturelle: destination['isCulturelle'] ?? false,
+        isModerne: destination['isModerne'] ?? false,
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CityDetailsPage(city: cityDto.toCityDetailsMap()),
+        ),
+      );
+    }
+  }
+
   Future<void> _bootstrap() async {
     try {
       // Detect mode (guest or authenticated/new user) and populate data accordingly
@@ -202,12 +434,19 @@ class _HomePageState extends State<HomePage> {
       if (_guestMode.isGuestMode) {
         await _loadGuestData();
       } else {
+        // Charger le nom de l'utilisateur authentifié
         await _loadAuthenticatedUserName();
+        
         final shouldShowPrefs =
             await NewUserService.shouldShowPreferencesQuestionnaire();
         final hasCompleted = await NewUserService.hasCompletedPreferences();
+        
         if (hasCompleted && !shouldShowPrefs) {
-          await _loadNewUserSuggestions();
+          // Utilisateur qui a complété le questionnaire - afficher les recommandations personnalisées
+          await _loadPersonalizedRecommendations();
+        } else {
+          // Utilisateur qui a skip le questionnaire - afficher comme un guest mais avec son nom
+          await _loadGuestData();
         }
       }
     } catch (_) {
@@ -248,23 +487,77 @@ class _HomePageState extends State<HomePage> {
         match = cities.isNotEmpty ? cities.first : null;
       }
 
-      final cityActivities = match == null
-          ? <ActivityModel>[]
-          : activities
-                .where(
-                  (a) =>
-                      (a.ville ?? '').toLowerCase() == match!.nom.toLowerCase(),
-                )
-                .toList();
+      List<ActivityModel> cityActivities = [];
+      List<ActivityModel> filteredActivities = [];
+      List<ActivityModel> monuments = [];
+      
+      if (match != null) {
+        // Récupérer les activités de la base de données
+        cityActivities = activities
+            .where(
+              (a) =>
+                  (a.ville ?? '').toLowerCase() == match!.nom.toLowerCase(),
+            )
+            .toList();
+        
+        // Si c'est Casablanca, toujours ajouter nos activités et monuments
+        if (match.nom.toLowerCase() == 'casablanca') {
+          // Ajouter les activités de Casablanca
+          cityActivities.addAll(_createCasablancaActivities());
+          // Ajouter les monuments de Casablanca
+          cityActivities.addAll(_createCasablancaMonuments());
+        }
+        
+        // Supprimer les doublons basés sur l'ID
+        final uniqueActivities = <int, ActivityModel>{};
+        for (final activity in cityActivities) {
+          uniqueActivities[activity.id] = activity;
+        }
+        final deduplicatedActivities = uniqueActivities.values.toList();
+        
+        // Séparer les activités et monuments
+        filteredActivities = deduplicatedActivities.where((a) => !_isMonumentActivity(a)).toList();
+        monuments = deduplicatedActivities.where(_isMonumentActivity).toList();
+      }
 
       if (mounted) {
         setState(() {
           _locationInfo = location;
           _guestCity = match;
-          _guestCityActivities = cityActivities.take(6).toList();
+          _guestCityActivities = filteredActivities;
+          _guestCityMonuments = monuments;
         });
       }
     } catch (_) {}
+  }
+
+  Future<void> _loadPersonalizedRecommendations() async {
+    try {
+      // Obtenir la ville recommandée basée sur les préférences
+      final recommendedCity = await _personalizedService.getRecommendedCity();
+      
+      if (recommendedCity != null) {
+        // Obtenir les activités et monuments pour cette ville
+        final activities = await _personalizedService.getRecommendedActivities(
+          recommendedCity['name'] as String,
+        );
+        final monuments = await _personalizedService.getRecommendedMonuments(
+          recommendedCity['name'] as String,
+        );
+        
+        if (mounted) {
+          setState(() {
+            _recommendedCity = recommendedCity;
+            _recommendedActivities = activities;
+            _recommendedMonuments = monuments;
+          });
+        }
+      }
+    } catch (e) {
+      print('Erreur lors du chargement des recommandations personnalisées: $e');
+      // Fallback vers le mode guest en cas d'erreur
+      await _loadGuestData();
+    }
   }
 
   Future<void> _loadNewUserSuggestions() async {
@@ -415,20 +708,6 @@ class _HomePageState extends State<HomePage> {
           },
         ];
 
-        // Seasonal Highlights -> monuments of guest city
-        final List<Map<String, dynamic>> seasonalHighlights = (() {
-          final monuments = _guestCityActivities.where(_isMonumentActivity).toList();
-          return monuments.map((m) {
-            final img = (m.imageUrl != null && m.imageUrl!.isNotEmpty)
-                ? m.imageUrl!
-                : ImageService.getActivityImage(m.categorie, m.nom);
-            return {
-              'title': m.nom,
-              'subtitle': (m.description ?? ''),
-              'image': img,
-            };
-          }).toList();
-        })();
 
         return Scaffold(
           resizeToAvoidBottomInset: true,
@@ -472,7 +751,9 @@ class _HomePageState extends State<HomePage> {
                           ),
                           SizedBox(height: isDesktop ? 24 : 16),
                       
-                      if (_guestMode.isGuestMode && _guestCity != null) ...[
+                      // Mode Guest ou utilisateur qui a skip le questionnaire
+                      if ((_guestMode.isGuestMode && _guestCity != null) || 
+                          (!_guestMode.isGuestMode && _recommendedCity == null && _guestCity != null)) ...[
                         _buildGuestCitySection(
                           colorScheme,
                           _guestCity!,
@@ -490,8 +771,28 @@ class _HomePageState extends State<HomePage> {
                         ),
                         SizedBox(height: isDesktop ? 24 : 16),
                       ],
+                      // Utilisateur avec recommandations personnalisées
+                      if (!_guestMode.isGuestMode && _recommendedCity != null) ...[
+                        _buildPersonalizedCitySection(
+                          colorScheme,
+                          localizationService,
+                        ),
+                        SizedBox(height: isDesktop ? 24 : 16),
+                        _buildPersonalizedActivitiesSection(
+                          colorScheme,
+                          localizationService,
+                        ),
+                        SizedBox(height: isDesktop ? 24 : 16),
+                        _buildPersonalizedMonumentsSection(
+                          colorScheme,
+                          localizationService,
+                        ),
+                        SizedBox(height: isDesktop ? 24 : 16),
+                      ],
+                      // Ancien système de suggestions (fallback)
                       if (!_guestMode.isGuestMode &&
-                          _suggestedDestination != null) ...[
+                          _suggestedDestination != null &&
+                          _recommendedCity == null) ...[
                         _buildSuggestedDestinationSection(
                           colorScheme,
                           localizationService,
@@ -526,21 +827,6 @@ class _HomePageState extends State<HomePage> {
                         (item) => _buildTrendingDestinationCard(
                           item,
                           localizationService,
-                          screenWidth,
-                          isTablet,
-                          isDesktop,
-                          colorScheme,
-                        ),
-                        screenWidth,
-                        isTablet,
-                        isDesktop,
-                        colorScheme,
-                      ),
-                      _buildSection(
-                        localizationService.translate('home_seasonal_title'),
-                        seasonalHighlights,
-                        (item) => _buildSeasonalHighlightCard(
-                          item,
                           screenWidth,
                           isTablet,
                           isDesktop,
@@ -746,7 +1032,12 @@ class _HomePageState extends State<HomePage> {
             ),
             TextButton(
               onPressed: () {
-                // Naviguer vers la page des activités
+                // Naviguer vers la page explore avec la section activités
+                Navigator.pushNamed(
+                  context,
+                  '/explore',
+                  arguments: {'initialTab': 'activities'},
+                );
               },
               child: Text(
                 'Voir tout',
@@ -760,9 +1051,10 @@ class _HomePageState extends State<HomePage> {
         ),
         SizedBox(height: 12),
         SizedBox(
-          height: 260,
+          height: 280,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
+            physics: BouncingScrollPhysics(),
             itemCount: _guestCityActivities.length,
             separatorBuilder: (_, __) => SizedBox(width: 12),
             itemBuilder: (context, index) {
@@ -779,6 +1071,7 @@ class _HomePageState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
                   width: 280,
+                  height: 260,
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
@@ -800,23 +1093,23 @@ class _HomePageState extends State<HomePage> {
                         child: _buildGenericSmartImage(
                           image,
                           280,
-                          150,
+                          140,
                           colorScheme,
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.all(16),
+                        padding: EdgeInsets.all(12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               activity.nom,
-                              maxLines: 2,
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 color: colorScheme.onSurface,
-                                fontSize: 16,
+                                fontSize: 14,
                               ),
                             ),
                             SizedBox(height: 4),
@@ -837,23 +1130,23 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ],
                             ),
-                            SizedBox(height: 8),
+                            SizedBox(height: 6),
                             if ((activity.categorie ?? '').isNotEmpty)
                               Container(
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
+                                  horizontal: 6,
+                                  vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
                                   color: colorScheme.primary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
                                   activity.categorie!,
                                   style: TextStyle(
                                     color: colorScheme.primary,
                                     fontWeight: FontWeight.w500,
-                                    fontSize: 12,
+                                    fontSize: 10,
                                   ),
                                 ),
                               ),
@@ -897,8 +1190,8 @@ class _HomePageState extends State<HomePage> {
     ColorScheme colorScheme,
     LocalizationService localizationService,
   ) {
-    // Filter activities that are monuments or cultural sites
-    final monuments = _guestCityActivities.where(_isMonumentActivity).toList();
+    // Use the dedicated monuments list
+    final monuments = _guestCityMonuments;
 
     if (monuments.isEmpty) return SizedBox.shrink();
 
@@ -920,7 +1213,12 @@ class _HomePageState extends State<HomePage> {
             ),
             TextButton(
               onPressed: () {
-                // Naviguer vers la page des monuments
+                // Naviguer vers la page explore avec la section activités
+                Navigator.pushNamed(
+                  context,
+                  '/explore',
+                  arguments: {'initialTab': 'activities'},
+                );
               },
               child: Text(
                 'Voir tout',
@@ -934,9 +1232,10 @@ class _HomePageState extends State<HomePage> {
         ),
         SizedBox(height: 12),
         SizedBox(
-          height: 240,
+          height: 280,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
+            physics: BouncingScrollPhysics(),
             itemCount: monuments.length,
             separatorBuilder: (_, __) => SizedBox(width: 12),
             itemBuilder: (context, index) {
@@ -944,15 +1243,13 @@ class _HomePageState extends State<HomePage> {
               final image =
                   (monument.imageUrl != null && monument.imageUrl!.isNotEmpty)
                   ? monument.imageUrl!
-                  : ImageService.getActivityImage(
-                      monument.categorie,
-                      monument.nom,
-                    );
+                  : ImageService.getMonumentImage(monument.nom);
               return InkWell(
                 onTap: () => _openActivityDetails(monument),
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
                   width: 280,
+                  height: 260,
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
@@ -979,18 +1276,18 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.all(16),
+                        padding: EdgeInsets.all(12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               monument.nom,
-                              maxLines: 2,
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 color: colorScheme.onSurface,
-                                fontSize: 16,
+                                fontSize: 14,
                               ),
                             ),
                             SizedBox(height: 4),
@@ -1011,22 +1308,22 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ],
                             ),
-                            SizedBox(height: 8),
+                            SizedBox(height: 6),
                             Container(
                               padding: EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
+                                horizontal: 6,
+                                vertical: 2,
                               ),
                               decoration: BoxDecoration(
                                 color: colorScheme.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 'Monument historique',
                                 style: TextStyle(
                                   color: colorScheme.primary,
                                   fontWeight: FontWeight.w500,
-                                  fontSize: 12,
+                                  fontSize: 10,
                                 ),
                               ),
                             ),
@@ -1041,6 +1338,165 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPersonalizedCitySection(
+    ColorScheme colorScheme,
+    LocalizationService localizationService,
+  ) {
+    final city = _recommendedCity!;
+    final cityName = city['name'] as String;
+    final cityDescription = city['description'] as String;
+    final cityImage = city['image'] as String;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Recommandé pour vous: $cityName',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            TextButton(
+              onPressed: () => _openPersonalizedCityDetails(city),
+              child: Text(
+                'Explorer >',
+                style: TextStyle(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 12),
+        InkWell(
+          onTap: () => _openPersonalizedCityDetails(city),
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            height: 200,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: colorScheme.surface,
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              children: [
+                _buildPersonalizedCityImage(cityImage, colorScheme),
+                // Overlay avec informations de la ville
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.7),
+                        ],
+                      ),
+                    ),
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          cityName,
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          cityDescription,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white.withOpacity(0.9),
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 16,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              '4.6',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Recommandé',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPersonalizedCityImage(String imagePath, ColorScheme colorScheme) {
+    if (imagePath.startsWith('assets/')) {
+      return Image.asset(
+        imagePath,
+        height: 200,
+        width: double.infinity,
+        fit: BoxFit.cover,
+      );
+    }
+    return Image.network(
+      imagePath,
+      height: 200,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stack) {
+        return Container(
+          height: 200,
+          color: colorScheme.onSurface.withOpacity(0.06),
+          child: Icon(
+            Icons.location_city,
+            size: 48,
+            color: colorScheme.onSurface.withOpacity(0.5),
+          ),
+        );
+      },
     );
   }
 
@@ -1087,6 +1543,332 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildPersonalizedActivitiesSection(
+    ColorScheme colorScheme,
+    LocalizationService localizationService,
+  ) {
+    final cityName = _recommendedCity?['name'] as String? ?? '';
+    final title = 'Activités à $cityName';
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(
+                  context,
+                  '/explore',
+                  arguments: {'initialTab': 'activities'},
+                );
+              },
+              child: Text(
+                'Voir tout',
+                style: TextStyle(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 12),
+        SizedBox(
+          height: 280,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: BouncingScrollPhysics(),
+            itemCount: _recommendedActivities.length,
+            separatorBuilder: (_, __) => SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final activity = _recommendedActivities[index];
+              final image = (activity.imageUrl != null && activity.imageUrl!.isNotEmpty)
+                  ? activity.imageUrl!
+                  : ImageService.getActivityImage(activity.categorie, activity.nom);
+              
+              return InkWell(
+                onTap: () => _openActivityDetails(activity),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  width: 280,
+                  height: 260,
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
+                        child: _buildGenericSmartImage(
+                          image,
+                          280,
+                          140,
+                          colorScheme,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              activity.nom,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: colorScheme.onSurface,
+                                fontSize: 14,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  size: 14,
+                                  color: colorScheme.primary,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  cityName,
+                                  style: TextStyle(
+                                    color: colorScheme.onSurface.withOpacity(0.7),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 6),
+                            if ((activity.categorie ?? '').isNotEmpty)
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  activity.categorie!,
+                                  style: TextStyle(
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ),
+                            if (activity.prix != null && activity.prix! > 0) ...[
+                              SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.attach_money,
+                                    size: 14,
+                                    color: colorScheme.primary,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    '${activity.prix} MAD',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: colorScheme.primary,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPersonalizedMonumentsSection(
+    ColorScheme colorScheme,
+    LocalizationService localizationService,
+  ) {
+    final cityName = _recommendedCity?['name'] as String? ?? '';
+    final monuments = _recommendedMonuments;
+
+    if (monuments.isEmpty) return SizedBox.shrink();
+
+    final title = 'Monuments à $cityName';
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(
+                  context,
+                  '/explore',
+                  arguments: {'initialTab': 'activities'},
+                );
+              },
+              child: Text(
+                'Voir tout',
+                style: TextStyle(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 12),
+        SizedBox(
+          height: 280,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: BouncingScrollPhysics(),
+            itemCount: monuments.length,
+            separatorBuilder: (_, __) => SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final monument = monuments[index];
+              final image = (monument.imageUrl != null && monument.imageUrl!.isNotEmpty)
+                  ? monument.imageUrl!
+                  : ImageService.getMonumentImage(monument.nom);
+              
+              return InkWell(
+                onTap: () => _openActivityDetails(monument),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  width: 280,
+                  height: 260,
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
+                        child: _buildGenericSmartImage(
+                          image,
+                          280,
+                          140,
+                          colorScheme,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              monument.nom,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: colorScheme.onSurface,
+                                fontSize: 14,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  size: 14,
+                                  color: colorScheme.primary,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  cityName,
+                                  style: TextStyle(
+                                    color: colorScheme.onSurface.withOpacity(0.7),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 6),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'Monument historique',
+                                style: TextStyle(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSuggestedActivitiesSection(
     ColorScheme colorScheme,
     LocalizationService localizationService,
@@ -1121,6 +1903,7 @@ class _HomePageState extends State<HomePage> {
           height: 220,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
+            physics: BouncingScrollPhysics(),
             itemCount: items.length,
             separatorBuilder: (_, __) => SizedBox(width: 12),
             itemBuilder: (context, index) {
@@ -1338,6 +2121,7 @@ class _HomePageState extends State<HomePage> {
           height: cardHeight,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
+            physics: BouncingScrollPhysics(),
             padding: EdgeInsets.only(left: isDesktop ? 4 : 0),
             itemCount: items.length,
             itemBuilder: (context, index) {
@@ -1417,6 +2201,49 @@ class _HomePageState extends State<HomePage> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => _openActivityDetails(recommendation['activity']),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Voir détails',
+                              style: TextStyle(
+                                color: colorScheme.onPrimary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      InkWell(
+                        onTap: () => _shareActivity(recommendation),
+                        child: Container(
+                          padding: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.share,
+                            size: 16,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -1439,83 +2266,299 @@ class _HomePageState extends State<HomePage> {
     final titleSize = isDesktop ? 16.0 : (isTablet ? 15.0 : 14.0);
     final subtitleSize = isDesktop ? 13.0 : (isTablet ? 12.5 : 12.0);
 
-    return Container(
-      width: cardWidth,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: imageHeight,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              image: DecorationImage(
-                image: NetworkImage(destination['image']),
-                fit: BoxFit.cover,
-              ),
+    return InkWell(
+      onTap: () => _openRecommendedDestinationDetails(destination),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: cardWidth,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: Offset(0, 2),
             ),
-            child: Stack(
-              children: [
-                Positioned(
-                  bottom: 8,
-                  left: 8,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.star,
-                          color: Colors.amber,
-                          size: subtitleSize,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          destination['rating'].toString(),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: subtitleSize,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: imageHeight,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                image: DecorationImage(
+                  image: NetworkImage(destination['image']),
+                  fit: BoxFit.cover,
                 ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+              child: Stack(
                 children: [
-                  Text(
-                    destination['name'],
-                    style: TextStyle(
-                      fontSize: titleSize,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: InkWell(
+                      onTap: () => _shareDestination(destination),
+                      child: Container(
+                        padding: EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.share,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    destination['subtitle'],
-                    style: TextStyle(
-                      fontSize: subtitleSize,
-                      color: colorScheme.onSurface.withOpacity(0.6),
+                  Positioned(
+                    bottom: 8,
+                    left: 8,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.star,
+                            color: Colors.amber,
+                            size: subtitleSize,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            destination['rating'].toString(),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: subtitleSize,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      destination['name'],
+                      style: TextStyle(
+                        fontSize: titleSize,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      destination['subtitle'],
+                      style: TextStyle(
+                        fontSize: subtitleSize,
+                        color: colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _shareDestination(Map<String, dynamic> destination) {
+    final name = destination['name'] ?? 'Destination';
+    final subtitle = destination['subtitle'] ?? '';
+    final type = 'ville';
+    
+    final shareText = '''
+🌟 Découvrez cette magnifique $type : $name
+
+$subtitle
+
+Téléchargez l'application de tourisme pour découvrir plus de destinations incroyables ! 🚀
+
+#Tourisme #Maroc #$name
+''';
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Partager $name',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildShareOption(
+                  icon: Icons.share,
+                  label: 'Partager',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText);
+                  },
+                ),
+                _buildShareOption(
+                  icon: Icons.message,
+                  label: 'WhatsApp',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText, subject: 'Découvrez $name');
+                  },
+                ),
+                _buildShareOption(
+                  icon: Icons.facebook,
+                  label: 'Facebook',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText, subject: 'Découvrez $name');
+                  },
+                ),
+                _buildShareOption(
+                  icon: Icons.email,
+                  label: 'Email',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText, subject: 'Découvrez $name');
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _shareActivity(Map<String, dynamic> activity) {
+    final name = activity['title'] ?? 'Activité';
+    final subtitle = activity['subtitle'] ?? '';
+    final type = 'activité';
+    
+    final shareText = '''
+🌟 Découvrez cette magnifique $type : $name
+
+$subtitle
+
+Téléchargez l'application de tourisme pour découvrir plus d'activités incroyables ! 🚀
+
+#Tourisme #Maroc #$name
+''';
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Partager $name',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildShareOption(
+                  icon: Icons.share,
+                  label: 'Partager',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText);
+                  },
+                ),
+                _buildShareOption(
+                  icon: Icons.message,
+                  label: 'WhatsApp',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText, subject: 'Découvrez $name');
+                  },
+                ),
+                _buildShareOption(
+                  icon: Icons.facebook,
+                  label: 'Facebook',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText, subject: 'Découvrez $name');
+                  },
+                ),
+                _buildShareOption(
+                  icon: Icons.email,
+                  label: 'Email',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText, subject: 'Découvrez $name');
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShareOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              size: 32,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -1523,65 +2566,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildSeasonalHighlightCard(
-    Map<String, dynamic> highlight,
-    double screenWidth,
-    bool isTablet,
-    bool isDesktop,
-    ColorScheme colorScheme,
-  ) {
-    final cardWidth = isDesktop ? 240.0 : (isTablet ? 220.0 : 200.0);
-    final titleSize = isDesktop ? 18.0 : (isTablet ? 17.0 : 16.0);
-    final subtitleSize = isDesktop ? 13.0 : (isTablet ? 12.5 : 12.0);
-
-    return Container(
-      width: cardWidth,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        image: DecorationImage(
-          image: NetworkImage(highlight['image']),
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
-          ),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(isDesktop ? 16 : 12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                highlight['title'],
-                style: TextStyle(
-                  fontSize: titleSize,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              SizedBox(height: 4),
-              Text(
-                highlight['subtitle'],
-                style: TextStyle(
-                  fontSize: subtitleSize,
-                  color: Colors.white.withOpacity(0.9),
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

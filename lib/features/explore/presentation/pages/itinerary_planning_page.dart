@@ -6,14 +6,21 @@ import '../../../../core/constants/constants.dart';
 import '../../../saved/data/models/trip_model.dart';
 import '../../../saved/data/services/trip_service.dart';
 import '../../../saved/presentation/pages/create_edit_trip_page.dart';
+import '../../../saved/data/services/wishlist_service.dart';
+import '../../data/services/public_api_service.dart';
+import '../../data/models/city_dto.dart';
+import '../../../auth/data/datasources/auth_remote_data_source.dart';
+import '../../../../core/services/guest_mode_service.dart';
+import '../../../saved/data/services/planning_database_service.dart';
+import '../../../saved/data/models/planning_journalier_model.dart';
+import '../../../saved/data/models/planning_activite_model.dart';
+import '../../../saved/presentation/pages/daily_planning_page.dart';
+import 'itinerary_builder_page.dart';
 
 class ItineraryPlanningPage extends StatefulWidget {
   final Map<String, dynamic>? destination;
 
-  const ItineraryPlanningPage({
-    super.key,
-    this.destination,
-  });
+  const ItineraryPlanningPage({super.key, this.destination});
 
   @override
   State<ItineraryPlanningPage> createState() => _ItineraryPlanningPageState();
@@ -25,6 +32,11 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
   List<String> _selectedActivities = [];
   DateTime _startDate = DateTime.now().add(const Duration(days: 7));
   bool _isGenerating = false;
+  Map<String, dynamic>? _cityData;
+  double _estimatedBudget = 0.0;
+  final GuestModeService _guestMode = GuestModeService();
+  final AuthRemoteDataSourceImpl _authService = AuthRemoteDataSourceImpl();
+  final PlanningDatabaseService _planningDbService = PlanningDatabaseService();
 
   final List<Map<String, dynamic>> _availableActivities = [
     {
@@ -93,6 +105,97 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
   };
 
   @override
+  void initState() {
+    super.initState();
+    _loadCityData();
+    _calculateBudget();
+  }
+
+  Future<void> _loadCityData() async {
+    if (widget.destination != null) {
+      try {
+        // Récupérer les données complètes de la ville depuis l'API
+        final publicApi = PublicApiService();
+        final cities = await publicApi.getAllCities();
+        final cityName =
+            widget.destination!['name'] ?? widget.destination!['title'] ?? '';
+
+        CityDto? matchingCity;
+        try {
+          matchingCity = cities.firstWhere(
+            (city) => city.nom.toLowerCase() == cityName.toLowerCase(),
+          );
+        } catch (e) {
+          matchingCity = null;
+        }
+
+        if (matchingCity != null) {
+          setState(() {
+            _cityData = {
+              'name': matchingCity!.nom,
+              'description': matchingCity!.description ?? 'Découvrez cette magnifique ville',
+              'image': matchingCity!.imageUrl ?? '',
+              'rating': 4.5, // Rating par défaut
+              'country': matchingCity!.paysNom ?? 'Maroc',
+            };
+          });
+        }
+      } catch (e) {
+        // En cas d'erreur, utiliser les données de destination
+        setState(() {
+          _cityData = widget.destination;
+        });
+      }
+    }
+  }
+
+  void _calculateBudget() {
+    // Calculer le budget estimé basé sur les activités sélectionnées
+    double baseBudget = 0.0;
+
+    // Budget de base selon la catégorie
+    switch (_selectedBudget) {
+      case 'budget':
+        baseBudget = 500.0; // 500 MAD par jour
+        break;
+      case 'mid_range':
+        baseBudget = 1000.0; // 1000 MAD par jour
+        break;
+      case 'luxury':
+        baseBudget = 2000.0; // 2000 MAD par jour
+        break;
+    }
+
+    // Ajouter le coût des activités
+    for (String activity in _selectedActivities) {
+      switch (activity) {
+        case 'sightseeing':
+          baseBudget += 200.0;
+          break;
+        case 'food_tour':
+          baseBudget += 300.0;
+          break;
+        case 'shopping':
+          baseBudget += 400.0;
+          break;
+        case 'cultural_visit':
+          baseBudget += 150.0;
+          break;
+        case 'adventure':
+          baseBudget += 500.0;
+          break;
+        case 'relaxation':
+          baseBudget += 250.0;
+          break;
+      }
+    }
+
+    setState(() {
+      _estimatedBudget = baseBudget * _selectedDays;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -119,31 +222,76 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
+      body: CustomScrollView(
+        slivers: [
+          SliverPadding(
         padding: EdgeInsets.all(isDesktop ? 24 : (isTablet ? 20 : 16)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDestinationInfo(colorScheme, localizationService, isTablet, isDesktop),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                _buildDestinationInfo(
+                  colorScheme,
+                  localizationService,
+                  isTablet,
+                  isDesktop,
+                ),
             SizedBox(height: isDesktop ? 40 : 32),
-            _buildTripDurationSection(colorScheme, localizationService, isTablet, isDesktop),
+                _buildTripDurationSection(
+                  colorScheme,
+                  localizationService,
+                  isTablet,
+                  isDesktop,
+                ),
             SizedBox(height: isDesktop ? 40 : 32),
-            _buildBudgetSection(colorScheme, localizationService, isTablet, isDesktop),
+                _buildBudgetSection(
+                  colorScheme,
+                  localizationService,
+                  isTablet,
+                  isDesktop,
+                ),
             SizedBox(height: isDesktop ? 40 : 32),
-            _buildStartDateSection(colorScheme, localizationService, isTablet, isDesktop),
+                _buildBudgetTracker(
+                  colorScheme,
+                  localizationService,
+                  isTablet,
+                  isDesktop,
+                ),
             SizedBox(height: isDesktop ? 40 : 32),
-            _buildActivitiesSection(colorScheme, localizationService, isTablet, isDesktop),
+                _buildStartDateSection(
+                  colorScheme,
+                  localizationService,
+                  isTablet,
+                  isDesktop,
+                ),
             SizedBox(height: isDesktop ? 40 : 32),
-            _buildActionButton(colorScheme, localizationService, isTablet, isDesktop),
+                _buildActivitiesSection(
+                  colorScheme,
+                  localizationService,
+                  isTablet,
+                  isDesktop,
+                ),
+                SizedBox(height: isDesktop ? 40 : 32),
+                _buildActionButton(
+                  colorScheme,
+                  localizationService,
+                  isTablet,
+                  isDesktop,
+                ),
             SizedBox(height: 20),
-          ],
+              ]),
         ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildDestinationInfo(ColorScheme colorScheme, LocalizationService localizationService, bool isTablet, bool isDesktop) {
-    final destination = widget.destination;
+  Widget _buildDestinationInfo(
+    ColorScheme colorScheme,
+    LocalizationService localizationService,
+    bool isTablet,
+    bool isDesktop,
+  ) {
+    final destination = _cityData ?? widget.destination;
     if (destination == null) return const SizedBox.shrink();
 
     return Container(
@@ -158,31 +306,17 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.primary.withOpacity(0.2),
-        ),
+        border: Border.all(color: colorScheme.primary.withOpacity(0.2)),
       ),
       child: Row(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              destination['image'] as String? ?? 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5',
+            child: _buildSmartImage(
+              imageUrl: destination['image'] ?? destination['imageUrl'] ?? '',
               width: isDesktop ? 80 : (isTablet ? 70 : 60),
               height: isDesktop ? 80 : (isTablet ? 70 : 60),
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: isDesktop ? 80 : (isTablet ? 70 : 60),
-                  height: isDesktop ? 80 : (isTablet ? 70 : 60),
-                  color: colorScheme.surfaceVariant,
-                  child: Icon(
-                    Icons.image,
-                    color: colorScheme.onSurfaceVariant,
-                    size: isDesktop ? 32 : (isTablet ? 28 : 24),
-                  ),
-                );
-              },
+              colorScheme: colorScheme,
             ),
           ),
           SizedBox(width: isDesktop ? 24 : (isTablet ? 20 : 16)),
@@ -200,7 +334,8 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  destination['description'] as String? ?? 'Discover the beauty and culture of this amazing destination',
+                  destination['description'] as String? ??
+                      'Discover the beauty and culture of this amazing destination',
                   style: TextStyle(
                     fontSize: isDesktop ? 16 : (isTablet ? 15 : 14),
                     color: colorScheme.onSurface.withOpacity(0.7),
@@ -210,7 +345,11 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                 SizedBox(height: 12),
                 Row(
                   children: [
-                    Icon(Icons.star, color: Colors.amber, size: isDesktop ? 20 : 18),
+                    Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                      size: isDesktop ? 20 : 18,
+                    ),
                     SizedBox(width: 8),
                     Text(
                       '${destination['rating'] ?? 4.5}/5',
@@ -221,7 +360,11 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                       ),
                     ),
                     SizedBox(width: 16),
-                    Icon(Icons.location_on, color: colorScheme.primary, size: isDesktop ? 20 : 18),
+                    Icon(
+                      Icons.location_on,
+                      color: colorScheme.primary,
+                      size: isDesktop ? 20 : 18,
+                    ),
                     SizedBox(width: 8),
                     Text(
                       destination['tags']?.join(', ') ?? 'Morocco',
@@ -241,7 +384,12 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
     );
   }
 
-  Widget _buildTripDurationSection(ColorScheme colorScheme, LocalizationService localizationService, bool isTablet, bool isDesktop) {
+  Widget _buildTripDurationSection(
+    ColorScheme colorScheme,
+    LocalizationService localizationService,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -270,24 +418,74 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
           mainAxisSpacing: 12,
           childAspectRatio: isDesktop ? 1.5 : 1.2,
           children: [
-            _buildDurationOption(1, '1 Day', 'Quick visit', colorScheme, isTablet, isDesktop),
-            _buildDurationOption(2, '2 Days', 'Weekend trip', colorScheme, isTablet, isDesktop),
-            _buildDurationOption(3, '3 Days', 'Short break', colorScheme, isTablet, isDesktop),
-            _buildDurationOption(5, '5 Days', 'Extended stay', colorScheme, isTablet, isDesktop),
-            _buildDurationOption(7, '1 Week', 'Full week', colorScheme, isTablet, isDesktop),
-            _buildDurationOption(10, '10 Days', 'Long vacation', colorScheme, isTablet, isDesktop),
+            _buildDurationOption(
+              1,
+              '1 Day',
+              'Quick visit',
+              colorScheme,
+              isTablet,
+              isDesktop,
+            ),
+            _buildDurationOption(
+              2,
+              '2 Days',
+              'Weekend trip',
+              colorScheme,
+              isTablet,
+              isDesktop,
+            ),
+            _buildDurationOption(
+              3,
+              '3 Days',
+              'Short break',
+              colorScheme,
+              isTablet,
+              isDesktop,
+            ),
+            _buildDurationOption(
+              5,
+              '5 Days',
+              'Extended stay',
+              colorScheme,
+              isTablet,
+              isDesktop,
+            ),
+            _buildDurationOption(
+              7,
+              '1 Week',
+              'Full week',
+              colorScheme,
+              isTablet,
+              isDesktop,
+            ),
+            _buildDurationOption(
+              10,
+              '10 Days',
+              'Long vacation',
+              colorScheme,
+              isTablet,
+              isDesktop,
+            ),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildDurationOption(int days, String label, String subtitle, ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildDurationOption(
+    int days,
+    String label,
+    String subtitle,
+    ColorScheme colorScheme,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     final isSelected = _selectedDays == days;
     return InkWell(
       onTap: () {
         setState(() {
           _selectedDays = days;
+          _calculateBudget();
         });
       },
       borderRadius: BorderRadius.circular(12),
@@ -297,7 +495,9 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
           color: isSelected ? colorScheme.primary : colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? colorScheme.primary : colorScheme.outline.withOpacity(0.3),
+            color: isSelected
+                ? colorScheme.primary
+                : colorScheme.outline.withOpacity(0.3),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
@@ -316,7 +516,9 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
+                color: isSelected
+                    ? colorScheme.onPrimary
+                    : colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
                 fontSize: isDesktop ? 18 : (isTablet ? 16 : 14),
               ),
@@ -326,7 +528,9 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
             Text(
               subtitle,
               style: TextStyle(
-                color: isSelected ? colorScheme.onPrimary.withOpacity(0.8) : colorScheme.onSurface.withOpacity(0.6),
+                color: isSelected
+                    ? colorScheme.onPrimary.withOpacity(0.8)
+                    : colorScheme.onSurface.withOpacity(0.6),
                 fontSize: isDesktop ? 14 : 12,
               ),
               textAlign: TextAlign.center,
@@ -337,7 +541,12 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
     );
   }
 
-  Widget _buildBudgetSection(ColorScheme colorScheme, LocalizationService localizationService, bool isTablet, bool isDesktop) {
+  Widget _buildBudgetSection(
+    ColorScheme colorScheme,
+    LocalizationService localizationService,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -370,16 +579,21 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                 onTap: () {
                   setState(() {
                     _selectedBudget = budget;
+                    _calculateBudget();
                   });
                 },
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   padding: EdgeInsets.all(isDesktop ? 20 : 16),
                   decoration: BoxDecoration(
-                    color: isSelected ? colorScheme.primary : colorScheme.surface,
+                    color: isSelected
+                        ? colorScheme.primary
+                        : colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected ? colorScheme.primary : colorScheme.outline.withOpacity(0.3),
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.outline.withOpacity(0.3),
                       width: isSelected ? 2 : 1,
                     ),
                     boxShadow: [
@@ -404,7 +618,9 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                         ),
                         child: Icon(
                           budgetInfo['icon'] as IconData,
-                          color: isSelected ? colorScheme.onPrimary : colorScheme.primary,
+                          color: isSelected
+                              ? colorScheme.onPrimary
+                              : colorScheme.primary,
                           size: isDesktop ? 28 : 24,
                         ),
                       ),
@@ -416,7 +632,9 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                             Text(
                               budgetInfo['name'] as String,
                               style: TextStyle(
-                                color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
+                                color: isSelected
+                                    ? colorScheme.onPrimary
+                                    : colorScheme.onSurface,
                                 fontWeight: FontWeight.bold,
                                 fontSize: isDesktop ? 18 : 16,
                               ),
@@ -425,7 +643,9 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                             Text(
                               budgetInfo['range'] as String,
                               style: TextStyle(
-                                color: isSelected ? colorScheme.onPrimary.withOpacity(0.9) : colorScheme.primary,
+                                color: isSelected
+                                    ? colorScheme.onPrimary.withOpacity(0.9)
+                                    : colorScheme.primary,
                                 fontWeight: FontWeight.w600,
                                 fontSize: isDesktop ? 16 : 14,
                               ),
@@ -434,7 +654,9 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                             Text(
                               budgetInfo['description'] as String,
                               style: TextStyle(
-                                color: isSelected ? colorScheme.onPrimary.withOpacity(0.8) : colorScheme.onSurface.withOpacity(0.7),
+                                color: isSelected
+                                    ? colorScheme.onPrimary.withOpacity(0.8)
+                                    : colorScheme.onSurface.withOpacity(0.7),
                                 fontSize: isDesktop ? 14 : 12,
                               ),
                             ),
@@ -458,7 +680,12 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
     );
   }
 
-  Widget _buildStartDateSection(ColorScheme colorScheme, LocalizationService localizationService, bool isTablet, bool isDesktop) {
+  Widget _buildStartDateSection(
+    ColorScheme colorScheme,
+    LocalizationService localizationService,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -581,7 +808,12 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
     );
   }
 
-  Widget _buildActivitiesSection(ColorScheme colorScheme, LocalizationService localizationService, bool isTablet, bool isDesktop) {
+  Widget _buildActivitiesSection(
+    ColorScheme colorScheme,
+    LocalizationService localizationService,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -614,7 +846,9 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
           itemCount: _availableActivities.length,
           itemBuilder: (context, index) {
             final activity = _availableActivities[index];
-            final isSelected = _selectedActivities.contains(activity['id'] as String);
+            final isSelected = _selectedActivities.contains(
+              activity['id'] as String,
+            );
 
             return InkWell(
               onTap: () {
@@ -624,6 +858,7 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                   } else {
                     _selectedActivities.add(activity['id'] as String);
                   }
+                  _calculateBudget();
                 });
               },
               borderRadius: BorderRadius.circular(16),
@@ -632,7 +867,9 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                   color: isSelected ? colorScheme.primary : colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isSelected ? colorScheme.primary : colorScheme.outline.withOpacity(0.3),
+                    color: isSelected
+                        ? colorScheme.primary
+                        : colorScheme.outline.withOpacity(0.3),
                     width: isSelected ? 2 : 1,
                   ),
                   boxShadow: [
@@ -658,7 +895,9 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                       ),
                       child: Icon(
                         activity['icon'] as IconData,
-                        color: isSelected ? colorScheme.onPrimary : colorScheme.primary,
+                        color: isSelected
+                            ? colorScheme.onPrimary
+                            : colorScheme.primary,
                         size: isDesktop ? 32 : 28,
                       ),
                     ),
@@ -666,7 +905,9 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                     Text(
                       activity['name'] as String,
                       style: TextStyle(
-                        color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
+                        color: isSelected
+                            ? colorScheme.onPrimary
+                            : colorScheme.onSurface,
                         fontWeight: FontWeight.bold,
                         fontSize: isDesktop ? 16 : 14,
                       ),
@@ -676,7 +917,9 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                     Text(
                       activity['duration'] as String,
                       style: TextStyle(
-                        color: isSelected ? colorScheme.onPrimary.withOpacity(0.8) : colorScheme.onSurface.withOpacity(0.7),
+                        color: isSelected
+                            ? colorScheme.onPrimary.withOpacity(0.8)
+                            : colorScheme.onSurface.withOpacity(0.7),
                         fontSize: isDesktop ? 14 : 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -686,7 +929,9 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                     Text(
                       activity['description'] as String,
                       style: TextStyle(
-                        color: isSelected ? colorScheme.onPrimary.withOpacity(0.7) : colorScheme.onSurface.withOpacity(0.6),
+                        color: isSelected
+                            ? colorScheme.onPrimary.withOpacity(0.7)
+                            : colorScheme.onSurface.withOpacity(0.6),
                         fontSize: isDesktop ? 12 : 10,
                       ),
                       textAlign: TextAlign.center,
@@ -703,7 +948,12 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
     );
   }
 
-  Widget _buildActionButton(ColorScheme colorScheme, LocalizationService localizationService, bool isTablet, bool isDesktop) {
+  Widget _buildActionButton(
+    ColorScheme colorScheme,
+    LocalizationService localizationService,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     final canCreateTrip = _selectedActivities.length >= 2 && !_isGenerating;
     
     return Container(
@@ -712,8 +962,12 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
       child: ElevatedButton(
         onPressed: canCreateTrip ? _createTrip : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: canCreateTrip ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.3),
-          foregroundColor: canCreateTrip ? colorScheme.onPrimary : colorScheme.onSurface.withOpacity(0.5),
+          backgroundColor: canCreateTrip
+              ? colorScheme.primary
+              : colorScheme.onSurface.withOpacity(0.3),
+          foregroundColor: canCreateTrip
+              ? colorScheme.onPrimary
+              : colorScheme.onSurface.withOpacity(0.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -728,7 +982,9 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
                     height: isDesktop ? 24 : 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onPrimary),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        colorScheme.onPrimary,
+                      ),
                     ),
                   ),
                   SizedBox(width: 16),
@@ -744,10 +1000,7 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
             : Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.add_location_alt,
-                    size: isDesktop ? 28 : 24,
-                  ),
+                  Icon(Icons.add_location_alt, size: isDesktop ? 28 : 24),
                   SizedBox(width: 12),
                   Text(
                     'Create Trip',
@@ -763,10 +1016,29 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
   }
 
   Future<void> _createTrip() async {
+    // Vérifier l'authentification
+    await _guestMode.loadGuestModeState();
+    if (_guestMode.isGuestMode) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Vous devez être connecté pour planifier un voyage'),
+          backgroundColor: Colors.orange,
+          action: SnackBarAction(
+            label: 'Se connecter',
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.pushNamed(context, '/login');
+            },
+          ),
+        ),
+      );
+      return;
+    }
+
     if (_selectedActivities.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please select at least 2 activities to create a trip'),
+          content: Text('Veuillez sélectionner au moins 2 activités pour créer un voyage'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -786,10 +1058,16 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
       final tripName = '${destinationName} Adventure';
       
       // Convert selected activities to TripActivity objects
-      final List<TripActivity> tripActivities = _selectedActivities.map((activityId) {
-        final activity = _availableActivities.firstWhere((a) => a['id'] == activityId);
+      final List<TripActivity> tripActivities = _selectedActivities.map((
+        activityId,
+      ) {
+        final activity = _availableActivities.firstWhere(
+          (a) => a['id'] == activityId,
+        );
         return TripActivity(
-          id: DateTime.now().millisecondsSinceEpoch.toString() + '_${activityId}',
+          id:
+              DateTime.now().millisecondsSinceEpoch.toString() +
+              '_${activityId}',
           name: activity['name'],
           type: 'attraction',
           description: activity['description'],
@@ -805,7 +1083,8 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
         startDate: _startDate,
         endDate: endDate,
         activities: tripActivities,
-        notes: 'Budget: ${_budgetRanges[_selectedBudget]?['name']} (${_budgetRanges[_selectedBudget]?['range']})',
+        notes:
+            'Budget: ${_budgetRanges[_selectedBudget]?['name']} (${_budgetRanges[_selectedBudget]?['range']})',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -814,6 +1093,87 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
       final tripService = TripService();
       await tripService.saveTrip(trip);
 
+      // Créer les plannings journaliers pour chaque jour
+      final List<PlanningJournalierModel> dailyPlannings = [];
+      final List<PlanningActiviteModel> planningActivites = [];
+      
+      for (int i = 0; i < _selectedDays; i++) {
+        final currentDate = _startDate.add(Duration(days: i));
+        final dailyPlanning = PlanningJournalierModel(
+          datePlanning: currentDate,
+          description: 'Jour ${i + 1} - ${destinationName}',
+          duree: _calculateDailyDuration(),
+          statut: 'planifie',
+        );
+        dailyPlannings.add(dailyPlanning);
+      }
+
+      // Créer les activités de planning
+      for (int i = 0; i < _selectedDays; i++) {
+        final currentDate = _startDate.add(Duration(days: i));
+        final activitiesForDay = _selectedActivities.take(2).toList(); // 2 activités par jour max
+        
+        for (final activityId in activitiesForDay) {
+          final activity = _availableActivities.firstWhere((a) => a['id'] == activityId);
+          final planningActivite = PlanningActiviteModel(
+            idPlanning: 0, // Sera mis à jour après sauvegarde du planning journalier
+            idActivite: DateTime.now().millisecondsSinceEpoch + i,
+            nomActivite: activity['name'],
+            description: activity['description'],
+            prix: _getActivityPrice(activityId),
+            dureeMinimun: _parseDurationToMinutes(activity['duration']) ?? 60,
+            dureeMaximun: (_parseDurationToMinutes(activity['duration']) ?? 60) + 30,
+            saison: 'Toute l\'année',
+            niveauDificulta: 'Facile',
+            categorie: _getActivityCategory(activityId),
+            ville: destinationName,
+            imageUrl: _cityData?['image'] ?? widget.destination?['image'] ?? '',
+            dateActivite: currentDate,
+            statut: 'planifie',
+          );
+          planningActivites.add(planningActivite);
+        }
+      }
+
+      // Sauvegarder dans la base de données
+      try {
+        await _planningDbService.saveCompleteTrip(
+          trip: trip,
+          planningJournalier: dailyPlannings,
+          planningActivites: planningActivites,
+        );
+      } catch (e) {
+        print('Erreur lors de la sauvegarde en base: $e');
+        // Continuer même si la sauvegarde en base échoue
+      }
+
+      // Ajouter le trip à la wishlist
+      await WishlistService.saveSnapshot(
+        type: 'trip',
+        itemId: int.parse(trip.id),
+        data: {
+          'id': trip.id,
+          'name': trip.name,
+          'destination': trip.destination,
+          'startDate': trip.startDate.toIso8601String(),
+          'endDate': trip.endDate.toIso8601String(),
+          'budget': _estimatedBudget,
+          'activities': tripActivities
+              .map(
+                (a) => {
+                  'name': a.name,
+                  'description': a.description,
+                  'duration': a.duration,
+                },
+              )
+              .toList(),
+          'image': _cityData?['image'] ?? widget.destination?['image'] ?? '',
+        },
+      );
+
+      // Ajouter à la wishlist locale
+      await WishlistService.addLocalId('trip', int.parse(trip.id));
+
       setState(() {
         _isGenerating = false;
       });
@@ -821,19 +1181,38 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Trip created successfully!'),
+          content: Text('Voyage créé avec succès !'),
           backgroundColor: Colors.green,
+          action: SnackBarAction(
+            label: 'Voir le planning',
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DailyPlanningPage(
+                    tripId: int.parse(trip.id),
+                    tripName: trip.name,
+                    startDate: trip.startDate,
+                    endDate: trip.endDate,
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       );
 
-      // Navigate to the trip details page
-      Navigator.push(
+      // Navigate to the itinerary builder page
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => CreateEditTripPage(trip: trip),
+          builder: (context) => ItineraryBuilderPage(
+            destination: widget.destination,
+            existingTrip: trip,
+          ),
         ),
       );
-
     } catch (e) {
       setState(() {
         _isGenerating = false;
@@ -854,10 +1233,257 @@ class _ItineraryPlanningPageState extends State<ItineraryPlanningPage> {
     final match = regex.firstMatch(duration);
     if (match != null) {
       final minHours = int.tryParse(match.group(1) ?? '0') ?? 0;
-      final maxHours = int.tryParse(match.group(2) ?? match.group(1) ?? '0') ?? minHours;
+      final maxHours =
+          int.tryParse(match.group(2) ?? match.group(1) ?? '0') ?? minHours;
       // Return average duration in minutes
       return ((minHours + maxHours) / 2 * 60).round();
     }
     return null;
+  }
+
+  Widget _buildBudgetTracker(
+    ColorScheme colorScheme,
+    LocalizationService localizationService,
+    bool isTablet,
+    bool isDesktop,
+  ) {
+    return Container(
+      padding: EdgeInsets.all(isDesktop ? 20 : 16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(0.05),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.account_balance_wallet,
+                color: colorScheme.primary,
+                size: 24,
+              ),
+              SizedBox(width: 12),
+              Text(
+                'Budget Estimé',
+                style: TextStyle(
+                  fontSize: isDesktop ? 20 : 18,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 16),
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Total estimé',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                    Text(
+                      '${_estimatedBudget.toStringAsFixed(0)} MAD',
+                      style: TextStyle(
+                        fontSize: isDesktop ? 28 : 24,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${_selectedDays} jours',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                    Text(
+                      '${(_estimatedBudget / _selectedDays).toStringAsFixed(0)} MAD/jour',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 12),
+          LinearProgressIndicator(
+            value: _getBudgetProgress(),
+            backgroundColor: colorScheme.outline.withOpacity(0.2),
+            valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+            minHeight: 8,
+          ),
+          SizedBox(height: 8),
+          Text(
+            _getBudgetStatus(),
+            style: TextStyle(
+              fontSize: 12,
+              color: colorScheme.onSurface.withOpacity(0.6),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  double _getBudgetProgress() {
+    // Calculer le pourcentage du budget utilisé (exemple avec un budget max de 5000 MAD)
+    const double maxBudget = 5000.0;
+    return (_estimatedBudget / maxBudget).clamp(0.0, 1.0);
+  }
+
+  String _getBudgetStatus() {
+    if (_estimatedBudget < 1000) {
+      return 'Budget économique';
+    } else if (_estimatedBudget < 3000) {
+      return 'Budget modéré';
+    } else {
+      return 'Budget élevé';
+    }
+  }
+
+  Widget _buildSmartImage({
+    required String imageUrl,
+    required double width,
+    required double height,
+    required ColorScheme colorScheme,
+  }) {
+    if (imageUrl.isEmpty) {
+      return Container(
+        width: width,
+        height: height,
+        color: colorScheme.surfaceVariant,
+        child: Icon(
+          Icons.image,
+          color: colorScheme.onSurfaceVariant,
+          size: width * 0.4,
+        ),
+      );
+    }
+
+    // Vérifier si c'est une image locale (assets)
+    if (imageUrl.startsWith('assets/') || imageUrl.startsWith('images/')) {
+      final assetPath = imageUrl.startsWith('images/')
+          ? 'assets/$imageUrl'
+          : imageUrl;
+      return Image.asset(
+        assetPath,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: width,
+            height: height,
+            color: colorScheme.surfaceVariant,
+            child: Icon(
+              Icons.image,
+              color: colorScheme.onSurfaceVariant,
+              size: width * 0.4,
+            ),
+          );
+        },
+      );
+    } else {
+      // Image réseau
+      return Image.network(
+        imageUrl,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: width,
+            height: height,
+            color: colorScheme.surfaceVariant,
+            child: Icon(
+              Icons.image,
+              color: colorScheme.onSurfaceVariant,
+              size: width * 0.4,
+            ),
+          );
+        },
+      );
+    }
+  }
+
+  int _calculateDailyDuration() {
+    // Calculer la durée totale des activités sélectionnées par jour
+    int totalDuration = 0;
+    for (String activityId in _selectedActivities) {
+      final activity = _availableActivities.firstWhere((a) => a['id'] == activityId);
+      final duration = _parseDurationToMinutes(activity['duration']) ?? 60;
+      totalDuration += duration;
+    }
+    return totalDuration;
+  }
+
+  double _getActivityPrice(String activityId) {
+    // Prix par défaut selon le type d'activité
+    switch (activityId) {
+      case 'sightseeing':
+        return 200.0;
+      case 'food_tour':
+        return 300.0;
+      case 'shopping':
+        return 400.0;
+      case 'cultural_visit':
+        return 150.0;
+      case 'adventure':
+        return 500.0;
+      case 'relaxation':
+        return 250.0;
+      default:
+        return 200.0;
+    }
+  }
+
+  String _getActivityCategory(String activityId) {
+    // Catégorie selon le type d'activité
+    switch (activityId) {
+      case 'sightseeing':
+        return 'TOURS';
+      case 'food_tour':
+        return 'EVENEMENTS';
+      case 'shopping':
+        return 'TOURS';
+      case 'cultural_visit':
+        return 'MONUMENT';
+      case 'adventure':
+        return 'TOURS';
+      case 'relaxation':
+        return 'EVENEMENTS';
+      default:
+        return 'TOURS';
+    }
   }
 }

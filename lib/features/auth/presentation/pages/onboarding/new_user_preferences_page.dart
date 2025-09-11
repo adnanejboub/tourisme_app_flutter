@@ -20,6 +20,90 @@ class _NewUserPreferencesPageState extends State<NewUserPreferencesPage> {
 
   List<Map<String, dynamic>> _buildQuestions(LocalizationService localization) => [
     {
+      'id': 'preferred_city_type',
+      'title': 'Quel type de ville préférez-vous visiter ?',
+      'type': 'single_choice',
+      'icon': Icons.location_city,
+      'options': [
+        {
+          'value': 'coastal',
+          'label': 'Villes côtières (plages, océan)',
+        },
+        {
+          'value': 'mountain',
+          'label': 'Villes montagneuses (Atlas, nature)',
+        },
+        {
+          'value': 'desert',
+          'label': 'Villes du désert (Sahara, oasis)',
+        },
+        {
+          'value': 'historical',
+          'label': 'Villes historiques (médinas, patrimoine)',
+        },
+        {
+          'value': 'modern',
+          'label': 'Villes modernes (métropoles, business)',
+        },
+        {
+          'value': 'cultural',
+          'label': 'Villes culturelles (art, traditions)',
+        },
+      ]
+    },
+    {
+      'id': 'climate_preference',
+      'title': 'Quel climat préférez-vous ?',
+      'type': 'single_choice',
+      'icon': Icons.wb_sunny,
+      'options': [
+        {
+          'value': 'hot_dry',
+          'label': 'Chaud et sec (désert)',
+        },
+        {
+          'value': 'hot_humid',
+          'label': 'Chaud et humide (côte)',
+        },
+        {
+          'value': 'mild',
+          'label': 'Tempéré (montagne)',
+        },
+        {
+          'value': 'cool',
+          'label': 'Frais (haute altitude)',
+        },
+        {
+          'value': 'variable',
+          'label': 'Variable selon la saison',
+        },
+      ]
+    },
+    {
+      'id': 'city_size',
+      'title': 'Préférez-vous des villes :',
+      'type': 'single_choice',
+      'icon': Icons.people,
+      'options': [
+        {
+          'value': 'small',
+          'label': 'Petites villes (intimité, tranquillité)',
+        },
+        {
+          'value': 'medium',
+          'label': 'Villes moyennes (équilibre)',
+        },
+        {
+          'value': 'large',
+          'label': 'Grandes villes (animation, services)',
+        },
+        {
+          'value': 'mega',
+          'label': 'Métropoles (diversité, opportunités)',
+        },
+      ]
+    },
+    {
       'id': 'duration',
       'title': localization.translate('duration_question_title'),
       'type': 'slider',
@@ -174,6 +258,38 @@ class _NewUserPreferencesPageState extends State<NewUserPreferencesPage> {
         {
           'value': 'friends_large',
           'label': localization.translate('group_friends_large'),
+        },
+      ]
+    },
+    {
+      'id': 'special_requirements',
+      'title': 'Avez-vous des exigences particulières ?',
+      'type': 'multiple_choice',
+      'icon': Icons.star,
+      'options': [
+        {
+          'value': 'accessibility',
+          'label': 'Accessibilité (handicap)',
+        },
+        {
+          'value': 'halal_food',
+          'label': 'Nourriture halal',
+        },
+        {
+          'value': 'wifi',
+          'label': 'WiFi fiable',
+        },
+        {
+          'value': 'parking',
+          'label': 'Parking disponible',
+        },
+        {
+          'value': 'pet_friendly',
+          'label': 'Animaux acceptés',
+        },
+        {
+          'value': 'family_friendly',
+          'label': 'Adapté aux familles',
         },
       ]
     }

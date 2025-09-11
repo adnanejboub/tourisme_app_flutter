@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../core/services/localization_service.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -196,14 +197,110 @@ class _CityDetailsPageState extends State<CityDetailsPage>
   }
 
   Future<void> _shareCity() async {
-    // TODO: Implémenter le partage avec share_plus package
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          Provider.of<LocalizationService>(context, listen: false)
-              .translate('share_functionality_coming_soon'),
+    final cityData = _cityDetails?['city'] ?? widget.city;
+    final String cityName = cityData['nomVille'] ?? cityData['name'] ?? 'Ville';
+    final String description = cityData['description'] ?? 'Découvrez cette magnifique ville';
+    
+    final shareText = '''
+🌟 Découvrez cette magnifique ville : $cityName
+
+$description
+
+Téléchargez l'application de tourisme pour découvrir plus de destinations incroyables ! 🚀
+
+#Tourisme #Maroc #$cityName
+''';
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Partager $cityName',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildShareOption(
+                  icon: Icons.share,
+                  label: 'Partager',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText);
+                  },
+                ),
+                _buildShareOption(
+                  icon: Icons.message,
+                  label: 'WhatsApp',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText, subject: 'Découvrez $cityName');
+                  },
+                ),
+                _buildShareOption(
+                  icon: Icons.facebook,
+                  label: 'Facebook',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText, subject: 'Découvrez $cityName');
+                  },
+                ),
+                _buildShareOption(
+                  icon: Icons.email,
+                  label: 'Email',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Share.share(shareText, subject: 'Découvrez $cityName');
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+          ],
         ),
-        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Widget _buildShareOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              size: 32,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

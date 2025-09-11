@@ -111,7 +111,9 @@ class AppRoutes {
         return _buildRoute(const MainNavigationPage(), settings);
 
       case explore:
-        return _buildRoute(const ExplorePage(), settings);
+        final args = settings.arguments as Map<String, dynamic>?;
+        final initialTab = args?['initialTab'] as String?;
+        return _buildRoute(ExplorePage(initialTab: initialTab), settings);
 
       case detailsExplore:
         final args = settings.arguments as Map<String, dynamic>?;

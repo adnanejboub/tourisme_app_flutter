@@ -89,6 +89,25 @@ class ImageService {
     'ifrane_visit': '$_basePath/activities/ifrane_visit.jpg',
     'kitesurf_dakhla': '$_basePath/activities/kitesurf_dakhla.jpg',
     'desert_excursion': '$_basePath/activities/desert_excursion.jpg',
+    
+    // Casablanca specific activities
+    'shopping': '$_basePath/activities/casablanca_shopping.jpg',
+    'restaurants': '$_basePath/activities/casablanca_restaurants.jpg',
+    'nightlife': '$_basePath/activities/casablanca_nightlife.jpg',
+    'vie_nocturne': '$_basePath/activities/casablanca_nightlife.jpg',
+    'plage_casablanca': '$_basePath/activities/casablanca_beach.jpg',
+    'business': '$_basePath/activities/casablanca_business.jpg',
+    'art_gallery': '$_basePath/activities/casablanca_art_gallery.jpg',
+    'galerie_art': '$_basePath/activities/casablanca_art_gallery.jpg',
+    'casablanca': '$_basePath/activities/casablanca_shopping.jpg',
+  };
+
+  // Monument images mapping
+  static const Map<String, String> _monumentImages = {
+    'hassan_ii': '$_basePath/monuments/hassan_ii_mosque.jpg',
+    'mosquee_hassan_ii': '$_basePath/monuments/hassan_ii_mosque.jpg',
+    'habous': '$_basePath/monuments/habous_quarter.jpg',
+    'quartier_habous': '$_basePath/monuments/habous_quarter.jpg',
   };
 
   /// Get representative image for a city based on its name
@@ -156,6 +175,20 @@ class ImageService {
         return _activityImages['desert_excursion']!;
       } else if (normalizedName.contains('volubilis')) {
         return _activityImages['volubilis']!;
+      } else if (normalizedName.contains('shopping') || normalizedName.contains('achat')) {
+        return _activityImages['shopping']!;
+      } else if (normalizedName.contains('restaurant') || normalizedName.contains('gastronomie')) {
+        return _activityImages['restaurants']!;
+      } else if (normalizedName.contains('nightlife') || normalizedName.contains('vie_nocturne') || normalizedName.contains('bar')) {
+        return _activityImages['nightlife']!;
+      } else if (normalizedName.contains('plage') || normalizedName.contains('corniche')) {
+        return _activityImages['plage_casablanca']!;
+      } else if (normalizedName.contains('business') || normalizedName.contains('commercial')) {
+        return _activityImages['business']!;
+      } else if (normalizedName.contains('art') || normalizedName.contains('galerie') || normalizedName.contains('culture')) {
+        return _activityImages['art_gallery']!;
+      } else if (normalizedName.contains('parc') || normalizedName.contains('jardin')) {
+        return _activityImages['cultural']!; // Fallback pour les parcs
       }
 
       // Check for general keywords in activity name
@@ -247,5 +280,38 @@ class ImageService {
   /// Get fallback image for activities
   static String getActivityFallbackImage() {
     return _activityImages['cultural']!;
+  }
+
+  /// Get representative image for a monument based on its name
+  static String getMonumentImage(String? monumentName) {
+    if (monumentName != null) {
+      final normalizedName = monumentName.toLowerCase();
+
+      // Check for specific monument names first (most specific)
+      if (normalizedName.contains('hassan') && normalizedName.contains('ii')) {
+        return _monumentImages['hassan_ii']!;
+      } else if (normalizedName.contains('habous')) {
+        return _monumentImages['habous']!;
+      }
+
+      // Check for general keywords in monument name
+      for (final entry in _monumentImages.entries) {
+        if (normalizedName.contains(entry.key)) {
+          return entry.value;
+        }
+      }
+    }
+
+    return _getDefaultMonumentImage();
+  }
+
+  /// Get default monument image
+  static String _getDefaultMonumentImage() {
+    return _monumentImages['hassan_ii']!;
+  }
+
+  /// Get fallback image for monuments
+  static String getMonumentFallbackImage() {
+    return _monumentImages['hassan_ii']!;
   }
 }

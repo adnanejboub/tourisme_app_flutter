@@ -51,6 +51,20 @@ class TripModel {
     };
   }
 
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'destination': destination,
+      'start_date': startDate.toIso8601String(),
+      'end_date': endDate.toIso8601String(),
+      'activities': activities.map((activity) => activity.toMap()).toList(),
+      'notes': notes,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+    };
+  }
+
   TripModel copyWith({
     String? id,
     String? name,
@@ -127,6 +141,20 @@ class TripActivity {
       'scheduledTime': scheduledTime?.toIso8601String(),
       'duration': duration,
       'imageUrl': imageUrl,
+      'metadata': metadata,
+    };
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'type': type,
+      'description': description,
+      'location': location,
+      'scheduled_time': scheduledTime?.toIso8601String(),
+      'duration': duration,
+      'image_url': imageUrl,
       'metadata': metadata,
     };
   }
