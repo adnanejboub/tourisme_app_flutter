@@ -52,7 +52,15 @@ class MarketplacePage extends StatelessWidget {
                   final products = snapshot.data ?? [];
                   final newProducts = products.take(4).toList();
                   final topSellingProducts = products.skip(4).take(4).toList();
-                  return Column(
+                  //final newProducts = products
+                  //  .where((p) => p.createdDate != null)
+                  //  .toList()
+                  //  ..sort((a, b) => b.createdDate!.compareTo(a.createdDate!)); // Sort by newest
+                  //final topSellingProducts = products
+                  //  .where((p) => p.salesCount != null)
+                  //  .toList()
+                  //  ..sort((a, b) => b.salesCount!.compareTo(a.salesCount!)); // Sort by sales
+                    return Column(
                     children: [
                       NewInWidget(products: newProducts),
                       const SizedBox(height: 24),
