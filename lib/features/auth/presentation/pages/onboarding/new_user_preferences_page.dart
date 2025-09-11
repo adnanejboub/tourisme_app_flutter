@@ -4,6 +4,7 @@ import 'package:tourisme_app_flutter/core/network/dio_client.dart';
 import 'package:tourisme_app_flutter/config/routes/app_routes.dart';
 import 'package:tourisme_app_flutter/core/services/localization_service.dart';
 import 'package:tourisme_app_flutter/core/services/new_user_service.dart';
+import 'package:tourisme_app_flutter/core/services/guest_mode_service.dart';
 
 class NewUserPreferencesPage extends StatefulWidget {
   const NewUserPreferencesPage({Key? key}) : super(key: key);
@@ -303,7 +304,9 @@ class _NewUserPreferencesPageState extends State<NewUserPreferencesPage> {
 
   Future<void> _skipQuestionnaire() async {
     try {
-      await NewUserService.markPreferencesCompleted();
+      await NewUserService.markQuestionnaireSkipped();
+      await NewUserService.setShowPersonalizedOnce();
+      try { GuestModeService().disableGuestMode(); } catch (_) {}
       if (mounted) {
         Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
       }
@@ -358,6 +361,8 @@ class _NewUserPreferencesPageState extends State<NewUserPreferencesPage> {
       
       // Marquer que l'utilisateur a complété ses préférences
       await NewUserService.markPreferencesCompleted();
+      await NewUserService.setShowPersonalizedOnce();
+      try { GuestModeService().disableGuestMode(); } catch (_) {}
       
       // Enregistrer également les préférences dans le profil backend (best-effort)
       try {
