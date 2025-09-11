@@ -14,6 +14,10 @@ class StaticData {
     return await _storage.read(key: _tokenKey);
   }
 
+  static Future<void> saveToken(String token) async {
+    await _storage.write(key: _tokenKey, value: token);
+  }
+
   static Future<List<ProductEntity>> getProducts() async {
     final url = Uri.parse('http://localhost:8080/products');
     final response = await http.get(url);
@@ -175,7 +179,7 @@ class StaticData {
       "selectedColor": color,
       "selectedSize": size,
     });
-    print("bobody: "+body);
+    print("bobody: " + body);
     final response = await http.post(
       url,
       headers: {
@@ -208,7 +212,7 @@ class StaticData {
     String itemId,
     int quantity,
   ) async {
-        final token = await getToken();
+    final token = await getToken();
 
     final url = Uri.parse('http://localhost:8080/cart/$itemId');
     final body = jsonEncode({"quantity": quantity});
@@ -217,7 +221,7 @@ class StaticData {
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
-        },
+      },
       body: body,
     );
     if (response.statusCode != 200) {
@@ -226,7 +230,7 @@ class StaticData {
   }
 
   static Future<void> clearCart() async {
-        final token = await getToken();
+    final token = await getToken();
     final url = Uri.parse('http://localhost:8080/cart/clear');
     final response = await http.delete(
       url,
@@ -272,4 +276,34 @@ class StaticData {
       throw Exception('Failed to search products');
     }
   }
+
+  static Future<String?> placeOrder({
+    required String shippingAddress,
+    required String paymentMethod,
+  }) async {
+    final token = await getToken();
+    final url = Uri.parse('http://localhost:8080/orders');
+    final body = jsonEncode({
+      "shippingAddress": shippingAddress,
+      "paymentMethod": paymentMethod,
+    });
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      await clearCart(); // Clear local cart if needed
+      return data['orderNumber']?.toString();
+    } else {
+      throw Exception('Failed to place order');
+    }
+  }
+
 }
