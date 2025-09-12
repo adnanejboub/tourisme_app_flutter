@@ -197,7 +197,7 @@ class PersonalizedRecommendationService {
         categorie: 'TOURS',
         ville: cityName,
         prix: 50,
-        imageUrl: 'assets/images/activities/cultural_tour.jpg',
+        imageUrl: 'assets/images/activities/cultural_heritage.jpg',
       ));
     }
     
@@ -213,7 +213,7 @@ class PersonalizedRecommendationService {
         categorie: 'EVENEMENTS',
         ville: cityName,
         prix: 30,
-        imageUrl: 'assets/images/activities/food_tour.jpg',
+        imageUrl: 'assets/images/activities/medina_tour.jpg',
       ));
     }
     
@@ -229,7 +229,7 @@ class PersonalizedRecommendationService {
         categorie: 'TOURS',
         ville: cityName,
         prix: 40,
-        imageUrl: 'assets/images/activities/nature_tour.jpg',
+        imageUrl: 'assets/images/activities/atlas_hiking.jpg',
       ));
     }
     
@@ -246,7 +246,7 @@ class PersonalizedRecommendationService {
         categorie: 'TOURS',
         ville: cityName,
         prix: 35,
-        imageUrl: 'assets/images/activities/city_tour.jpg',
+        imageUrl: 'assets/images/activities/medina_tour.jpg',
       ));
     }
     
@@ -267,7 +267,7 @@ class PersonalizedRecommendationService {
         categorie: 'MONUMENT',
         ville: cityName,
         prix: 20,
-        imageUrl: 'assets/images/monuments/historic_monument.jpg',
+        imageUrl: 'assets/images/activities/cultural_heritage.jpg',
       ),
       ActivityModel(
         id: 6000 + _random.nextInt(1000),
@@ -280,7 +280,7 @@ class PersonalizedRecommendationService {
         categorie: 'MONUMENT',
         ville: cityName,
         prix: 15,
-        imageUrl: 'assets/images/monuments/cultural_site.jpg',
+        imageUrl: 'assets/images/activities/medina_tour.jpg',
       ),
     ];
   }

@@ -16,6 +16,20 @@ class CityRecommendationService {
       
       if (cities.isEmpty) return null;
 
+      // Règles déterministes basées sur les 3 premières questions
+      final preferredType = preferences['preferred_city_type'] as String?; // coastal/mountain/desert/historical/modern/cultural
+      final climatePref = preferences['climate_preference'] as String?; // hot_dry/hot_humid/mild/cool/variable
+      final sizePref = preferences['city_size'] as String?; // small/medium/large/mega
+
+      // Exemple demandé: climat désertique et sec + ville moyenne -> Marrakech
+      if (preferredType == 'desert' && climatePref == 'hot_dry' && sizePref == 'medium') {
+        final match = cities.firstWhere(
+          (c) => c.nom.toLowerCase() == 'marrakech',
+          orElse: () => cities.first,
+        );
+        return _formatCityRecommendation(match);
+      }
+
       // Calculer le score pour chaque ville
       final cityScores = <CityDto, double>{};
       

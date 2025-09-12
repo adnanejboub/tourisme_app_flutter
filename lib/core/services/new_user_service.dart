@@ -4,6 +4,8 @@ class NewUserService {
   static const String _isNewUserKey = 'is_new_user';
   static const String _hasCompletedPreferencesKey = 'has_completed_preferences';
   static const String _userPreferencesKey = 'user_preferences';
+  static const String _showPersonalizedOnceKey = 'show_personalized_once';
+  static const String _skippedQuestionnaireKey = 'skipped_questionnaire';
 
   /// Vérifie si l'utilisateur est un nouvel utilisateur
   static Future<bool> isNewUser() async {
@@ -35,6 +37,37 @@ class NewUserService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_hasCompletedPreferencesKey, true);
     await prefs.setBool(_isNewUserKey, false);
+  }
+
+  /// Marque que l'utilisateur a SKIPPÉ le questionnaire
+  static Future<void> markQuestionnaireSkipped() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_skippedQuestionnaireKey, true);
+    await prefs.setBool(_hasCompletedPreferencesKey, true);
+    await prefs.setBool(_isNewUserKey, false);
+  }
+
+  /// Vérifie si l'utilisateur a skippé le questionnaire
+  static Future<bool> hasSkippedQuestionnaire() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_skippedQuestionnaireKey) ?? false;
+  }
+
+  /// Marque que l'application doit afficher une fois la recommandation personnalisée
+  static Future<void> setShowPersonalizedOnce() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_showPersonalizedOnceKey, true);
+  }
+
+  /// Consomme le flag d'affichage unique de la recommandation personnalisée
+  /// Retourne true si le flag était présent (et le supprime), sinon false
+  static Future<bool> consumeShowPersonalizedOnce() async {
+    final prefs = await SharedPreferences.getInstance();
+    final shouldShow = prefs.getBool(_showPersonalizedOnceKey) ?? false;
+    if (shouldShow) {
+      await prefs.remove(_showPersonalizedOnceKey);
+    }
+    return shouldShow;
   }
 
   /// Sauvegarde les préférences de l'utilisateur
@@ -89,6 +122,8 @@ class NewUserService {
     await prefs.remove(_isNewUserKey);
     await prefs.remove(_hasCompletedPreferencesKey);
     await prefs.remove(_userPreferencesKey);
+    await prefs.remove(_showPersonalizedOnceKey);
+    await prefs.remove(_skippedQuestionnaireKey);
   }
 
   /// Force l'affichage du questionnaire (pour les tests)

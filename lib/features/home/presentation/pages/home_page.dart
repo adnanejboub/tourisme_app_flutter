@@ -38,6 +38,7 @@ class _HomePageState extends State<HomePage> {
   List<ActivityModel> _guestCityActivities = [];
   List<ActivityModel> _guestCityMonuments = [];
   String? _userDisplayName;
+  bool _skippedQuestionnaire = false;
 
   // New user suggestions
   rec.Destination? _suggestedDestination;
@@ -62,6 +63,82 @@ class _HomePageState extends State<HomePage> {
         name.contains('quartier des habous') ||
         name.contains('médina') ||
         name.contains('kasbah');
+  }
+
+  String _normalizeCity(String input) {
+    String s = input.toLowerCase().trim();
+    s = s
+        .replaceAll('à', 'a')
+        .replaceAll('â', 'a')
+        .replaceAll('ä', 'a')
+        .replaceAll('á', 'a')
+        .replaceAll('ã', 'a')
+        .replaceAll('å', 'a')
+        .replaceAll('ç', 'c')
+        .replaceAll('é', 'e')
+        .replaceAll('è', 'e')
+        .replaceAll('ê', 'e')
+        .replaceAll('ë', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ì', 'i')
+        .replaceAll('î', 'i')
+        .replaceAll('ï', 'i')
+        .replaceAll('ñ', 'n')
+        .replaceAll('ó', 'o')
+        .replaceAll('ò', 'o')
+        .replaceAll('ô', 'o')
+        .replaceAll('ö', 'o')
+        .replaceAll('õ', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ù', 'u')
+        .replaceAll('û', 'u')
+        .replaceAll('ü', 'u')
+        .replaceAll('ý', 'y')
+        .replaceAll('ÿ', 'y')
+        .replaceAll('œ', 'oe')
+        .replaceAll('æ', 'ae');
+    s = s.replaceAll(RegExp(r"[^a-z0-9 ]"), '').replaceAll(RegExp(r"\s+"), ' ').trim();
+    return s;
+  }
+
+  List<ActivityModel> _filterActivitiesForCity(String cityName, List<ActivityModel> allActivities) {
+    final cityNorm = _normalizeCity(cityName);
+    final Map<String, List<String>> aliases = {
+      'marrakech': ['marrakesh'],
+      'fes': ['fez'],
+      'tanger': ['tangier'],
+      'ouarzazate': ['warzazat', 'warzazate'],
+      'casablanca': ['casa'],
+      'meknes': ['meknès', 'meknes'],
+      'tetouan': ['tétouan', 'tetuan'],
+      'chefchaouen': ['chaouen'],
+      'essaouira': ['mogador'],
+    };
+    final accepted = <String>{cityNorm, ...?aliases[cityNorm]?.map(_normalizeCity)};
+
+    return allActivities.where((a) {
+      final v = _normalizeCity(a.ville ?? '');
+      if (v.isEmpty) return false;
+      if (accepted.contains(v)) return true;
+      return v.contains(cityNorm) || cityNorm.contains(v);
+    }).toList();
+  }
+
+  List<ActivityModel> _fuzzyActivitiesByText(String cityName, List<ActivityModel> allActivities) {
+    final key = _normalizeCity(cityName);
+    return allActivities.where((a) {
+      final name = _normalizeCity(a.nom);
+      final desc = _normalizeCity(a.description ?? '');
+      return name.contains(key) || desc.contains(key);
+    }).toList();
+  }
+
+  List<ActivityModel> _ensureNonEmptyActivities(String cityName, List<ActivityModel> candidate, List<ActivityModel> all) {
+    if (candidate.isNotEmpty) return candidate;
+    final fuzzy = _fuzzyActivitiesByText(cityName, all);
+    if (fuzzy.isNotEmpty) return fuzzy;
+    // Last resort: return a few generic activities with images to avoid blank UI
+    return all.where((a) => (a.imageUrl != null && a.imageUrl!.isNotEmpty)).take(6).toList();
   }
 
   List<ActivityModel> _createCasablancaActivities() {
@@ -440,12 +517,20 @@ class _HomePageState extends State<HomePage> {
         final shouldShowPrefs =
             await NewUserService.shouldShowPreferencesQuestionnaire();
         final hasCompleted = await NewUserService.hasCompletedPreferences();
+        _skippedQuestionnaire = await NewUserService.hasSkippedQuestionnaire();
+        final showPersonalizedOnce = await NewUserService.consumeShowPersonalizedOnce();
         
         if (hasCompleted && !shouldShowPrefs) {
-          // Utilisateur qui a complété le questionnaire - afficher les recommandations personnalisées
-          await _loadPersonalizedRecommendations();
+          // Utilisateur a finalisé le flux d'onboarding
+          if (_skippedQuestionnaire) {
+            // Nouveau user qui a SKIPPÉ: afficher comme guest mais avec son nom
+            await _loadGuestData();
+          } else {
+            // Nouveaux qui ont répondu ET anciens utilisateurs -> ville aléatoire
+            await _loadRandomCityWithContent();
+          }
         } else {
-          // Utilisateur qui a skip le questionnaire - afficher comme un guest mais avec son nom
+          // Nouvel utilisateur qui n'a pas complété -> fallback guest (ville détectée, sinon Casa)
           await _loadGuestData();
         }
       }
@@ -454,6 +539,63 @@ class _HomePageState extends State<HomePage> {
     } finally {
       if (mounted) setState(() => _initializing = false);
     }
+  }
+
+  Future<void> _loadRandomCityWithContent() async {
+    try {
+      final cities = await _publicApi.getAllCities();
+      final activities = await _publicApi.getAllActivities();
+      if (cities.isEmpty) return;
+
+      // Choisir une ville aléatoire (éviter biais sur Casablanca si possible)
+      final rnd = DateTime.now().millisecondsSinceEpoch;
+      int idx = (rnd % cities.length).abs();
+      CityDto selected = cities[idx];
+      if (selected.nom.toLowerCase() == 'casablanca' && cities.length > 1) {
+        // Essayer une autre au hasard différente de Casablanca
+        for (int i = 0; i < cities.length; i++) {
+          final candidate = cities[(idx + 1 + i) % cities.length];
+          if (candidate.nom.toLowerCase() != 'casablanca') {
+            selected = candidate;
+            break;
+          }
+        }
+      }
+
+      // Activités de la ville (filtrage robuste + fallback fuzzy)
+      List<ActivityModel> cityActivities = _ensureNonEmptyActivities(
+        selected.nom,
+        _filterActivitiesForCity(selected.nom, activities),
+        activities,
+      );
+
+      // Enrichir uniquement si la ville est Casablanca ET que la liste est pauvre
+      if (selected.nom.toLowerCase() == 'casablanca') {
+        final hasEnough = cityActivities.length >= 3;
+        if (!hasEnough) {
+          cityActivities.addAll(_createCasablancaActivities());
+          cityActivities.addAll(_createCasablancaMonuments());
+        }
+      }
+
+      // Déduplication
+      final unique = <int, ActivityModel>{};
+      for (final a in cityActivities) {
+        unique[a.id] = a;
+      }
+      final dedup = unique.values.toList();
+
+      final activitiesOnly = dedup.where((a) => !_isMonumentActivity(a)).toList();
+      final monumentsOnly = dedup.where(_isMonumentActivity).toList();
+
+      if (mounted) {
+        setState(() {
+          _guestCity = selected;
+          _guestCityActivities = activitiesOnly;
+          _guestCityMonuments = monumentsOnly;
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadAuthenticatedUserName() async {
@@ -492,13 +634,12 @@ class _HomePageState extends State<HomePage> {
       List<ActivityModel> monuments = [];
       
       if (match != null) {
-        // Récupérer les activités de la base de données
-        cityActivities = activities
-            .where(
-              (a) =>
-                  (a.ville ?? '').toLowerCase() == match!.nom.toLowerCase(),
-            )
-            .toList();
+        // Récupérer les activités de la base de données (filtrage robuste + fallback fuzzy)
+        cityActivities = _ensureNonEmptyActivities(
+          match!.nom,
+          _filterActivitiesForCity(match!.nom, activities),
+          activities,
+        );
         
         // Si c'est Casablanca, toujours ajouter nos activités et monuments
         if (match.nom.toLowerCase() == 'casablanca') {
@@ -731,7 +872,7 @@ class _HomePageState extends State<HomePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (_guestMode.isGuestMode)
+                          if (_guestMode.isGuestMode || _skippedQuestionnaire)
                             _buildGuestBanner(colorScheme),
                           if (_initializing) LinearProgressIndicator(minHeight: 2),
                           _buildHeader(
@@ -804,23 +945,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         SizedBox(height: isDesktop ? 24 : 16),
                       ],
-                      _buildSection(
-                        localizationService.translate(
-                          'home_recommendations_title',
-                        ),
-                        recommendationsNearYou,
-                        (item) => _buildRecommendationCard(
-                          item,
-                          screenWidth,
-                          isTablet,
-                          isDesktop,
-                          colorScheme,
-                        ),
-                        screenWidth,
-                        isTablet,
-                        isDesktop,
-                        colorScheme,
-                      ),
+                      // Removed: Recommendations Near You section (per requirements)
                       _buildSection(
                         localizationService.translate('home_trending_title'),
                         trendingDestinations,
@@ -871,7 +996,12 @@ class _HomePageState extends State<HomePage> {
           SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Welcome guest • ${city}',
+              _guestMode.isGuestMode
+                  ? 'Welcome guest • ${city}'
+                  : (_skippedQuestionnaire
+                      ? 'Welcome ${_userDisplayName ?? 'User'} • ${city}'
+                      : 'Welcome ${_userDisplayName ?? 'User'} • ${city}')
+              ,
               style: TextStyle(
                 color: colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
@@ -1473,31 +1603,42 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPersonalizedCityImage(String imagePath, ColorScheme colorScheme) {
-    if (imagePath.startsWith('assets/')) {
+    // Réutiliser la logique smart asset/network comme ailleurs
+    if (ImageService.isLocalAsset(imagePath)) {
       return Image.asset(
         imagePath,
         height: 200,
         width: double.infinity,
         fit: BoxFit.cover,
       );
+    } else {
+      return Image.network(
+        imagePath,
+        height: 200,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stack) {
+          final fallback = ImageService.getCityFallbackImage();
+          if (ImageService.isLocalAsset(fallback)) {
+            return Image.asset(
+              fallback,
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            );
+          }
+          return Container(
+            height: 200,
+            color: colorScheme.onSurface.withOpacity(0.06),
+            child: Icon(
+              Icons.location_city,
+              size: 48,
+              color: colorScheme.onSurface.withOpacity(0.5),
+            ),
+          );
+        },
+      );
     }
-    return Image.network(
-      imagePath,
-      height: 200,
-      width: double.infinity,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stack) {
-        return Container(
-          height: 200,
-          color: colorScheme.onSurface.withOpacity(0.06),
-          child: Icon(
-            Icons.location_city,
-            size: 48,
-            color: colorScheme.onSurface.withOpacity(0.5),
-          ),
-        );
-      },
-    );
   }
 
   Widget _buildSuggestedDestinationSection(
@@ -2021,7 +2162,9 @@ class _HomePageState extends State<HomePage> {
           Text(
             _guestMode.isGuestMode
                 ? 'Welcome guest'
-                : 'Welcome, ${_userDisplayName ?? 'User'}',
+                : (_skippedQuestionnaire
+                    ? 'Welcome ${_userDisplayName ?? 'User'}'
+                    : 'Welcome ${_userDisplayName ?? 'User'}'),
             style: TextStyle(
               fontSize: subtitleSize,
               fontWeight: FontWeight.w600,
