@@ -36,7 +36,7 @@ class MarketplacePage extends StatelessWidget {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   }
                   final categories = snapshot.data ?? [];
-                  return CategoriesWidget(categories: categories);
+                  return CategoriesWidget(categories: categories); // <-- Remove SingleChildScrollView
                 },
               ),
               const SizedBox(height: 8),
