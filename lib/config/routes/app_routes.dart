@@ -20,10 +20,10 @@ import 'package:tourisme_app_flutter/features/explore/presentation/pages/city_de
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/search_explore_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/filter_explore_page.dart';
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/events_explore_page.dart';
-import 'package:tourisme_app_flutter/features/explore/presentation/pages/itinerary_planning_page.dart';
+// import 'package:tourisme_app_flutter/features/explore/presentation/pages/itinerary_planning_page.dart'; // Page supprimée
 import 'package:tourisme_app_flutter/features/explore/presentation/pages/city_selection_page.dart';
-import 'package:tourisme_app_flutter/features/products/presentation/pages/products_page.dart';
 import 'package:tourisme_app_flutter/features/saved/presentation/pages/saved_page.dart';
+import 'package:tourisme_app_flutter/features/products/presentation/pages/products_page.dart';
 import 'package:tourisme_app_flutter/features/profile/presentation/pages/profile_page.dart';
 import 'package:tourisme_app_flutter/features/profile/presentation/pages/reservations_page.dart';
 import 'package:tourisme_app_flutter/features/profile/presentation/pages/edit_profile_page.dart';
@@ -141,9 +141,11 @@ class AppRoutes {
         return _buildRoute(const EventsExplorePage(), settings);
 
       case itineraryPlanning:
-        final args = settings.arguments as Map<String, dynamic>?;
-        final destination = args?['destination'] as Map<String, dynamic>?;
-        return _buildRoute(ItineraryPlanningPage(destination: destination), settings);
+        // Page supprimée - rediriger vers la page de création de trip
+        return _buildRoute(const SavedPage(), settings);
+        // final args = settings.arguments as Map<String, dynamic>?;
+        // final destination = args?['destination'] as Map<String, dynamic>?;
+        // return _buildRoute(ItineraryPlanningPage(destination: destination), settings);
 
       case citySelection:
         return _buildRoute(const CitySelectionPage(), settings);

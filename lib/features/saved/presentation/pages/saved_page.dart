@@ -11,7 +11,7 @@ import '../../data/services/wishlist_service.dart';
 import '../../../explore/data/services/public_api_service.dart';
 import 'package:tourisme_app_flutter/domain/product/entities/product.dart';
 import 'package:tourisme_app_flutter/features/marketplace/product_detail/pages/product_detail.dart';
-import 'create_edit_trip_page.dart';
+import 'trip_form_page.dart';
 import 'trip_details_page.dart';
 
 class SavedPage extends StatefulWidget {
@@ -43,6 +43,13 @@ class _SavedPageState extends State<SavedPage>
     _loadTrips();
     _loadFavorites();
     WishlistService.changes.addListener(_onFavoritesChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Recharger les trips quand on revient à cette page
+    _loadTrips();
   }
 
   Future<void> _loadFavorites() async {
@@ -965,94 +972,103 @@ class _SavedPageState extends State<SavedPage>
   }
 
   Future<void> _createNewTrip() async {
-    executeWithGuestCheck('save_items', () async {
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => CreateEditTripPage()),
-      );
+    // Permettre la création de trip même en mode invité
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TripFormPage(
+          trip: null, // Mode création
+        ),
+      ),
+    );
 
-      if (result != null) {
-        await _loadTrips(); // Recharger la liste des trips
-      }
-    });
+    if (result != null) {
+      await _loadTrips(); // Recharger la liste des trips
+    }
   }
 
   Future<void> _editTrip(TripModel trip) async {
-    executeWithGuestCheck('save_items', () async {
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => TripDetailsPage(trip: trip)),
-      );
+    // Permettre l'édition de trip même en mode invité
+    // Récupérer les activités de la ville pour ce trip
+    final cityActivities = await _tripService.getCityActivities(trip.id);
+    
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TripFormPage(
+          trip: trip,
+          cityActivities: cityActivities,
+        ),
+      ),
+    );
 
-      if (result != null) {
-        await _loadTrips(); // Recharger la liste des trips
-      }
-    });
+    if (result != null) {
+      await _loadTrips(); // Recharger la liste des trips
+    }
   }
 
   Future<void> _deleteTrip(
     TripModel trip,
     LocalizationService localizationService,
   ) async {
-    executeWithGuestCheck('save_items', () async {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(
-            localizationService.translate('delete_trip') ?? 'Delete Trip',
-          ),
-          content: Text(
-            localizationService.translate('delete_trip_confirmation') ??
-                'Are you sure you want to delete this trip? This action cannot be undone.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(localizationService.translate('cancel') ?? 'Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: Text(localizationService.translate('delete') ?? 'Delete'),
-            ),
-          ],
+    // Permettre la suppression de trip même en mode invité
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          localizationService.translate('delete_trip') ?? 'Delete Trip',
         ),
-      );
+        content: Text(
+          localizationService.translate('delete_trip_confirmation') ??
+              'Are you sure you want to delete this trip? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(localizationService.translate('cancel') ?? 'Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(localizationService.translate('delete') ?? 'Delete'),
+          ),
+        ],
+      ),
+    );
 
-      if (confirmed == true) {
-        try {
-          final tripService = TripService();
-          await tripService.deleteTrip(trip.id);
+    if (confirmed == true) {
+      try {
+        final tripService = TripService();
+        await tripService.deleteTrip(trip.id);
 
-          // Recharger la liste des trips
-          await _loadTrips();
+        // Recharger la liste des trips
+        await _loadTrips();
 
-          // Afficher un message de succès
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  localizationService.translate('trip_deleted_successfully') ??
-                      'Trip deleted successfully',
-                ),
-                backgroundColor: Colors.green,
+        // Afficher un message de succès
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                localizationService.translate('trip_deleted_successfully') ??
+                    'Trip deleted successfully',
               ),
-            );
-          }
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  '${localizationService.translate('error_deleting_trip') ?? 'Error deleting trip'}: $e',
-                ),
-                backgroundColor: Colors.red,
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${localizationService.translate('error_deleting_trip') ?? 'Error deleting trip'}: $e',
               ),
-            );
-          }
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       }
-    });
+    }
   }
 
   /// Smart image widget that handles both local assets and network images

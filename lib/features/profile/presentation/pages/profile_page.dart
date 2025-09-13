@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
 import '../../../../core/constants/constants.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/services/localization_service.dart';
@@ -9,6 +10,8 @@ import '../../../../config/routes/app_routes.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/domain/entities/auth_entities.dart';
 import '../bloc/profile_bloc.dart';
+import '../widgets/profile_avatar.dart';
+import '../../../../core/services/profile_image_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -19,17 +22,36 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> with GuestModeMixin {
   bool _isRefreshing = false;
+  File? _selectedProfileImage;
+  final ProfileImageService _profileImageService = ProfileImageService();
 
   @override
   void initState() {
     super.initState();
+    // Charger l'image de profil existante
+    _profileImageService.loadProfileImage();
+    // Écouter les changements
+    _profileImageService.addListener(_onProfileImageChanged);
+    
     // Charger le profil utilisateur au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadUserProfile();
     });
   }
 
+  @override
+  void dispose() {
+    _profileImageService.removeListener(_onProfileImageChanged);
+    super.dispose();
+  }
 
+  void _onProfileImageChanged() {
+    if (mounted) {
+      setState(() {
+        _selectedProfileImage = _profileImageService.currentProfileImage;
+      });
+    }
+  }
 
   void _loadUserProfile() {
     context.read<AuthBloc>().add(GetCurrentUserRequested());
@@ -45,6 +67,32 @@ class _ProfilePageState extends State<ProfilePage> with GuestModeMixin {
     if (authState is AuthAuthenticated) {
       context.read<ProfileBloc>().add(RefreshProfile());
     }
+  }
+
+  void _onImageSelected(File? image) {
+    setState(() {
+      _selectedProfileImage = image;
+    });
+    
+    // Sauvegarder dans le service partagé pour synchronisation
+    if (image != null) {
+      _profileImageService.saveProfileImage(image);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Profile image updated successfully!'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _saveProfileImage(File image) {
+    // TODO: Implémenter la sauvegarde de l'image
+    // Vous pouvez utiliser SharedPreferences pour sauvegarder le chemin
+    // ou uploader l'image vers un serveur
+    print('Saving profile image: ${image.path}');
   }
 
   void _showLogoutDialog(BuildContext context, LocalizationService localizationService) {
@@ -250,36 +298,10 @@ class _ProfilePageState extends State<ProfilePage> with GuestModeMixin {
                                 const SizedBox(height: 24),
                                 // Avatar
                                 Center(
-                                  child: Stack(
-                                    alignment: Alignment.bottomRight,
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 48,
-                                        backgroundColor: colorScheme.surface,
-                                        child: Icon(Icons.person, size: 60, color: colorScheme.onSurface.withOpacity(0.6)),
-                                      ),
-                                      Positioned(
-                                        bottom: 0,
-                                        right: 0,
-                                        child: GestureDetector(
-                                          onTap: () {},
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color: colorScheme.surface,
-                                              shape: BoxShape.circle,
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black.withOpacity(0.1),
-                                                  blurRadius: 4,
-                                                ),
-                                              ],
-                                            ),
-                                            padding: const EdgeInsets.all(6),
-                                            child: Icon(Icons.camera_alt, size: 20, color: colorScheme.primary),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                  child: ProfileAvatar(
+                                    imageUrl: null,
+                                    onImageSelected: _onImageSelected,
+                                    isGuest: authState is! AuthAuthenticated, // Passer true si c'est un Guest
                                   ),
                                 ),
                                 const SizedBox(height: 18),

@@ -16,6 +16,12 @@ import '../../../auth/data/datasources/auth_remote_data_source.dart';
 import '../../../explore/presentation/pages/city_details_page.dart';
 import '../../../explore/presentation/pages/details_explore.dart';
 import '../../../explore/presentation/pages/search_explore_page.dart';
+import '../../../explore/presentation/pages/accommodation_details_page.dart';
+import '../../../explore/presentation/pages/service_details_page.dart';
+import '../../../explore/presentation/pages/event_details_page.dart';
+import '../../../../core/services/moroccan_accommodations_service.dart';
+import '../../../../core/services/moroccan_services_service.dart';
+import '../../../../core/services/moroccan_events_service.dart';
 import '../../../../shared/widgets/notification_icon.dart';
 import '../../../../shared/widgets/notification_drawer.dart';
 import '../../../../core/services/notification_service.dart';
@@ -37,6 +43,9 @@ class _HomePageState extends State<HomePage> {
   CityDto? _guestCity;
   List<ActivityModel> _guestCityActivities = [];
   List<ActivityModel> _guestCityMonuments = [];
+  List<Map<String, dynamic>> _guestCityAccommodations = [];
+  List<Map<String, dynamic>> _guestCityServices = [];
+  List<Map<String, dynamic>> _guestCityEvents = [];
   String? _userDisplayName;
   bool _skippedQuestionnaire = false;
 
@@ -588,11 +597,22 @@ class _HomePageState extends State<HomePage> {
       final activitiesOnly = dedup.where((a) => !_isMonumentActivity(a)).toList();
       final monumentsOnly = dedup.where(_isMonumentActivity).toList();
 
+      // Charger les hébergements, services et événements pour la ville
+      final accommodationsService = MoroccanAccommodationsService();
+      final servicesService = MoroccanServicesService();
+      final eventsService = MoroccanEventsService();
+      final accommodations = accommodationsService.getAccommodationsByCity(selected.nom);
+      final services = servicesService.getServicesByCity(selected.nom);
+      final events = eventsService.getEventsByCity(selected.nom);
+
       if (mounted) {
         setState(() {
           _guestCity = selected;
           _guestCityActivities = activitiesOnly;
           _guestCityMonuments = monumentsOnly;
+          _guestCityAccommodations = accommodations;
+          _guestCityServices = services;
+          _guestCityEvents = events;
         });
       }
     } catch (_) {}
@@ -907,6 +927,21 @@ class _HomePageState extends State<HomePage> {
                         ),
                         SizedBox(height: isDesktop ? 24 : 16),
                         _buildGuestMonumentsSection(
+                          colorScheme,
+                          localizationService,
+                        ),
+                        SizedBox(height: isDesktop ? 24 : 16),
+                        _buildGuestAccommodationsSection(
+                          colorScheme,
+                          localizationService,
+                        ),
+                        SizedBox(height: isDesktop ? 24 : 16),
+                        _buildGuestServicesSection(
+                          colorScheme,
+                          localizationService,
+                        ),
+                        SizedBox(height: isDesktop ? 24 : 16),
+                        _buildGuestEventsSection(
                           colorScheme,
                           localizationService,
                         ),
@@ -1450,6 +1485,216 @@ class _HomePageState extends State<HomePage> {
                               ),
                               child: Text(
                                 'Monument historique',
+                                style: TextStyle(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGuestAccommodationsSection(
+    ColorScheme colorScheme,
+    LocalizationService localizationService,
+  ) {
+    // Use the dedicated accommodations list
+    final accommodations = _guestCityAccommodations;
+
+    if (accommodations.isEmpty) return SizedBox.shrink();
+
+    final title =
+        'Hébergements à ${_guestCity?.nom ?? (_locationInfo?.city ?? '')}';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                // Naviguer vers la page explore avec la section hébergements
+                Navigator.pushNamed(
+                  context,
+                  '/explore',
+                  arguments: {'initialTab': 'accommodations'},
+                );
+              },
+              child: Text(
+                'Voir tout',
+                style: TextStyle(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 12),
+        SizedBox(
+          height: 280,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: BouncingScrollPhysics(),
+            itemCount: accommodations.length,
+            separatorBuilder: (_, __) => SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final accommodation = accommodations[index];
+              return InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AccommodationDetailsPage(
+                        accommodation: accommodation,
+                      ),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  width: 280,
+                  height: 260,
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
+                        child: _buildGenericSmartImage(
+                          accommodation['imageUrl'] ?? '',
+                          280,
+                          140,
+                          colorScheme,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              accommodation['nom'] ?? 'Hébergement',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: colorScheme.onSurface,
+                                fontSize: 14,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            if (accommodation['type'] != null)
+                              Text(
+                                accommodation['type'],
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: colorScheme.primary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  size: 12,
+                                  color: colorScheme.onSurface.withOpacity(0.6),
+                                ),
+                                SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    accommodation['adresse'] ?? accommodation['ville'] ?? 'Localisation inconnue',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: colorScheme.onSurface.withOpacity(0.6),
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                if (accommodation['prixMin'] != null || accommodation['prix'] != null)
+                                  Text(
+                                    'À partir de ${accommodation['prixMin'] ?? accommodation['prix']} ${accommodation['devise'] ?? 'MAD'}/nuit',
+                                    style: TextStyle(
+                                      color: colorScheme.primary,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                if (accommodation['notesMoyennes'] != null)
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.star,
+                                        size: 12,
+                                        color: Colors.amber,
+                                      ),
+                                      SizedBox(width: 2),
+                                      Text(
+                                        '${accommodation['notesMoyennes']}',
+                                        style: TextStyle(
+                                          color: colorScheme.onSurface.withOpacity(0.8),
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                            SizedBox(height: 8),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                accommodation['categorie'] ?? 'Hébergement',
                                 style: TextStyle(
                                   color: colorScheme.primary,
                                   fontWeight: FontWeight.w500,
@@ -2702,6 +2947,449 @@ Téléchargez l'application de tourisme pour découvrir plus d'activités incroy
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGuestServicesSection(
+    ColorScheme colorScheme,
+    LocalizationService localizationService,
+  ) {
+    final services = _guestCityServices;
+    if (services.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Services à ${_guestCity?.nom ?? 'cette ville'}',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SearchExplorePage(),
+                    ),
+                  );
+                },
+                child: Text('Voir tout'),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 200,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: services.length,
+            itemBuilder: (context, index) {
+              final service = services[index];
+              return _buildServiceCard(service, colorScheme);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildServiceCard(Map<String, dynamic> service, ColorScheme colorScheme) {
+    return Container(
+      width: 280,
+      margin: const EdgeInsets.only(right: 16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ServiceDetailsPage(
+                service: service,
+              ),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image
+            Container(
+              height: 120,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                color: colorScheme.surfaceVariant,
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                child: service['imageUrl'] != null
+                    ? Image.network(
+                        service['imageUrl'],
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.room_service,
+                            color: colorScheme.onSurfaceVariant,
+                            size: 40,
+                          );
+                        },
+                      )
+                    : Icon(
+                        Icons.room_service,
+                        color: colorScheme.onSurfaceVariant,
+                        size: 40,
+                      ),
+              ),
+            ),
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    service['nom'] ?? 'Service',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  if (service['type'] != null)
+                    Text(
+                      service['type'],
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 14,
+                        color: colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          service['ville'] ?? 'Localisation inconnue',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: colorScheme.onSurface.withOpacity(0.6),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      if (service['prixMin'] != null || service['prix'] != null)
+                        Text(
+                          service['prixMin'] != null && service['prixMin'] > 0
+                              ? 'À partir de ${service['prixMin']} ${service['devise'] ?? 'MAD'}'
+                              : 'Gratuit',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      const Spacer(),
+                      if (service['notesMoyennes'] != null)
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.star,
+                              size: 14,
+                              color: Colors.amber,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${service['notesMoyennes']}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colorScheme.onSurface.withOpacity(0.8),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGuestEventsSection(
+    ColorScheme colorScheme,
+    LocalizationService localizationService,
+  ) {
+    final events = _guestCityEvents;
+    if (events.isEmpty) return const SizedBox.shrink();
+    
+    final isDesktop = MediaQuery.of(context).size.width >= 1024;
+
+    return Container(
+      padding: EdgeInsets.all(isDesktop ? 24 : 16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Événements à ${_guestCity?.nom ?? ''}',
+                style: TextStyle(
+                  fontSize: isDesktop ? 20 : 18,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SearchExplorePage(),
+                    ),
+                  );
+                },
+                child: Text(
+                  'Voir tout',
+                  style: TextStyle(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 200,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: events.length,
+              itemBuilder: (context, index) {
+                final event = events[index];
+                return Container(
+                  width: 280,
+                  margin: const EdgeInsets.only(right: 16),
+                  child: Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EventDetailsPage(
+                              event: event,
+                            ),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Image
+                          Container(
+                            height: 120,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(12),
+                              ),
+                              color: colorScheme.surfaceVariant,
+                            ),
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(12),
+                              ),
+                              child: event['imageUrl'] != null
+                                  ? (event['imageUrl'].toString().startsWith('assets/')
+                                      ? Image.asset(
+                                          event['imageUrl'],
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Icon(
+                                              Icons.event,
+                                              color: colorScheme.onSurfaceVariant,
+                                              size: 40,
+                                            );
+                                          },
+                                        )
+                                      : Image.network(
+                                          event['imageUrl'],
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Icon(
+                                              Icons.event,
+                                              color: colorScheme.onSurfaceVariant,
+                                              size: 40,
+                                            );
+                                          },
+                                        ))
+                                  : Icon(
+                                      Icons.event,
+                                      color: colorScheme.onSurfaceVariant,
+                                      size: 40,
+                                    ),
+                            ),
+                          ),
+                          // Content
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    event['nom'] ?? event['name'] ?? 'Événement',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSurface,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  if (event['type'] != null)
+                                    Text(
+                                      event['type'],
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: colorScheme.primary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  const Spacer(),
+                                  Row(
+                                    children: [
+                                      if (event['prixMin'] != null && event['prixMin'] > 0) ...[
+                                        Icon(
+                                          Icons.attach_money,
+                                          size: 12,
+                                          color: colorScheme.primary,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'À partir de ${event['prixMin']} ${event['devise'] ?? 'MAD'}',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: colorScheme.primary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ] else ...[
+                                        Icon(
+                                          Icons.free_breakfast,
+                                          size: 12,
+                                          color: Colors.green,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Gratuit',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                      const Spacer(),
+                                      if (event['notesMoyennes'] != null) ...[
+                                        Icon(
+                                          Icons.star,
+                                          size: 12,
+                                          color: Colors.amber,
+                                        ),
+                                        const SizedBox(width: 2),
+                                        Text(
+                                          '${event['notesMoyennes']}',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: colorScheme.onSurface.withOpacity(0.8),
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],

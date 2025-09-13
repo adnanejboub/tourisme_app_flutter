@@ -118,20 +118,34 @@ class MonumentDetailsPage extends StatelessWidget {
       );
     }
 
-    return CachedNetworkImage(
-      imageUrl: imageUrl,
-      fit: BoxFit.cover,
-      placeholder: (context, url) => Container(
-        color: Colors.grey[300],
-        child: const Center(child: CircularProgressIndicator()),
-      ),
-      errorWidget: (context, url, error) => Container(
-        color: Colors.grey[300],
-        child: const Center(
-          child: Icon(Icons.location_city, size: 80, color: Colors.grey),
+    // Vérifier si c'est une image locale ou une URL
+    if (imageUrl.startsWith('assets/')) {
+      return Image.asset(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: Colors.grey[300],
+          child: const Center(
+            child: Icon(Icons.location_city, size: 80, color: Colors.grey),
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      return CachedNetworkImage(
+        imageUrl: imageUrl,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          color: Colors.grey[300],
+          child: const Center(child: CircularProgressIndicator()),
+        ),
+        errorWidget: (context, url, error) => Container(
+          color: Colors.grey[300],
+          child: const Center(
+            child: Icon(Icons.location_city, size: 80, color: Colors.grey),
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildGradientOverlay() {

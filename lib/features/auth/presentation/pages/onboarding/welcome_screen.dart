@@ -7,6 +7,7 @@ import '../../widgets/custom_button_widget.dart';
 import '../../../../../core/services/localization_service.dart';
 import '../../../../../core/providers/theme_provider.dart';
 import '../../../../../core/services/guest_mode_service.dart';
+import '../../../../explore/presentation/pages/city_details_page.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -42,21 +43,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.0, 0.8, curve: Curves.easeOut),
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.8, curve: Curves.easeOut),
+      ),
+    );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.5),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.2, 1.0, curve: Curves.easeOutBack),
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: const Interval(0.2, 1.0, curve: Curves.easeOutBack),
+          ),
+        );
 
     _animationController.forward();
   }
@@ -158,21 +158,24 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     final isDarkMode = themeProvider.isDarkMode;
     final dimensions = _getResponsiveDimensions(context);
     final deviceType = _getDeviceType(context);
-    final isLandscape = MediaQuery.of(context).size.width > MediaQuery.of(context).size.height;
+    final isLandscape =
+        MediaQuery.of(context).size.width > MediaQuery.of(context).size.height;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Container(
-        decoration: BoxDecoration(
-          gradient: _getBackgroundGradient(isDarkMode),
-        ),
+        decoration: BoxDecoration(gradient: _getBackgroundGradient(isDarkMode)),
         child: SafeArea(
           child: Center(
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: dimensions.maxWidth,
+              constraints: BoxConstraints(maxWidth: dimensions.maxWidth),
+              child: _buildResponsiveLayout(
+                context,
+                dimensions,
+                deviceType,
+                isDarkMode,
+                isLandscape,
               ),
-              child: _buildResponsiveLayout(context, dimensions, deviceType, isDarkMode, isLandscape),
             ),
           ),
         ),
@@ -180,11 +183,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
-  Widget _buildResponsiveLayout(BuildContext context, ResponsiveDimensions dimensions,
-      DeviceType deviceType, bool isDarkMode, bool isLandscape) {
-
+  Widget _buildResponsiveLayout(
+    BuildContext context,
+    ResponsiveDimensions dimensions,
+    DeviceType deviceType,
+    bool isDarkMode,
+    bool isLandscape,
+  ) {
     // Layout spécial pour les systèmes de voiture et paysage
-    if (deviceType == DeviceType.car || (isLandscape && deviceType == DeviceType.tablet)) {
+    if (deviceType == DeviceType.car ||
+        (isLandscape && deviceType == DeviceType.tablet)) {
       return _buildLandscapeLayout(dimensions, isDarkMode);
     }
 
@@ -192,7 +200,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     return _buildPortraitLayout(dimensions, isDarkMode);
   }
 
-  Widget _buildLandscapeLayout(ResponsiveDimensions dimensions, bool isDarkMode) {
+  Widget _buildLandscapeLayout(
+    ResponsiveDimensions dimensions,
+    bool isDarkMode,
+  ) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: dimensions.horizontalPadding),
       child: Column(
@@ -250,16 +261,19 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
-  Widget _buildPortraitLayout(ResponsiveDimensions dimensions, bool isDarkMode) {
+  Widget _buildPortraitLayout(
+    ResponsiveDimensions dimensions,
+    bool isDarkMode,
+  ) {
     return Column(
       children: [
         // Header
         Padding(
           padding: EdgeInsets.fromLTRB(
-              dimensions.horizontalPadding,
-              dimensions.spacingMedium,
-              dimensions.horizontalPadding,
-              0
+            dimensions.horizontalPadding,
+            dimensions.spacingMedium,
+            dimensions.horizontalPadding,
+            0,
           ),
           child: _buildHeader(dimensions, isDarkMode),
         ),
@@ -267,7 +281,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         // Contenu principal
         Expanded(
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: dimensions.horizontalPadding),
+            padding: EdgeInsets.symmetric(
+              horizontal: dimensions.horizontalPadding,
+            ),
             child: AnimatedBuilder(
               animation: _animationController,
               builder: (context, child) {
@@ -311,7 +327,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           child: Text(
             _localizationService.translate('skip'),
             style: TextStyle(
-              color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+              color: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.color?.withOpacity(0.7),
               fontSize: dimensions.bodyFontSize,
               fontWeight: FontWeight.w500,
             ),
@@ -327,10 +345,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       return const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [
-          Color(0xFF1E1E1E),
-          Color(0xFF121212),
-        ],
+        colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
       );
     } else {
       return AppTheme.backgroundGradient;
@@ -389,7 +404,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.explore,
+                        Icons.star,
                         size: dimensions.heroImageSize * 0.3,
                         color: Colors.white,
                       ),
@@ -434,11 +449,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             _localizationService.translate('welcome_subtitle'),
             style: TextStyle(
               fontSize: dimensions.subtitleFontSize,
-              color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
-              height: 1.4,
+              color: Theme.of(
+                context,
+              ).colorScheme.onBackground.withOpacity(0.7),
+              height: 1.2, // Réduire l'espacement entre les lignes
             ),
             textAlign: TextAlign.center,
-            maxLines: 4,
+            maxLines: 1, // Forcer sur une seule ligne
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -480,34 +497,81 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // New Trip Button
         SizedBox(
           width: double.infinity,
-          child: CustomButtonWidget(
-            text: _localizationService.translate('get_started'),
-            onPressed: () => AppRoutes.navigateToLogin(context),
-            isLoading: false,
-            buttonType: ButtonType.primary,
+          child: ElevatedButton(
+            onPressed: () => _navigateToCasablanca(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _getPrimaryColor(isDarkMode),
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.flight, color: Colors.white),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'New Trip',
+                    style: TextStyle(
+                      fontSize: dimensions.buttonFontSize,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Icon(Icons.arrow_forward, color: Colors.white),
+              ],
+            ),
           ),
         ),
         SizedBox(height: dimensions.spacingMedium),
-        TextButton(
-          onPressed: () => AppRoutes.navigateToLogin(context),
-          child: RichText(
-            text: TextSpan(
-              text: _localizationService.translate('already_account'),
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
-                fontSize: dimensions.bodyFontSize * 0.9,
+        // Explore Button
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () => AppRoutes.navigateToLogin(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: _getPrimaryColor(isDarkMode).withOpacity(0.3),
+                ),
               ),
+              elevation: 1,
+            ),
+            child: Row(
               children: [
-                TextSpan(
-                  text: ' ${_localizationService.translate('log_in')}',
-                  style: TextStyle(
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: _getPrimaryColor(isDarkMode).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.explore,
                     color: _getPrimaryColor(isDarkMode),
-                    fontWeight: FontWeight.w600,
-                    fontSize: dimensions.bodyFontSize * 0.9,
+                    size: 20,
                   ),
                 ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Explore',
+                    style: TextStyle(
+                      fontSize: dimensions.buttonFontSize,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Icon(Icons.arrow_forward, color: Colors.black),
               ],
             ),
           ),
@@ -520,10 +584,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   LinearGradient _getPrimaryGradient(bool isDarkMode) {
     if (isDarkMode) {
       return LinearGradient(
-        colors: [
-          Colors.blue.shade400,
-          Colors.blue.shade600,
-        ],
+        colors: [Colors.blue.shade400, Colors.blue.shade600],
       );
     } else {
       return AppTheme.primaryGradient;
@@ -549,15 +610,105 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   Future<void> _handleSkip() async {
     // Activer le mode invité
     _guestModeService.enableGuestMode();
-    
+
     // Afficher un message informatif
     if (!mounted) return;
-    
+
     _guestModeService.showGuestModeInfo(context);
 
     // Naviguer vers la page principale en mode invité
     if (!mounted) return;
     AppRoutes.navigateToHome(context);
+  }
+
+  void _navigateToCasablanca(BuildContext context) async {
+    // Créer les données de base de Casablanca
+    final casablancaData = {
+      'id': 1,
+      'nom': 'Casablanca',
+      'description': 'La plus grande ville du Maroc et son centre économique, connue pour sa mosquée Hassan II et son architecture moderne.',
+      'imageUrl': 'assets/images/cities/casablanca.jpg',
+      'latitude': 33.5731,
+      'longitude': -7.5898,
+      'pays': 'Maroc',
+      'region': 'Casablanca-Settat',
+      'population': '3.4M',
+      'superficie': '220 km²',
+      'climat': 'Méditerranéen',
+      'langue': 'Arabe, Français',
+      'monnaie': 'Dirham marocain (MAD)',
+      'fuseau_horaire': 'UTC+1',
+      'code_telephonique': '+212',
+      'aeroport': 'Aéroport Mohammed V',
+      'gare': 'Gare Casa-Port',
+      'attractions_principales': [
+        'Mosquée Hassan II',
+        'Place Mohammed V',
+        'Corniche de Casablanca',
+        'Marché Central',
+        'Quartier Habous',
+      ],
+      'activites': [
+        'Visite de la mosquée Hassan II',
+        'Promenade sur la Corniche',
+        'Shopping au Marché Central',
+        'Découverte du quartier Habous',
+        'Visite du Parc de la Ligue Arabe',
+      ],
+      'specialites_culinaires': [
+        'Pastilla',
+        'Tajine',
+        'Couscous',
+        'Thé à la menthe',
+        'Pâtisseries marocaines',
+      ],
+      'conseils_voyage': [
+        'Visitez la mosquée Hassan II tôt le matin',
+        'Explorez le quartier Habous pour l\'artisanat',
+        'Profitez du coucher de soleil sur la Corniche',
+        'Goûtez aux spécialités locales au Marché Central',
+      ],
+      'transport': ['Tramway', 'Bus', 'Taxi', 'Location de voiture', 'Vélo'],
+      'hebergement': [
+        'Hôtels de luxe',
+        'Riads traditionnels',
+        'Auberges de jeunesse',
+        'Appartements de location',
+      ],
+      'shopping': [
+        'Marché Central',
+        'Quartier Habous',
+        'Centre commercial Morocco Mall',
+        'Souks traditionnels',
+      ],
+      'vie_nocturne': ['Bars et clubs', 'Restaurants', 'Théâtres', 'Cinémas'],
+      'sante_securite': [
+        'Hôpitaux modernes',
+        'Pharmacies',
+        'Police touristique',
+        'Services d\'urgence',
+      ],
+      'budget': [
+        'Hébergement: 200-800 MAD/nuit',
+        'Repas: 50-200 MAD',
+        'Transport: 10-50 MAD',
+        'Activités: 100-300 MAD',
+      ],
+      'meilleure_periode': 'Mars à Mai, Septembre à Novembre',
+      'duree_recommandee': '2-3 jours',
+      'niveau_budget': 'Moyen à Élevé',
+      'type_voyage': 'Urbain, Culturel, Business',
+      'accessibilite': 'Bonne',
+      'langues_parlees': ['Arabe', 'Français', 'Anglais'],
+    };
+
+    // Naviguer vers la page de détails de Casablanca
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CityDetailsPage(city: casablancaData),
+      ),
+    );
   }
 
   @override
@@ -569,12 +720,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 }
 
 // Énumération pour les types d'appareils
-enum DeviceType {
-  phone,
-  tablet,
-  desktop,
-  car,
-}
+enum DeviceType { phone, tablet, desktop, car }
 
 // Classe pour gérer les dimensions responsives
 class ResponsiveDimensions {

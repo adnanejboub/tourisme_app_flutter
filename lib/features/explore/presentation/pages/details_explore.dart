@@ -3,16 +3,17 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
-import 'itinerary_planning_page.dart';
+// import 'itinerary_planning_page.dart'; // Page supprimée
 import '../../../saved/data/services/wishlist_service.dart';
+import '../../../saved/presentation/pages/saved_page.dart';
+import '../../../saved/data/services/trip_service.dart';
+import '../../../saved/data/models/trip_model.dart';
 
 class DetailsExplorePage extends StatefulWidget {
   final Map<String, dynamic> destination;
 
-  const DetailsExplorePage({
-    Key? key,
-    required this.destination,
-  }) : super(key: key);
+  const DetailsExplorePage({Key? key, required this.destination})
+    : super(key: key);
 
   @override
   State<DetailsExplorePage> createState() => _DetailsExplorePageState();
@@ -25,7 +26,7 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Consumer<LocalizationService>(
       builder: (context, localizationService, child) {
         return Scaffold(
@@ -43,7 +44,10 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
     );
   }
 
-  Widget _buildSliverAppBar(LocalizationService localizationService, ColorScheme colorScheme) {
+  Widget _buildSliverAppBar(
+    LocalizationService localizationService,
+    ColorScheme colorScheme,
+  ) {
     return SliverAppBar(
       expandedHeight: 300,
       floating: false,
@@ -73,7 +77,9 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
             final type = (widget.destination['type'] as String?) ?? 'city';
             if (id == null) return;
             final prev = isFavorite;
-            setState(() { isFavorite = !prev; });
+            setState(() {
+              isFavorite = !prev;
+            });
             try {
               await WishlistService.saveSnapshot(
                 type: type,
@@ -81,20 +87,35 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
                 data: {
                   'id': id,
                   'name': widget.destination['name'] ?? '',
-                  'image': widget.destination['image'] ?? widget.destination['imageUrl'] ?? '',
+                  'image':
+                      widget.destination['image'] ??
+                      widget.destination['imageUrl'] ??
+                      '',
                 },
               );
-              final res = await WishlistService().toggleFavorite(type: type, itemId: id);
+              final res = await WishlistService().toggleFavorite(
+                type: type,
+                itemId: id,
+              );
               final action = res['action'] as String?;
               final added = action == 'added';
               if (mounted) {
-                setState(() { isFavorite = added; });
+                setState(() {
+                  isFavorite = added;
+                });
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(added ? 'Added to favorites' : 'Removed from favorites')),
+                  SnackBar(
+                    content: Text(
+                      added ? 'Added to favorites' : 'Removed from favorites',
+                    ),
+                  ),
                 );
               }
             } catch (e) {
-              if (mounted) setState(() { isFavorite = prev; });
+              if (mounted)
+                setState(() {
+                  isFavorite = prev;
+                });
               if (e is UnauthorizedException && mounted) {
                 Navigator.pushNamed(context, '/login');
               }
@@ -102,10 +123,7 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
           },
         ),
         IconButton(
-          icon: Icon(
-            Icons.share,
-            color: colorScheme.onBackground,
-          ),
+          icon: Icon(Icons.share, color: colorScheme.onBackground),
           onPressed: () => _showShareOptions(),
         ),
       ],
@@ -114,7 +132,10 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
           fit: StackFit.expand,
           children: [
             _buildSmartImage(
-              imageUrl: widget.destination['image'] ?? widget.destination['imageUrl'] ?? '',
+              imageUrl:
+                  widget.destination['image'] ??
+                  widget.destination['imageUrl'] ??
+                  '',
               colorScheme: colorScheme,
             ),
             Container(
@@ -122,10 +143,7 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.3),
-                  ],
+                  colors: [Colors.transparent, Colors.black.withOpacity(0.3)],
                 ),
               ),
             ),
@@ -135,7 +153,10 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
     );
   }
 
-  Widget _buildContent(LocalizationService localizationService, ColorScheme colorScheme) {
+  Widget _buildContent(
+    LocalizationService localizationService,
+    ColorScheme colorScheme,
+  ) {
     return Padding(
       padding: EdgeInsets.all(24),
       child: Column(
@@ -158,15 +179,20 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
     );
   }
 
-  Widget _buildDestinationInfo(LocalizationService localizationService, ColorScheme colorScheme) {
+  Widget _buildDestinationInfo(
+    LocalizationService localizationService,
+    ColorScheme colorScheme,
+  ) {
     // Vérifier si c'est une activité ou une ville
     final isActivity = widget.destination['categorie'] != null;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          widget.destination['title'] ?? widget.destination['name'] ?? 'Destination',
+          widget.destination['title'] ??
+              widget.destination['name'] ??
+              'Destination',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -207,7 +233,8 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
         ],
         SizedBox(height: 16),
         Text(
-          widget.destination['description'] ?? 'A vibrant city in Morocco, known for its bustling souks, historic palaces, and beautiful gardens. It\'s a major economic center and tourist destination, offering a rich cultural experience with its ancient medina, lively squares, and stunning architecture.',
+          widget.destination['description'] ??
+              'A vibrant city in Morocco, known for its bustling souks, historic palaces, and beautiful gardens. It\'s a major economic center and tourist destination, offering a rich cultural experience with its ancient medina, lively squares, and stunning architecture.',
           style: TextStyle(
             fontSize: 16,
             color: colorScheme.onSurface.withOpacity(0.7),
@@ -229,7 +256,8 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
       child: Column(
         children: [
           // Prix
-          if (widget.destination['prix'] != null && widget.destination['prix'] > 0)
+          if (widget.destination['prix'] != null &&
+              widget.destination['prix'] > 0)
             _buildDetailRow(
               icon: Icons.attach_money,
               label: 'Prix',
@@ -241,9 +269,9 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
             _buildDetailRow(
               icon: Icons.access_time,
               label: 'Durée',
-              value: widget.destination['dureeMaximun'] != null 
-                ? '${widget.destination['dureeMinimun']}-${widget.destination['dureeMaximun']} minutes'
-                : '${widget.destination['dureeMinimun']} minutes',
+              value: widget.destination['dureeMaximun'] != null
+                  ? '${widget.destination['dureeMinimun']}-${widget.destination['dureeMaximun']} minutes'
+                  : '${widget.destination['dureeMinimun']} minutes',
               colorScheme: colorScheme,
             ),
           // Saison
@@ -277,11 +305,7 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
       padding: EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 20,
-            color: colorScheme.primary,
-          ),
+          Icon(icon, size: 20, color: colorScheme.primary),
           SizedBox(width: 12),
           Text(
             '$label: ',
@@ -305,13 +329,18 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
     );
   }
 
-  Widget _buildKeyAttractions(LocalizationService localizationService, ColorScheme colorScheme) {
-    final attractions = widget.destination['attractions'] as List<String>? ?? [
-      'Jemaa el-Fna Square',
-      'Bahia Palace',
-      'Jardin Majorelle',
-      'Koutoubia Mosque',
-    ];
+  Widget _buildKeyAttractions(
+    LocalizationService localizationService,
+    ColorScheme colorScheme,
+  ) {
+    final attractions =
+        widget.destination['attractions'] as List<String>? ??
+        [
+          'Jemaa el-Fna Square',
+          'Bahia Palace',
+          'Jardin Majorelle',
+          'Koutoubia Mosque',
+        ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,37 +354,45 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
           ),
         ),
         SizedBox(height: 16),
-        ...attractions.map((attraction) => Padding(
-          padding: EdgeInsets.only(bottom: 12),
-          child: Row(
-            children: [
-              Icon(
-                Icons.location_on,
-                color: colorScheme.primary,
-                size: 20,
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  attraction,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: colorScheme.onSurface.withOpacity(0.7),
-                  ),
+        ...attractions
+            .map(
+              (attraction) => Padding(
+                padding: EdgeInsets.only(bottom: 12),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.location_on,
+                      color: colorScheme.primary,
+                      size: 20,
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        attraction,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        )).toList(),
+            )
+            .toList(),
       ],
     );
   }
 
-  Widget _buildRecommendedActivities(LocalizationService localizationService, ColorScheme colorScheme) {
+  Widget _buildRecommendedActivities(
+    LocalizationService localizationService,
+    ColorScheme colorScheme,
+  ) {
     final activities = [
       {
         'title': localizationService.translate('explore_the_souks'),
-        'location': '${widget.destination['name']} ${localizationService.translate('medina')}',
+        'location':
+            '${widget.destination['name']} ${localizationService.translate('medina')}',
         'image': 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5',
       },
       {
@@ -370,7 +407,8 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
       },
       {
         'title': localizationService.translate('hot_air_balloon_ride'),
-        'location': '${localizationService.translate('palmerale')}, ${widget.destination['name']}',
+        'location':
+            '${localizationService.translate('palmerale')}, ${widget.destination['name']}',
         'image': 'https://images.unsplash.com/photo-1591414646028-7b60c18c6f14',
       },
     ];
@@ -387,12 +425,17 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
           ),
         ),
         SizedBox(height: 16),
-        ...activities.map((activity) => _buildActivityCard(activity, colorScheme)).toList(),
+        ...activities
+            .map((activity) => _buildActivityCard(activity, colorScheme))
+            .toList(),
       ],
     );
   }
 
-  Widget _buildActivityCard(Map<String, dynamic> activity, ColorScheme colorScheme) {
+  Widget _buildActivityCard(
+    Map<String, dynamic> activity,
+    ColorScheme colorScheme,
+  ) {
     return Container(
       margin: EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -422,7 +465,10 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
                     width: 60,
                     height: 60,
                     color: colorScheme.onSurface.withOpacity(0.1),
-                    child: Icon(Icons.image, color: colorScheme.onSurface.withOpacity(0.6)),
+                    child: Icon(
+                      Icons.image,
+                      color: colorScheme.onSurface.withOpacity(0.6),
+                    ),
                   );
                 },
               ),
@@ -457,7 +503,10 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
     );
   }
 
-  Widget _buildLocationMap(LocalizationService localizationService, ColorScheme colorScheme) {
+  Widget _buildLocationMap(
+    LocalizationService localizationService,
+    ColorScheme colorScheme,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -502,25 +551,23 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
     );
   }
 
-  Widget _buildActionButton(LocalizationService localizationService, ColorScheme colorScheme) {
+  Widget _buildActionButton(
+    LocalizationService localizationService,
+    ColorScheme colorScheme,
+  ) {
     final isActivity = widget.destination['categorie'] != null;
-    
+
     return Container(
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: () {
+        onPressed: () async {
           if (isActivity) {
             // Pour les activités, afficher une confirmation de réservation
             _showBookingConfirmation(localizationService, colorScheme);
           } else {
-            // Pour les villes, aller à la planification d'itinéraire
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ItineraryPlanningPage(destination: widget.destination),
-              ),
-            );
+            // Pour les villes, créer automatiquement un trip
+            await _createTripFromDestination(localizationService, colorScheme);
           }
         },
         style: ElevatedButton.styleFrom(
@@ -532,9 +579,9 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
           elevation: 0,
         ),
         child: Text(
-          isActivity 
-            ? 'Réserver cette activité'
-            : localizationService.translate('plan_your_itinerary'),
+          isActivity
+              ? 'Réserver cette activité'
+              : localizationService.translate('plan_your_itinerary'),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -545,7 +592,10 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
     );
   }
 
-  void _showBookingConfirmation(LocalizationService localizationService, ColorScheme colorScheme) {
+  void _showBookingConfirmation(
+    LocalizationService localizationService,
+    ColorScheme colorScheme,
+  ) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -573,7 +623,8 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
                   color: colorScheme.primary,
                 ),
               ),
-              if (widget.destination['prix'] != null && widget.destination['prix'] > 0) ...[
+              if (widget.destination['prix'] != null &&
+                  widget.destination['prix'] > 0) ...[
                 SizedBox(height: 8),
                 Text(
                   'Prix: ${widget.destination['prix'].toStringAsFixed(0)} MAD',
@@ -618,20 +669,30 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
     if (imageUrl.isEmpty) {
       return Container(
         color: colorScheme.onSurface.withOpacity(0.1),
-        child: Icon(Icons.image, size: 100, color: colorScheme.onSurface.withOpacity(0.6)),
+        child: Icon(
+          Icons.image,
+          size: 100,
+          color: colorScheme.onSurface.withOpacity(0.6),
+        ),
       );
     }
 
     // Vérifier si c'est une image locale (assets)
     if (imageUrl.startsWith('assets/') || imageUrl.startsWith('images/')) {
-      final assetPath = imageUrl.startsWith('images/') ? 'assets/$imageUrl' : imageUrl;
+      final assetPath = imageUrl.startsWith('images/')
+          ? 'assets/$imageUrl'
+          : imageUrl;
       return Image.asset(
         assetPath,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           return Container(
             color: colorScheme.onSurface.withOpacity(0.1),
-            child: Icon(Icons.image, size: 100, color: colorScheme.onSurface.withOpacity(0.6)),
+            child: Icon(
+              Icons.image,
+              size: 100,
+              color: colorScheme.onSurface.withOpacity(0.6),
+            ),
           );
         },
       );
@@ -643,7 +704,11 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
         errorBuilder: (context, error, stackTrace) {
           return Container(
             color: colorScheme.onSurface.withOpacity(0.1),
-            child: Icon(Icons.image, size: 100, color: colorScheme.onSurface.withOpacity(0.6)),
+            child: Icon(
+              Icons.image,
+              size: 100,
+              color: colorScheme.onSurface.withOpacity(0.6),
+            ),
           );
         },
       );
@@ -653,10 +718,12 @@ class _DetailsExplorePageState extends State<DetailsExplorePage> {
   void _showShareOptions() {
     final destination = widget.destination;
     final name = destination['name'] ?? destination['title'] ?? 'Destination';
-    final description = destination['description'] ?? 'Découvrez cette magnifique destination';
+    final description =
+        destination['description'] ?? 'Découvrez cette magnifique destination';
     final type = destination['categorie'] != null ? 'activité' : 'ville';
-    
-    final shareText = '''
+
+    final shareText =
+        '''
 🌟 Découvrez cette magnifique $type : $name
 
 $description
@@ -675,10 +742,7 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
           children: [
             Text(
               'Partager $name',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
             Row(
@@ -750,13 +814,157 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
           SizedBox(height: 8),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
           ),
         ],
       ),
     );
   }
-} 
+
+  Future<void> _createTripFromDestination(
+    LocalizationService localizationService,
+    ColorScheme colorScheme,
+  ) async {
+    try {
+      final destinationName =
+          widget.destination['name'] ?? 'Unknown Destination';
+
+      // Créer automatiquement un trip avec les données de la destination
+      final tripService = TripService();
+      final now = DateTime.now();
+      final trip = TripModel(
+        id: now.millisecondsSinceEpoch.toString(), // ID temporaire
+        name: 'Trip to $destinationName',
+        destination: destinationName,
+        startDate: now.add(const Duration(days: 7)),
+        endDate: now.add(const Duration(days: 10)),
+        notes: 'Budget: Mid-Range (800-1500 MAD/day)',
+        activities: [
+          TripActivity(
+            id: '1',
+            name: 'Adventure',
+            type: 'adventure',
+            duration: 300,
+            description: 'Explore the destination and its attractions',
+          ),
+          TripActivity(
+            id: '2',
+            name: 'Relaxation',
+            type: 'relaxation',
+            duration: 150,
+            description: 'Enjoy local culture and cuisine',
+          ),
+        ],
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      // Enregistrer le trip dans la wishlist
+      final createdTrip = await tripService.createTrip(
+        name: trip.name,
+        destination: trip.destination,
+        startDate: trip.startDate,
+        endDate: trip.endDate,
+        notes: trip.notes,
+      );
+
+      // Ajouter les activités au trip créé
+      for (final activity in trip.activities) {
+        await tripService.addActivityToTrip(createdTrip.id, activity);
+      }
+
+      // Stocker les activités recommandées dans le trip pour l'édition
+      final recommendedActivities = [
+        {
+          'id': '1',
+          'nom': 'Explore the Souks',
+          'nomActivite': 'Explore the Souks',
+          'name': 'Explore the Souks',
+          'categorie': 'Shopping',
+          'typeActivite': 'Shopping',
+          'type': 'Shopping',
+          'description': 'Discover local crafts and traditional goods',
+          'dureeMinimun': 120,
+        },
+        {
+          'id': '2',
+          'nom': 'Visit Historical Sites',
+          'nomActivite': 'Visit Historical Sites',
+          'name': 'Visit Historical Sites',
+          'categorie': 'Cultural',
+          'typeActivite': 'Cultural',
+          'type': 'Cultural',
+          'description': 'Explore historical monuments and landmarks',
+          'dureeMinimun': 180,
+        },
+        {
+          'id': '3',
+          'nom': 'Hot Air Balloon Ride',
+          'nomActivite': 'Hot Air Balloon Ride',
+          'name': 'Hot Air Balloon Ride',
+          'categorie': 'Adventure',
+          'typeActivite': 'Adventure',
+          'type': 'Adventure',
+          'description': 'Enjoy a scenic balloon ride',
+          'dureeMinimun': 240,
+        },
+      ];
+      await tripService.updateTripActivities(
+        createdTrip.id,
+        recommendedActivities,
+      );
+
+      // Ajouter le trip à la wishlist
+      if (createdTrip != null) {
+        await WishlistService.saveSnapshot(
+          type: 'trip',
+          itemId: int.parse(createdTrip.id),
+          data: {
+            'id': createdTrip.id,
+            'name': createdTrip.name,
+            'destination': createdTrip.destination,
+            'startDate': createdTrip.startDate.toIso8601String(),
+            'endDate': createdTrip.endDate.toIso8601String(),
+            'notes': createdTrip.notes,
+            'activities': createdTrip.activities
+                .map(
+                  (activity) => {
+                    'id': activity.id,
+                    'name': activity.name,
+                    'type': activity.type,
+                    'duration': activity.duration,
+                    'description': activity.description,
+                  },
+                )
+                .toList(),
+          },
+        );
+        await WishlistService().toggleFavorite(
+          type: 'trip',
+          itemId: int.parse(createdTrip.id),
+        );
+      }
+
+      // Afficher un message de succès
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Trip to $destinationName saved to wishlist successfully!',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating trip: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+}

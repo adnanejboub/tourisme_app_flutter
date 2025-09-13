@@ -9,19 +9,23 @@ import '../../../../core/services/localization_service.dart';
 import '../../../../core/services/image_service.dart';
 import '../../../../core/constants/constants.dart';
 import '../../data/services/public_api_service.dart';
-import 'itinerary_planning_page.dart';
+// import 'itinerary_planning_page.dart'; // Page supprimée
 import 'details_explore.dart';
 import 'monument_details_page.dart';
 import 'activity_details_page.dart';
+import 'accommodation_details_page.dart';
+import 'service_details_page.dart';
+import '../../../../core/services/moroccan_accommodations_service.dart';
+import '../../../../core/services/moroccan_services_service.dart';
 import '../../../saved/data/services/wishlist_service.dart';
+import '../../../saved/presentation/pages/saved_page.dart';
+import '../../../saved/data/services/trip_service.dart';
+import '../../../saved/data/models/trip_model.dart';
 
 class CityDetailsPage extends StatefulWidget {
   final Map<String, dynamic> city;
 
-  const CityDetailsPage({
-    super.key,
-    required this.city,
-  });
+  const CityDetailsPage({super.key, required this.city});
 
   @override
   State<CityDetailsPage> createState() => _CityDetailsPageState();
@@ -35,10 +39,10 @@ class _CityDetailsPageState extends State<CityDetailsPage>
   bool _isLoading = false;
   bool _isFavorite = false;
   final Set<int> _favoriteActivityIds = <int>{};
-  
+
   // API service
   late PublicApiService _apiService;
-  
+
   // Dynamic data
   Map<String, dynamic>? _cityDetails;
   List<Map<String, dynamic>> _activities = [];
@@ -48,18 +52,19 @@ class _CityDetailsPageState extends State<CityDetailsPage>
   List<Map<String, dynamic>> _services = [];
   List<Map<String, dynamic>> _highlights = [];
   Map<String, dynamic>? _statistics;
-  
+
   // Loading states
   bool _isLoadingDetails = true;
   String? _errorMessage;
-
-
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    _tabController = TabController(length: 5, vsync: this); // Added specialties tab
+    _tabController = TabController(
+      length: 5,
+      vsync: this,
+    ); // Added specialties tab
     _apiService = PublicApiService();
     _loadFavoriteStatus();
     _loadCityDetails();
@@ -70,7 +75,9 @@ class _CityDetailsPageState extends State<CityDetailsPage>
   void dispose() {
     _pageController.dispose();
     _tabController.dispose();
-    try { WishlistService.changes.removeListener(_reloadWishlistState); } catch (_) {}
+    try {
+      WishlistService.changes.removeListener(_reloadWishlistState);
+    } catch (_) {}
     super.dispose();
   }
 
@@ -95,14 +102,35 @@ class _CityDetailsPageState extends State<CityDetailsPage>
 
       final details = await _apiService.getCityDetails(cityId);
       
+      // Charger les hébergements et services depuis les services locaux
+      final accommodationsService = MoroccanAccommodationsService();
+      final servicesService = MoroccanServicesService();
+      final cityName = widget.city['nomVille'] ?? widget.city['name'] ?? '';
+      final localAccommodations = accommodationsService.getAccommodationsByCity(cityName);
+      final localServices = servicesService.getServicesByCity(cityName);
+
       setState(() {
         _cityDetails = details;
-        _activities = List<Map<String, dynamic>>.from(details['activities'] ?? []);
-        _monuments = List<Map<String, dynamic>>.from(details['monuments'] ?? []);
-        _accommodations = List<Map<String, dynamic>>.from(details['accommodations'] ?? []);
+        _activities = List<Map<String, dynamic>>.from(
+          details['activities'] ?? [],
+        );
+        _monuments = List<Map<String, dynamic>>.from(
+          details['monuments'] ?? [],
+        );
+        // Utiliser les hébergements locaux s'ils existent, sinon ceux de l'API
+        _accommodations = localAccommodations.isNotEmpty 
+            ? localAccommodations 
+            : List<Map<String, dynamic>>.from(
+                details['accommodations'] ?? [],
+              );
+        // Utiliser les services locaux s'ils existent, sinon ceux de l'API
+        _services = localServices.isNotEmpty 
+            ? localServices 
+            : List<Map<String, dynamic>>.from(details['services'] ?? []);
         _events = List<Map<String, dynamic>>.from(details['events'] ?? []);
-        _services = List<Map<String, dynamic>>.from(details['services'] ?? []);
-        _highlights = List<Map<String, dynamic>>.from(details['highlights'] ?? []);
+        _highlights = List<Map<String, dynamic>>.from(
+          details['highlights'] ?? [],
+        );
         _statistics = details['statistics'] as Map<String, dynamic>?;
         _isLoadingDetails = false;
       });
@@ -123,7 +151,11 @@ class _CityDetailsPageState extends State<CityDetailsPage>
       setState(() {
         _favoriteActivityIds
           ..clear()
-          ..addAll(favs.where((f) => f['type'] == 'activity' && f['itemId'] != null).map((f) => (f['itemId'] as num).toInt()));
+          ..addAll(
+            favs
+                .where((f) => f['type'] == 'activity' && f['itemId'] != null)
+                .map((f) => (f['itemId'] as num).toInt()),
+          );
       });
     } catch (_) {}
   }
@@ -166,7 +198,9 @@ class _CityDetailsPageState extends State<CityDetailsPage>
     final cityId = widget.city['id'] as int?;
     if (cityId == null) return;
     final prev = _isFavorite;
-    setState(() { _isFavorite = !prev; });
+    setState(() {
+      _isFavorite = !prev;
+    });
     try {
       final cityData = _cityDetails?['city'] ?? widget.city;
       await WishlistService.saveSnapshot(
@@ -179,17 +213,29 @@ class _CityDetailsPageState extends State<CityDetailsPage>
           'image': cityData['image'] ?? cityData['imageUrl'] ?? '',
         },
       );
-      final res = await WishlistService().toggleFavorite(type: 'city', itemId: cityId);
+      final res = await WishlistService().toggleFavorite(
+        type: 'city',
+        itemId: cityId,
+      );
       final action = res['action'] as String?;
       final added = action == 'added';
       if (mounted) {
-        setState(() { _isFavorite = added; });
-    ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(added ? 'Added to favorites' : 'Removed from favorites')),
+        setState(() {
+          _isFavorite = added;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              added ? 'Added to favorites' : 'Removed from favorites',
+            ),
+          ),
         );
       }
     } catch (e) {
-      if (mounted) setState(() { _isFavorite = prev; });
+      if (mounted)
+        setState(() {
+          _isFavorite = prev;
+        });
       if (e is UnauthorizedException && mounted) {
         Navigator.pushNamed(context, '/login');
       }
@@ -199,9 +245,11 @@ class _CityDetailsPageState extends State<CityDetailsPage>
   Future<void> _shareCity() async {
     final cityData = _cityDetails?['city'] ?? widget.city;
     final String cityName = cityData['nomVille'] ?? cityData['name'] ?? 'Ville';
-    final String description = cityData['description'] ?? 'Découvrez cette magnifique ville';
-    
-    final shareText = '''
+    final String description =
+        cityData['description'] ?? 'Découvrez cette magnifique ville';
+
+    final shareText =
+        '''
 🌟 Découvrez cette magnifique ville : $cityName
 
 $description
@@ -220,10 +268,7 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
           children: [
             Text(
               'Partager $cityName',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
             Row(
@@ -295,55 +340,128 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
           SizedBox(height: 8),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
           ),
         ],
       ),
     );
   }
 
-  void _planItinerary() {
+  void _planItinerary() async {
     if (_isLoading) return;
 
     setState(() {
       _isLoading = true;
     });
 
-    final cityData = _cityDetails?['city'] ?? widget.city;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ItineraryPlanningPage(
-          destination: {
-            'name': cityData['nomVille'] ?? cityData['name'],
-            'type': 'city',
-            'isUserLocation': cityData['isUserLocation'] ?? false,
-            'location': cityData['location'],
-            'description': cityData['description'] ?? cityData['descriptionVille'],
-            'popularActivities': cityData['popularActivities'],
-            'bestTime': cityData['bestTime'] ?? cityData['meilleurePeriode'],
-            'averageCost': cityData['averageCost'] ?? cityData['coutMoyen'],
-            'image': cityData['image'] ?? cityData['imageUrl'],
-            'rating': cityData['noteMoyenne'] ?? cityData['rating'],
-            'tags': cityData['tags'],
-            'activities': _currentActivities,
-            'hotels': _currentHotels,
-            'monuments': _currentMonuments,
-            'events': _currentEvents,
-            'services': _currentServices,
+    try {
+      final cityData = _cityDetails?['city'] ?? widget.city;
+      final cityName =
+          cityData['nomVille'] ?? cityData['name'] ?? 'Unknown City';
+
+      // Créer automatiquement un trip avec les données de la ville
+      final tripService = TripService();
+      final now = DateTime.now();
+      final trip = TripModel(
+        id: now.millisecondsSinceEpoch.toString(), // ID temporaire
+        name: 'Trip to $cityName',
+        destination: cityName,
+        startDate: now.add(const Duration(days: 7)),
+        endDate: now.add(const Duration(days: 10)),
+        notes: 'Budget: Mid-Range (800-1500 MAD/day)',
+        activities: [
+          TripActivity(
+            id: '1',
+            name: 'Adventure',
+            type: 'Adventure',
+            duration: 300,
+            description: 'Explore the city and its attractions',
+          ),
+          TripActivity(
+            id: '2',
+            name: 'Relaxation',
+            type: 'Relaxation',
+            duration: 150,
+            description: 'Enjoy local culture and cuisine',
+          ),
+        ],
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      // Enregistrer le trip dans la wishlist
+      final createdTrip = await tripService.createTrip(
+        name: trip.name,
+        destination: trip.destination,
+        startDate: trip.startDate,
+        endDate: trip.endDate,
+        notes: trip.notes,
+      );
+
+      // Ajouter les activités au trip créé
+      for (final activity in trip.activities) {
+        await tripService.addActivityToTrip(createdTrip.id, activity);
+      }
+
+      // Stocker les activités de la ville dans le trip pour l'édition
+      await tripService.updateTripActivities(createdTrip.id, _currentActivities);
+
+      // Ajouter le trip à la wishlist
+      if (createdTrip != null) {
+        await WishlistService.saveSnapshot(
+          type: 'trip',
+          itemId: int.parse(createdTrip.id),
+          data: {
+            'id': createdTrip.id,
+            'name': createdTrip.name,
+            'destination': createdTrip.destination,
+            'startDate': createdTrip.startDate.toIso8601String(),
+            'endDate': createdTrip.endDate.toIso8601String(),
+            'notes': createdTrip.notes,
+            'activities': createdTrip.activities
+                .map(
+                  (activity) => {
+                    'id': activity.id,
+                    'name': activity.name,
+                    'type': activity.type,
+                    'duration': activity.duration,
+                    'description': activity.description,
+                  },
+                )
+                .toList(),
           },
-        ),
-      ),
-    ).whenComplete(() {
+        );
+        await WishlistService().toggleFavorite(
+          type: 'trip',
+          itemId: int.parse(createdTrip.id),
+        );
+      }
+
+      // Afficher un message de succès
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Trip to $cityName saved to wishlist successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating trip: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
-    });
+    }
   }
 
   @override
@@ -358,9 +476,7 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     if (_isLoadingDetails) {
       return Scaffold(
         backgroundColor: colorScheme.background,
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -371,11 +487,7 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: colorScheme.error,
-              ),
+              Icon(Icons.error_outline, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
               Text(
                 'Error loading city details',
@@ -398,8 +510,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
               ElevatedButton(
                 onPressed: _loadCityDetails,
                 child: Text(
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .translate('retry'),
+                  Provider.of<LocalizationService>(
+                    context,
+                    listen: false,
+                  ).translate('retry'),
                 ),
               ),
             ],
@@ -430,7 +544,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildSliverAppBar(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildSliverAppBar(
+    ColorScheme colorScheme,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     return SliverAppBar(
       expandedHeight: isDesktop ? 400 : (isTablet ? 350 : 300),
       floating: false,
@@ -492,12 +610,12 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     final cityData = _cityDetails?['city'] ?? widget.city;
     final String cityName = cityData['nomVille'] ?? cityData['name'] ?? '';
     final String? providedImageUrl = cityData['image'] ?? cityData['imageUrl'];
-    
+
     // Utiliser ImageService pour obtenir l'image appropriée
-    final String imageUrl = providedImageUrl?.isNotEmpty == true 
-        ? providedImageUrl! 
+    final String imageUrl = providedImageUrl?.isNotEmpty == true
+        ? providedImageUrl!
         : ImageService.getCityImage(cityName);
-    
+
     if (imageUrl.isEmpty) {
       return Container(
         color: Colors.grey[300],
@@ -509,10 +627,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
 
     if (ImageService.isLocalAsset(imageUrl)) {
       // Convert relative path to full asset path
-      final String assetPath = imageUrl.startsWith('images/') 
-          ? 'assets/$imageUrl' 
+      final String assetPath = imageUrl.startsWith('images/')
+          ? 'assets/$imageUrl'
           : imageUrl;
-      
+
       return Image.asset(
         assetPath,
         fit: BoxFit.cover,
@@ -530,9 +648,7 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
       fit: BoxFit.cover,
       placeholder: (context, url) => Container(
         color: Colors.grey[300],
-        child: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: const Center(child: CircularProgressIndicator()),
       ),
       errorWidget: (context, url, error) => Container(
         color: Colors.grey[300],
@@ -549,10 +665,7 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Colors.transparent,
-            Colors.black.withOpacity(0.7),
-          ],
+          colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
         ),
       ),
     );
@@ -577,7 +690,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
           ),
           const SizedBox(height: 8),
           Text(
-            cityData['paysNom'] ?? cityData['pays'] ?? cityData['country'] ?? 'Morocco',
+            cityData['paysNom'] ??
+                cityData['pays'] ??
+                cityData['country'] ??
+                'Morocco',
             style: TextStyle(
               color: Colors.white.withOpacity(0.9),
               fontSize: isDesktop ? 20 : (isTablet ? 18 : 16),
@@ -601,7 +717,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  cityData['climatNom'] ?? cityData['region'] ?? cityData['tags']?.join(', ') ?? '',
+                  cityData['climatNom'] ??
+                      cityData['region'] ??
+                      cityData['tags']?.join(', ') ??
+                      '',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.9),
                     fontSize: 16,
@@ -616,7 +735,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildCityOverview(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildCityOverview(
+    ColorScheme colorScheme,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     final cityData = _cityDetails?['city'] ?? widget.city;
     return Container(
       padding: const EdgeInsets.all(20),
@@ -631,7 +754,9 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      cityData['nomVille'] ?? cityData['name'] ?? 'Unknown City',
+                      cityData['nomVille'] ??
+                          cityData['name'] ??
+                          'Unknown City',
                       style: TextStyle(
                         fontSize: isDesktop ? 28 : (isTablet ? 26 : 24),
                         fontWeight: FontWeight.bold,
@@ -640,7 +765,9 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      cityData['surnom'] ?? cityData['nickname'] ?? 'The Red City',
+                      cityData['surnom'] ??
+                          cityData['nickname'] ??
+                          'The Red City',
                       style: TextStyle(
                         fontSize: isDesktop ? 18 : (isTablet ? 16 : 14),
                         color: colorScheme.primary,
@@ -652,11 +779,16 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
               ),
               // Rating badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: colorScheme.primary.withOpacity(0.3)),
+                  border: Border.all(
+                    color: colorScheme.primary.withOpacity(0.3),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -679,7 +811,9 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
           const SizedBox(height: 16),
           // Description
           Text(
-            cityData['description'] ?? cityData['descriptionVille'] ?? 'No description available.',
+            cityData['description'] ??
+                cityData['descriptionVille'] ??
+                'No description available.',
             style: TextStyle(
               fontSize: isDesktop ? 16 : (isTablet ? 15 : 14),
               color: colorScheme.onBackground.withOpacity(0.8),
@@ -697,20 +831,73 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildCityCharacteristics(Map<String, dynamic> cityData, ColorScheme colorScheme) {
+  Widget _buildCityCharacteristics(
+    Map<String, dynamic> cityData,
+    ColorScheme colorScheme,
+  ) {
     List<Map<String, dynamic>> characteristics = [];
-    
+
     // Add characteristics based on city data
-    if (cityData['isPlage'] == true) characteristics.add({'icon': Icons.beach_access, 'label': 'Beach', 'color': Colors.blue});
-    if (cityData['isMontagne'] == true) characteristics.add({'icon': Icons.landscape, 'label': 'Mountain', 'color': Colors.green});
-    if (cityData['isDesert'] == true) characteristics.add({'icon': Icons.wb_sunny, 'label': 'Desert', 'color': Colors.orange});
-    if (cityData['isRiviera'] == true) characteristics.add({'icon': Icons.water, 'label': 'Riviera', 'color': Colors.cyan});
-    if (cityData['isHistorique'] == true) characteristics.add({'icon': Icons.history_edu, 'label': 'Historical', 'color': Colors.brown});
-    if (cityData['isCulturelle'] == true) characteristics.add({'icon': Icons.museum, 'label': 'Cultural', 'color': Colors.purple});
-    if (cityData['isModerne'] == true) characteristics.add({'icon': Icons.business, 'label': 'Modern', 'color': Colors.grey});
-    if (cityData['hasAeroport'] == true) characteristics.add({'icon': Icons.flight, 'label': 'Airport', 'color': Colors.indigo});
-    if (cityData['hasGare'] == true) characteristics.add({'icon': Icons.train, 'label': 'Train Station', 'color': Colors.teal});
-    if (cityData['hasPort'] == true) characteristics.add({'icon': Icons.directions_boat, 'label': 'Port', 'color': Colors.blueGrey});
+    if (cityData['isPlage'] == true)
+      characteristics.add({
+        'icon': Icons.beach_access,
+        'label': 'Beach',
+        'color': Colors.blue,
+      });
+    if (cityData['isMontagne'] == true)
+      characteristics.add({
+        'icon': Icons.landscape,
+        'label': 'Mountain',
+        'color': Colors.green,
+      });
+    if (cityData['isDesert'] == true)
+      characteristics.add({
+        'icon': Icons.wb_sunny,
+        'label': 'Desert',
+        'color': Colors.orange,
+      });
+    if (cityData['isRiviera'] == true)
+      characteristics.add({
+        'icon': Icons.water,
+        'label': 'Riviera',
+        'color': Colors.cyan,
+      });
+    if (cityData['isHistorique'] == true)
+      characteristics.add({
+        'icon': Icons.history_edu,
+        'label': 'Historical',
+        'color': Colors.brown,
+      });
+    if (cityData['isCulturelle'] == true)
+      characteristics.add({
+        'icon': Icons.museum,
+        'label': 'Cultural',
+        'color': Colors.purple,
+      });
+    if (cityData['isModerne'] == true)
+      characteristics.add({
+        'icon': Icons.business,
+        'label': 'Modern',
+        'color': Colors.grey,
+      });
+    if (cityData['hasAeroport'] == true)
+      characteristics.add({
+        'icon': Icons.flight,
+        'label': 'Airport',
+        'color': Colors.indigo,
+      });
+    if (cityData['hasGare'] == true)
+      characteristics.add({
+        'icon': Icons.train,
+        'label': 'Train Station',
+        'color': Colors.teal,
+      });
+    if (cityData['hasPort'] == true)
+      characteristics.add({
+        'icon': Icons.directions_boat,
+        'label': 'Port',
+        'color': Colors.blueGrey,
+      });
 
     if (characteristics.isEmpty) return const SizedBox.shrink();
 
@@ -735,7 +922,9 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
               decoration: BoxDecoration(
                 color: (char['color'] as Color).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: (char['color'] as Color).withOpacity(0.3)),
+                border: Border.all(
+                  color: (char['color'] as Color).withOpacity(0.3),
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -791,16 +980,19 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildInfoCard(IconData icon, String title, String value, ColorScheme colorScheme) {
+  Widget _buildInfoCard(
+    IconData icon,
+    String title,
+    String value,
+    ColorScheme colorScheme,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: colorScheme.outline.withOpacity(0.2),
-          ),
+          border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
         ),
         child: Column(
           children: [
@@ -832,7 +1024,7 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
 
   Widget _buildStatisticsSection(ColorScheme colorScheme) {
     if (_statistics == null) return const SizedBox.shrink();
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
@@ -880,7 +1072,7 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
               const SizedBox(width: 12),
               _buildStatCard(
                 Icons.hotel,
-                'Hotels',
+                'Hébergement',
                 '${_statistics!['totalAccommodations'] ?? 0}',
                 Colors.green,
                 colorScheme,
@@ -900,7 +1092,13 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildStatCard(IconData icon, String label, String value, Color iconColor, ColorScheme colorScheme) {
+  Widget _buildStatCard(
+    IconData icon,
+    String label,
+    String value,
+    Color iconColor,
+    ColorScheme colorScheme,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -933,9 +1131,13 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildHighlightsSection(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildHighlightsSection(
+    ColorScheme colorScheme,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     if (_highlights.isEmpty) return const SizedBox.shrink();
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Column(
@@ -966,7 +1168,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildHighlightCard(Map<String, dynamic> highlight, ColorScheme colorScheme) {
+  Widget _buildHighlightCard(
+    Map<String, dynamic> highlight,
+    ColorScheme colorScheme,
+  ) {
     return Container(
       width: 200,
       margin: const EdgeInsets.only(right: 12),
@@ -988,11 +1193,15 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
                 color: Colors.grey[200],
               ),
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
                 child: CachedNetworkImage(
                   imageUrl: highlight['imageUrl'] ?? '',
                   fit: BoxFit.cover,
@@ -1003,7 +1212,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                   ),
                   errorWidget: (context, url, error) => Container(
                     color: Colors.grey[300],
-                    child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                    child: const Icon(
+                      Icons.image_not_supported,
+                      color: Colors.grey,
+                    ),
                   ),
                 ),
               ),
@@ -1059,10 +1271,15 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
             child: _buildTabButton('Activities', 0, Icons.explore, colorScheme),
           ),
           Expanded(
-            child: _buildTabButton('Monuments', 1, Icons.location_city, colorScheme),
+            child: _buildTabButton(
+              'Monuments',
+              1,
+              Icons.location_city,
+              colorScheme,
+            ),
           ),
           Expanded(
-            child: _buildTabButton('Hotels', 2, Icons.hotel, colorScheme),
+            child: _buildTabButton('Hébergement', 2, Icons.hotel, colorScheme),
           ),
           Expanded(
             child: _buildTabButton('Services', 3, Icons.build, colorScheme),
@@ -1075,7 +1292,12 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildTabButton(String title, int index, IconData icon, ColorScheme colorScheme) {
+  Widget _buildTabButton(
+    String title,
+    int index,
+    IconData icon,
+    ColorScheme colorScheme,
+  ) {
     final isSelected = _selectedTabIndex == index;
 
     return GestureDetector(
@@ -1091,14 +1313,18 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
           children: [
             Icon(
               icon,
-              color: isSelected ? Colors.white : colorScheme.onSurface.withOpacity(0.6),
+              color: isSelected
+                  ? Colors.white
+                  : colorScheme.onSurface.withOpacity(0.6),
               size: 20,
             ),
             const SizedBox(height: 4),
             Text(
               title,
               style: TextStyle(
-                color: isSelected ? Colors.white : colorScheme.onSurface.withOpacity(0.6),
+                color: isSelected
+                    ? Colors.white
+                    : colorScheme.onSurface.withOpacity(0.6),
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               ),
@@ -1109,7 +1335,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildTabContent(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildTabContent(
+    ColorScheme colorScheme,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     return SizedBox(
       height: isDesktop ? 600 : (isTablet ? 550 : 500),
       child: PageView(
@@ -1118,7 +1348,7 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
         children: [
           _buildActivitiesTab(colorScheme, isTablet, isDesktop),
           _buildMonumentsTab(colorScheme, isTablet, isDesktop),
-          _buildHotelsTab(colorScheme, isTablet, isDesktop),
+          _buildAccommodationsTab(colorScheme, isTablet, isDesktop),
           _buildServicesTab(colorScheme, isTablet, isDesktop),
           _buildPlanTripTab(colorScheme, isTablet, isDesktop),
         ],
@@ -1126,7 +1356,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildActivitiesTab(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildActivitiesTab(
+    ColorScheme colorScheme,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     if (_currentActivities.isEmpty) {
       return _buildEmptyState(
         'No activities available',
@@ -1146,7 +1380,12 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildActivityCard(Map<String, dynamic> activity, ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildActivityCard(
+    Map<String, dynamic> activity,
+    ColorScheme colorScheme,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -1169,7 +1408,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
               builder: (context) => ActivityDetailsPage(
                 activity: {
                   'id': _extractActivityId(activity),
-                  'nom': activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? 'Activity',
+                  'nom':
+                      activity['nom'] ??
+                      activity['nomActivite'] ??
+                      activity['name'] ??
+                      'Activity',
                   'imageUrl': activity['image'] ?? activity['imageUrl'] ?? '',
                   'description': activity['description'] ?? '',
                   'prix': activity['prix'],
@@ -1177,7 +1420,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                   'dureeMaximun': activity['dureeMaximun'],
                   'saison': activity['saison'],
                   'niveauDificulta': activity['niveauDificulta'],
-                  'categorie': activity['categorie'] ?? activity['typeActivite'] ?? activity['type'],
+                  'categorie':
+                      activity['categorie'] ??
+                      activity['typeActivite'] ??
+                      activity['type'],
                   'ville': widget.city['nom'] ?? widget.city['name'],
                 },
               ),
@@ -1204,8 +1450,17 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        _favoriteActivityIds.contains(_extractActivityId(activity)) ? Icons.favorite : Icons.favorite_border,
-                        color: _favoriteActivityIds.contains(_extractActivityId(activity)) ? Colors.redAccent : Colors.white,
+                        _favoriteActivityIds.contains(
+                              _extractActivityId(activity),
+                            )
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color:
+                            _favoriteActivityIds.contains(
+                              _extractActivityId(activity),
+                            )
+                            ? Colors.redAccent
+                            : Colors.white,
                         size: 20,
                       ),
                     ),
@@ -1223,7 +1478,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                     children: [
                       Expanded(
                         child: Text(
-                          activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? 'Unknown Activity',
+                          activity['nom'] ??
+                              activity['nomActivite'] ??
+                              activity['name'] ??
+                              'Unknown Activity',
                           style: TextStyle(
                             fontSize: isDesktop ? 18 : (isTablet ? 16 : 14),
                             fontWeight: FontWeight.bold,
@@ -1231,7 +1489,8 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                           ),
                         ),
                       ),
-                      if (activity['noteMoyenne'] != null || activity['rating'] != null)
+                      if (activity['noteMoyenne'] != null ||
+                          activity['rating'] != null)
                         Row(
                           children: [
                             Icon(Icons.star, size: 16, color: Colors.amber),
@@ -1254,15 +1513,23 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                      if (activity['categorie'] != null || activity['typeActivite'] != null || activity['type'] != null)
+                      if (activity['categorie'] != null ||
+                          activity['typeActivite'] != null ||
+                          activity['type'] != null)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: colorScheme.primary.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            activity['categorie'] ?? activity['typeActivite'] ?? activity['type'] ?? 'Activity',
+                            activity['categorie'] ??
+                                activity['typeActivite'] ??
+                                activity['type'] ??
+                                'Activity',
                             style: TextStyle(
                               fontSize: 12,
                               color: colorScheme.primary,
@@ -1272,7 +1539,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                         ),
                       if (activity['saison'] != null)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.blue.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
@@ -1290,7 +1560,8 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                   ),
                   const SizedBox(height: 8),
                   // Description
-                  if (activity['description'] != null && activity['description'].toString().isNotEmpty)
+                  if (activity['description'] != null &&
+                      activity['description'].toString().isNotEmpty)
                     Text(
                       activity['description'],
                       style: TextStyle(
@@ -1307,7 +1578,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                       if (activity['dureeMinimun'] != null)
                         Row(
                           children: [
-                            Icon(Icons.access_time, size: 14, color: colorScheme.onSurface.withOpacity(0.6)),
+                            Icon(
+                              Icons.access_time,
+                              size: 14,
+                              color: colorScheme.onSurface.withOpacity(0.6),
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               '${activity['dureeMinimun']}-${activity['dureeMaximun'] ?? activity['dureeMinimun']} min',
@@ -1323,7 +1598,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                           padding: EdgeInsets.only(left: 16),
                           child: Row(
                             children: [
-                              Icon(Icons.trending_up, size: 14, color: colorScheme.onSurface.withOpacity(0.6)),
+                              Icon(
+                                Icons.trending_up,
+                                size: 14,
+                                color: colorScheme.onSurface.withOpacity(0.6),
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 'Difficulty: ${activity['niveauDificulta']}',
@@ -1363,13 +1642,18 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                         onPressed: () => _bookActivity(activity),
                         icon: Icon(Icons.book_online, size: 16),
                         label: Text(
-                          Provider.of<LocalizationService>(context, listen: false)
-                              .translate('book_now'),
+                          Provider.of<LocalizationService>(
+                            context,
+                            listen: false,
+                          ).translate('book_now'),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: colorScheme.primary,
                           foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -1386,12 +1670,22 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildActivityImage(Map<String, dynamic> activity, bool isTablet, bool isDesktop) {
+  Widget _buildActivityImage(
+    Map<String, dynamic> activity,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     final height = isDesktop ? 200.0 : (isTablet ? 180.0 : 160.0);
-    final imageUrl = activity['image'] ?? activity['imageUrl'] ?? ImageService.getActivityImage(
-      activity['categorie'] ?? activity['typeActivite'] ?? activity['type'] ?? '',
-      activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? ''
-    );
+    final imageUrl =
+        activity['image'] ??
+        activity['imageUrl'] ??
+        ImageService.getActivityImage(
+          activity['categorie'] ??
+              activity['typeActivite'] ??
+              activity['type'] ??
+              '',
+          activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? '',
+        );
 
     return Container(
       width: double.infinity,
@@ -1408,10 +1702,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
 
   Widget _buildImageWidget(String imageUrl, double height) {
     if (ImageService.isLocalAsset(imageUrl)) {
-      final String assetPath = imageUrl.startsWith('images/') 
-          ? 'assets/$imageUrl' 
+      final String assetPath = imageUrl.startsWith('images/')
+          ? 'assets/$imageUrl'
           : imageUrl;
-      
+
       return Image.asset(
         assetPath,
         width: double.infinity,
@@ -1435,9 +1729,7 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
       fit: BoxFit.cover,
       placeholder: (context, url) => Container(
         color: Colors.grey[300],
-        child: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: const Center(child: CircularProgressIndicator()),
       ),
       errorWidget: (context, url, error) => Container(
         color: Colors.grey[300],
@@ -1448,9 +1740,12 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-
   int _extractActivityId(Map<String, dynamic> activity) {
-    final dynamic rawId = activity['id'] ?? activity['idActivite'] ?? activity['id_activity'] ?? activity['idAct'];
+    final dynamic rawId =
+        activity['id'] ??
+        activity['idActivite'] ??
+        activity['id_activity'] ??
+        activity['idAct'];
     if (rawId is int) return rawId;
     if (rawId is num) return rawId.toInt();
     return 0;
@@ -1473,8 +1768,16 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
         itemId: id,
         data: {
           'id': id,
-          'nom': activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? '',
-          'title': activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? '',
+          'nom':
+              activity['nom'] ??
+              activity['nomActivite'] ??
+              activity['name'] ??
+              '',
+          'title':
+              activity['nom'] ??
+              activity['nomActivite'] ??
+              activity['name'] ??
+              '',
           'image': activity['image'] ?? activity['imageUrl'] ?? '',
           'imageUrl': activity['image'] ?? activity['imageUrl'] ?? '',
           'prix': activity['prix'],
@@ -1482,10 +1785,16 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
           'dureeMaximun': activity['dureeMaximun'],
           'saison': activity['saison'],
           'niveauDificulta': activity['niveauDificulta'],
-          'categorie': activity['categorie'] ?? activity['typeActivite'] ?? activity['type'],
+          'categorie':
+              activity['categorie'] ??
+              activity['typeActivite'] ??
+              activity['type'],
         },
       );
-      final res = await WishlistService().toggleFavorite(type: 'activity', itemId: id);
+      final res = await WishlistService().toggleFavorite(
+        type: 'activity',
+        itemId: id,
+      );
       final action = res['action'] as String?;
       final added = action == 'added';
       if (mounted) {
@@ -1501,7 +1810,9 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(added ? 'Added to wishlist' : 'Removed from wishlist'),
+            content: Text(
+              added ? 'Added to wishlist' : 'Removed from wishlist',
+            ),
             duration: Duration(seconds: 2),
           ),
         );
@@ -1514,8 +1825,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .translate('added_to_wishlist'),
+                  Provider.of<LocalizationService>(
+                    context,
+                    listen: false,
+                  ).translate('added_to_wishlist'),
                 ),
               ),
             );
@@ -1527,8 +1840,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .translate('removed_from_wishlist'),
+                  Provider.of<LocalizationService>(
+                    context,
+                    listen: false,
+                  ).translate('removed_from_wishlist'),
                 ),
               ),
             );
@@ -1552,7 +1867,7 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     try {
       // Add to wishlist first
       await _toggleActivityFavorite(activity);
-      
+
       // Show booking confirmation
       if (mounted) {
         showDialog(
@@ -1560,20 +1875,27 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text(
-                Provider.of<LocalizationService>(context, listen: false)
-                    .translate('activity_booked_title'),
+                Provider.of<LocalizationService>(
+                  context,
+                  listen: false,
+                ).translate('activity_booked_title'),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    Provider.of<LocalizationService>(context, listen: false)
-                        .translate('activity_booked_success'),
+                    Provider.of<LocalizationService>(
+                      context,
+                      listen: false,
+                    ).translate('activity_booked_success'),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? 'Activity',
+                    activity['nom'] ??
+                        activity['nomActivite'] ??
+                        activity['name'] ??
+                        'Activity',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   if (activity['prix'] != null) ...[
@@ -1601,8 +1923,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(
-                    Provider.of<LocalizationService>(context, listen: false)
-                        .translate('ok'),
+                    Provider.of<LocalizationService>(
+                      context,
+                      listen: false,
+                    ).translate('ok'),
                   ),
                 ),
                 ElevatedButton(
@@ -1615,23 +1939,33 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                         builder: (context) => DetailsExplorePage(
                           destination: {
                             'id': _extractActivityId(activity),
-                            'title': activity['nom'] ?? activity['nomActivite'] ?? activity['name'] ?? 'Activity',
-                            'image': activity['image'] ?? activity['imageUrl'] ?? '',
+                            'title':
+                                activity['nom'] ??
+                                activity['nomActivite'] ??
+                                activity['name'] ??
+                                'Activity',
+                            'image':
+                                activity['image'] ?? activity['imageUrl'] ?? '',
                             'description': activity['description'] ?? '',
                             'prix': activity['prix'],
                             'dureeMinimun': activity['dureeMinimun'],
                             'dureeMaximun': activity['dureeMaximun'],
                             'saison': activity['saison'],
                             'niveauDificulta': activity['niveauDificulta'],
-                            'categorie': activity['categorie'] ?? activity['typeActivite'] ?? activity['type'],
+                            'categorie':
+                                activity['categorie'] ??
+                                activity['typeActivite'] ??
+                                activity['type'],
                           },
                         ),
                       ),
                     );
                   },
                   child: Text(
-                    Provider.of<LocalizationService>(context, listen: false)
-                        .translate('view_details'),
+                    Provider.of<LocalizationService>(
+                      context,
+                      listen: false,
+                    ).translate('view_details'),
                   ),
                 ),
               ],
@@ -1653,7 +1987,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     }
   }
 
-  Widget _buildMonumentsTab(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildMonumentsTab(
+    ColorScheme colorScheme,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     if (_currentMonuments.isEmpty) {
       return _buildEmptyState(
         'No monuments available',
@@ -1673,7 +2011,12 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildMonumentCard(Map<String, dynamic> monument, ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildMonumentCard(
+    Map<String, dynamic> monument,
+    ColorScheme colorScheme,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -1704,11 +2047,15 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
               Container(
                 height: 120,
                 decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
                   color: Colors.grey[200],
                 ),
                 child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
                   child: CachedNetworkImage(
                     imageUrl: monument['imageUrl'],
                     fit: BoxFit.cover,
@@ -1719,7 +2066,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                     ),
                     errorWidget: (context, url, error) => Container(
                       color: Colors.grey[300],
-                      child: const Icon(Icons.location_city, color: Colors.grey, size: 40),
+                      child: const Icon(
+                        Icons.location_city,
+                        color: Colors.grey,
+                        size: 40,
+                      ),
                     ),
                   ),
                 ),
@@ -1750,7 +2101,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                       ),
                       if (monument['gratuit'] == true)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.green.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
@@ -1770,7 +2124,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                   // Monument type and characteristics
                   if (monument['typeMonument'] != null)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: colorScheme.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -1786,14 +2143,18 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                     ),
                   const SizedBox(height: 8),
                   // Historical and cultural significance
-                  if (monument['hasHistorique'] != null || monument['hasCulturelle'] != null)
+                  if (monument['hasHistorique'] != null ||
+                      monument['hasCulturelle'] != null)
                     Wrap(
                       spacing: 8,
                       runSpacing: 4,
                       children: [
                         if (monument['hasHistorique'] != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.orange.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(6),
@@ -1809,7 +2170,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                           ),
                         if (monument['hasCulturelle'] != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.purple.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(6),
@@ -1840,7 +2204,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                   if (monument['adresseMonument'] != null)
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 12, color: colorScheme.onSurface.withOpacity(0.6)),
+                        Icon(
+                          Icons.location_on,
+                          size: 12,
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -1858,7 +2226,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                   if (monument['horairesOuverture'] != null)
                     Row(
                       children: [
-                        Icon(Icons.access_time, size: 12, color: colorScheme.onSurface.withOpacity(0.6)),
+                        Icon(
+                          Icons.access_time,
+                          size: 12,
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -1874,10 +2246,15 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      if (monument['prix'] != null && monument['gratuit'] != true)
+                      if (monument['prix'] != null &&
+                          monument['gratuit'] != true)
                         Row(
                           children: [
-                            Icon(Icons.attach_money, size: 12, color: colorScheme.onSurface.withOpacity(0.6)),
+                            Icon(
+                              Icons.attach_money,
+                              size: 12,
+                              color: colorScheme.onSurface.withOpacity(0.6),
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               '${monument['prix']} MAD',
@@ -1915,10 +2292,14 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildHotelsTab(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildAccommodationsTab(
+    ColorScheme colorScheme,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     if (_currentHotels.isEmpty) {
       return _buildEmptyState(
-        'No hotels available',
+        'Aucun hébergement disponible',
         'Hotel recommendations will be added soon for this destination.',
         Icons.hotel_outlined,
         colorScheme,
@@ -1935,7 +2316,12 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildHotelCard(Map<String, dynamic> hotel, ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildHotelCard(
+    Map<String, dynamic> hotel,
+    ColorScheme colorScheme,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -1951,7 +2337,14 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
       ),
       child: InkWell(
         onTap: () {
-          // TODO: Navigate to hotel details
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AccommodationDetailsPage(
+                accommodation: hotel,
+              ),
+            ),
+          );
         },
         borderRadius: BorderRadius.circular(16),
         child: Column(
@@ -1964,7 +2357,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildHotelImage(Map<String, dynamic> hotel, bool isTablet, bool isDesktop) {
+  Widget _buildHotelImage(
+    Map<String, dynamic> hotel,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     return Container(
       height: isDesktop ? 200 : (isTablet ? 180 : 160),
       decoration: const BoxDecoration(
@@ -1978,9 +2375,7 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
           fit: BoxFit.cover,
           placeholder: (context, url) => Container(
             color: Colors.grey[300],
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: const Center(child: CircularProgressIndicator()),
           ),
           errorWidget: (context, url, error) => Container(
             color: Colors.grey[300],
@@ -1993,7 +2388,12 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildHotelInfo(Map<String, dynamic> hotel, ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildHotelInfo(
+    Map<String, dynamic> hotel,
+    ColorScheme colorScheme,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -2004,7 +2404,7 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
             children: [
               Expanded(
                 child: Text(
-                  hotel['nomHebergement'] ?? 'Unknown Hotel',
+                  hotel['nom'] ?? hotel['nomHebergement'] ?? 'Unknown Hotel',
                   style: TextStyle(
                     fontSize: isDesktop ? 18 : (isTablet ? 16 : 14),
                     fontWeight: FontWeight.bold,
@@ -2019,7 +2419,7 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  hotel['hebergementType'] ?? 'Hotel',
+                  hotel['type'] ?? hotel['hebergementType'] ?? 'Hotel',
                   style: TextStyle(
                     fontSize: 12,
                     color: colorScheme.primary,
@@ -2040,7 +2440,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.location_on, size: 14, color: colorScheme.onSurface.withOpacity(0.6)),
+              Icon(
+                Icons.location_on,
+                size: 14,
+                color: colorScheme.onSurface.withOpacity(0.6),
+              ),
               const SizedBox(width: 4),
               Text(
                 hotel['adresse'] ?? 'Unknown Location',
@@ -2050,13 +2454,13 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                 ),
               ),
               const Spacer(),
-              if (hotel['etoiles'] != null)
+              if (hotel['notesMoyennes'] != null)
                 Row(
                   children: [
                     Icon(Icons.star, size: 14, color: Colors.amber),
                     const SizedBox(width: 2),
                     Text(
-                      '${hotel['etoiles']}',
+                      '${hotel['notesMoyennes']}',
                       style: TextStyle(
                         fontSize: 12,
                         color: colorScheme.onSurface.withOpacity(0.8),
@@ -2072,7 +2476,9 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                hotel['prixParNuit'] != null ? 'From ${hotel['prixParNuit']} MAD/night' : 'Price not available',
+                hotel['prixMin'] != null || hotel['prix'] != null
+                    ? 'À partir de ${hotel['prixMin'] ?? hotel['prix']} ${hotel['devise'] ?? 'MAD'}/nuit'
+                    : 'Prix non disponible',
                 style: TextStyle(
                   fontSize: 16,
                   color: colorScheme.primary,
@@ -2087,16 +2493,22 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
             Row(
               children: [
                 Icon(
-                  hotel['isDisponible'] == true ? Icons.check_circle : Icons.cancel,
+                  hotel['isDisponible'] == true
+                      ? Icons.check_circle
+                      : Icons.cancel,
                   size: 14,
-                  color: hotel['isDisponible'] == true ? Colors.green : Colors.red,
+                  color: hotel['isDisponible'] == true
+                      ? Colors.green
+                      : Colors.red,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   hotel['isDisponible'] == true ? 'Available' : 'Not Available',
                   style: TextStyle(
                     fontSize: 12,
-                    color: hotel['isDisponible'] == true ? Colors.green : Colors.red,
+                    color: hotel['isDisponible'] == true
+                        ? Colors.green
+                        : Colors.red,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -2109,7 +2521,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
               runSpacing: 4,
               children: (hotel['amenities'] as List<dynamic>).map((amenity) {
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.surfaceVariant.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(8),
@@ -2129,7 +2544,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildServicesTab(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildServicesTab(
+    ColorScheme colorScheme,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     if (_currentServices.isEmpty) {
       return _buildEmptyState(
         'No services available',
@@ -2149,7 +2568,12 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildServiceCard(Map<String, dynamic> service, ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildServiceCard(
+    Map<String, dynamic> service,
+    ColorScheme colorScheme,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -2165,7 +2589,14 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
       ),
       child: InkWell(
         onTap: () {
-          // TODO: Navigate to service details
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ServiceDetailsPage(
+                service: service,
+              ),
+            ),
+          );
         },
         borderRadius: BorderRadius.circular(16),
         child: Row(
@@ -2195,7 +2626,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                   ),
                   errorWidget: (context, url, error) => Container(
                     color: Colors.grey[300],
-                    child: const Icon(Icons.build, color: Colors.grey, size: 30),
+                    child: const Icon(
+                      Icons.build,
+                      color: Colors.grey,
+                      size: 30,
+                    ),
                   ),
                 ),
               ),
@@ -2209,15 +2644,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.build,
-                          color: colorScheme.primary,
-                          size: 20,
-                        ),
+                        Icon(Icons.build, color: colorScheme.primary, size: 20),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            service['nomService'] ?? service['name'] ?? 'Unknown Service',
+                            service['nom'] ?? service['nomService'] ?? service['name'] ?? 'Unknown Service',
                             style: TextStyle(
                               fontSize: isDesktop ? 16 : (isTablet ? 15 : 14),
                               fontWeight: FontWeight.bold,
@@ -2227,7 +2658,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                         ),
                         if (service['categorie'] != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: colorScheme.primary.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
@@ -2257,13 +2691,19 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        if (service['prix'] != null)
+                        if (service['prixMin'] != null || service['prix'] != null)
                           Row(
                             children: [
-                              Icon(Icons.attach_money, size: 12, color: colorScheme.onSurface.withOpacity(0.6)),
+                              Icon(
+                                Icons.attach_money,
+                                size: 12,
+                                color: colorScheme.onSurface.withOpacity(0.6),
+                              ),
                               const SizedBox(width: 4),
                               Text(
-                                '${service['prix']} MAD',
+                                service['prixMin'] != null && service['prixMin'] > 0
+                                    ? 'À partir de ${service['prixMin']} ${service['devise'] ?? 'MAD'}'
+                                    : 'Gratuit',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: colorScheme.onSurface.withOpacity(0.6),
@@ -2274,7 +2714,10 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                         const Spacer(),
                         if (service['disponible'] == true)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.green.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(6),
@@ -2300,7 +2743,11 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     );
   }
 
-  Widget _buildPlanTripTab(ColorScheme colorScheme, bool isTablet, bool isDesktop) {
+  Widget _buildPlanTripTab(
+    ColorScheme colorScheme,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -2337,9 +2784,7 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
             decoration: BoxDecoration(
               color: colorScheme.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: colorScheme.primary.withOpacity(0.3),
-              ),
+              border: Border.all(color: colorScheme.primary.withOpacity(0.3)),
             ),
             child: Column(
               children: [
@@ -2352,10 +2797,26 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
                   ),
                 ),
                 const SizedBox(height: 16),
-                _buildFeatureItem(Icons.check_circle, 'Customized daily itinerary', colorScheme),
-                _buildFeatureItem(Icons.check_circle, 'Activity recommendations', colorScheme),
-                _buildFeatureItem(Icons.check_circle, 'Hotel suggestions', colorScheme),
-                _buildFeatureItem(Icons.check_circle, 'Travel tips and timing', colorScheme),
+                _buildFeatureItem(
+                  Icons.check_circle,
+                  'Customized daily itinerary',
+                  colorScheme,
+                ),
+                _buildFeatureItem(
+                  Icons.check_circle,
+                  'Activity recommendations',
+                  colorScheme,
+                ),
+                _buildFeatureItem(
+                  Icons.check_circle,
+                  'Hotel suggestions',
+                  colorScheme,
+                ),
+                _buildFeatureItem(
+                  Icons.check_circle,
+                  'Travel tips and timing',
+                  colorScheme,
+                ),
               ],
             ),
           ),
@@ -2376,68 +2837,66 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
             ),
             child: _isLoading
                 ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 2,
-              ),
-            )
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
                 : Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.map, size: 20),
-                const SizedBox(width: 12),
-                Text(
-                  'Start Planning',
-                  style: TextStyle(
-                    fontSize: isDesktop ? 18 : (isTablet ? 16 : 14),
-                    fontWeight: FontWeight.w600,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.map, size: 20),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Start Planning',
+                        style: TextStyle(
+                          fontSize: isDesktop ? 18 : (isTablet ? 16 : 14),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFeatureItem(IconData icon, String text, ColorScheme colorScheme) {
+  Widget _buildFeatureItem(
+    IconData icon,
+    String text,
+    ColorScheme colorScheme,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(
-            icon,
-            color: colorScheme.primary,
-            size: 20,
-          ),
+          Icon(icon, color: colorScheme.primary, size: 20),
           const SizedBox(width: 12),
           Text(
             text,
-            style: TextStyle(
-              fontSize: 14,
-              color: colorScheme.onSurface,
-            ),
+            style: TextStyle(fontSize: 14, color: colorScheme.onSurface),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEmptyState(String title, String message, IconData icon, ColorScheme colorScheme) {
+  Widget _buildEmptyState(
+    String title,
+    String message,
+    IconData icon,
+    ColorScheme colorScheme,
+  ) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 64,
-              color: colorScheme.onSurface.withOpacity(0.3),
-            ),
+            Icon(icon, size: 64, color: colorScheme.onSurface.withOpacity(0.3)),
             const SizedBox(height: 16),
             Text(
               title,

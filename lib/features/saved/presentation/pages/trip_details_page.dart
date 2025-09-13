@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/services/localization_service.dart';
 import '../../data/models/trip_model.dart';
 import '../../data/services/trip_service.dart';
-import 'create_edit_trip_page.dart';
+import 'trip_form_page.dart';
 
 class TripDetailsPage extends StatefulWidget {
   final TripModel trip;
@@ -489,10 +489,11 @@ class _TripDetailsPageState extends State<TripDetailsPage> {
   }
 
   Future<void> _editTrip() async {
+    // Force update to TripEditorPage
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CreateEditTripPage(trip: _trip),
+        builder: (context) => TripFormPage(trip: _trip),
       ),
     );
 

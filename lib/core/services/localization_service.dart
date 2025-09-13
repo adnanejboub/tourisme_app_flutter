@@ -107,7 +107,7 @@ class LocalizationService extends ChangeNotifier {
       'skip': 'Skip',
       'welcome_title': 'Welcome To Morocco',
       'welcome_subtitle':
-          'Discover a new way to connect and explore.\nGet started on your journey today!',
+          'Discover The Country Of History',
       'select_language': 'Select Language',
       'get_started': 'Get Started',
       'already_account': 'Already have an account? ',
@@ -581,7 +581,7 @@ class LocalizationService extends ChangeNotifier {
       'skip': 'Passer',
       'welcome_title': 'Bienvenue au Maroc',
       'welcome_subtitle':
-          'Découvrez une nouvelle façon de vous connecter et d\'explorer.\nCommencez votre voyage aujourd\'hui!',
+          'Découvrez Le Pays De L\'Histoire',
       'select_language': 'Sélectionner la langue',
       'get_started': 'Commencer',
       'already_account': 'Vous avez déjà un compte? ',
@@ -1088,7 +1088,7 @@ class LocalizationService extends ChangeNotifier {
       'skip': 'تخطي',
       'welcome_title': 'مرحباً بك في المغرب',
       'welcome_subtitle':
-          'اكتشف طريقة جديدة للتواصل والاستكشاف.\nابدأ رحلتك اليوم!',
+          'اكتشف بلد التاريخ',
       'select_language': 'اختر اللغة',
       'get_started': 'ابدأ',
       'already_account': 'هل لديك حساب بالفعل؟ ',
@@ -1574,7 +1574,7 @@ class LocalizationService extends ChangeNotifier {
       'skip': 'Saltar',
       'welcome_title': 'Bienvenido a Marruecos',
       'welcome_subtitle':
-          'Descubre una nueva forma de conectar y explorar.\n¡Comienza tu viaje hoy!',
+          'Descubre El País De La Historia',
       'select_language': 'Seleccionar idioma',
       'get_started': 'Empezar',
       'already_account': '¿Ya tienes una cuenta? ',

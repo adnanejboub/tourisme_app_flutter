@@ -4,6 +4,7 @@ import '../models/city_dto.dart';
 import '../models/activity.dart';
 import 'activity_data_service.dart';
 import '../../../../core/services/moroccan_cities_service.dart';
+import '../../../../core/services/moroccan_monuments_service.dart';
 
 class PublicApiService {
   final Dio _dio;
@@ -158,9 +159,14 @@ class PublicApiService {
             (activity.ville?.toLowerCase().contains(queryLower) ?? false))
         .toList();
 
+    // Search in local monuments
+    final monumentsService = MoroccanMonumentsService();
+    final matchingMonuments = monumentsService.searchMonuments(query);
+
     return {
       'cities': matchingCities,
       'activities': matchingActivities,
+      'monuments': matchingMonuments,
     };
   }
 
@@ -283,45 +289,67 @@ class PublicApiService {
     int cityId, {
     CancelToken? cancelToken,
   }) async {
-    final response = await _dio.get(
-      '/public/cities/$cityId/monuments',
-      cancelToken: cancelToken,
-    );
-    if (response.statusCode == 200) {
-      final data = response.data;
-      if (data is List) {
-        return List<Map<String, dynamic>>.from(data);
+    try {
+      final response = await _dio.get(
+        '/public/cities/$cityId/monuments',
+        cancelToken: cancelToken,
+      );
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data is List) {
+          return List<Map<String, dynamic>>.from(data);
+        }
       }
+    } catch (e) {
+      print('Server monuments failed, using local data: $e');
     }
-    return [];
+
+    // Fallback to local monuments
+    final monumentsService = MoroccanMonumentsService();
+    final cityName = _getCityNameById(cityId);
+    return monumentsService.getMonumentsByCity(cityName);
   }
 
   Future<List<Map<String, dynamic>>> searchMonuments(
     String query, {
     CancelToken? cancelToken,
   }) async {
-    final response = await _dio.get(
-      '/public/monuments/search',
-      queryParameters: {'q': query},
-      cancelToken: cancelToken,
-    );
-    if (response.statusCode == 200 && response.data is List) {
-      return List<Map<String, dynamic>>.from(response.data as List);
+    try {
+      final response = await _dio.get(
+        '/public/monuments/search',
+        queryParameters: {'q': query},
+        cancelToken: cancelToken,
+      );
+      if (response.statusCode == 200 && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data as List);
+      }
+    } catch (e) {
+      print('Server monument search failed, using local search: $e');
     }
-    return [];
+
+    // Fallback to local monument search
+    final monumentsService = MoroccanMonumentsService();
+    return monumentsService.searchMonuments(query);
   }
 
   Future<List<Map<String, dynamic>>> getAllMonuments({
     CancelToken? cancelToken,
   }) async {
-    final response = await _dio.get(
-      '/public/monuments',
-      cancelToken: cancelToken,
-    );
-    if (response.statusCode == 200 && response.data is List) {
-      return List<Map<String, dynamic>>.from(response.data as List);
+    try {
+      final response = await _dio.get(
+        '/public/monuments',
+        cancelToken: cancelToken,
+      );
+      if (response.statusCode == 200 && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data as List);
+      }
+    } catch (e) {
+      print('Server all monuments failed, using local data: $e');
     }
-    return [];
+
+    // Fallback to local monuments
+    final monumentsService = MoroccanMonumentsService();
+    return monumentsService.getAllMonuments();
   }
 
   Future<List<Map<String, dynamic>>> getProducts({
@@ -372,15 +400,22 @@ class PublicApiService {
     String cityName, {
     CancelToken? cancelToken,
   }) async {
-    final response = await _dio.get(
-      '/public/monuments/by-city',
-      queryParameters: {'city': cityName},
-      cancelToken: cancelToken,
-    );
-    if (response.statusCode == 200 && response.data is List) {
-      return List<Map<String, dynamic>>.from(response.data as List);
+    try {
+      final response = await _dio.get(
+        '/public/monuments/by-city',
+        queryParameters: {'city': cityName},
+        cancelToken: cancelToken,
+      );
+      if (response.statusCode == 200 && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data as List);
+      }
+    } catch (e) {
+      print('Server monuments by city failed, using local data: $e');
     }
-    return [];
+
+    // Fallback to local monuments
+    final monumentsService = MoroccanMonumentsService();
+    return monumentsService.getMonumentsByCity(cityName);
   }
 
   // Get comprehensive city details with all related data
@@ -444,7 +479,8 @@ class PublicApiService {
     }
 
     if (fallbackCity != null) {
-      // Get city-specific activities for the fallback city
+      // Get city-specific activities and monuments for the fallback city
+      final monumentsService = MoroccanMonumentsService();
       final citySpecificActivities = ActivityDataService.getActivitiesForCity(fallbackCity.name);
       final cityActivities = citySpecificActivities
           .map(
@@ -481,18 +517,7 @@ class PublicApiService {
           'longitude': fallbackCity.longitude,
         },
         'activities': cityActivities,
-         'monuments': fallbackCity.landmarks
-             .asMap()
-             .entries
-             .map(
-               (entry) => {
-                 'id': entry.key + 1,
-                 'nom': entry.value,
-                 'description': 'Monument historique de ${fallbackCity!.name}',
-                 'ville': fallbackCity!.name,
-               },
-             )
-             .toList(),
+         'monuments': monumentsService.getMonumentsByCity(fallbackCity.name),
         'accommodations': [],
       };
     }

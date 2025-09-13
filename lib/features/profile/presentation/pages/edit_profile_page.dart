@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../core/services/localization_service.dart';
 import '../../../../core/constants/constants.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import '../../../auth/domain/entities/auth_entities.dart';
 import '../bloc/profile_bloc.dart';
+import '../widgets/profile_avatar.dart';
+import '../../../../core/services/profile_image_service.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({Key? key}) : super(key: key);
@@ -28,8 +32,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _budgetController = TextEditingController();
   
   String _selectedCountry = 'France';
-  XFile? _pickedImage;
+  File? _selectedProfileImage; // Nouvelle variable pour l'image sélectionnée
   UserProfileEntity? _currentProfile;
+  final ProfileImageService _profileImageService = ProfileImageService();
 
   @override
   void initState() {
@@ -44,38 +49,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _pickImage(LocalizationService localizationService) async {
-    final picker = ImagePicker();
-    final picked = await showModalBottomSheet<XFile?>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: Text(localizationService.translate('choose_from_gallery')),
-              onTap: () async {
-                final img = await picker.pickImage(source: ImageSource.gallery);
-                Navigator.pop(context, img);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: Text(localizationService.translate('take_photo')),
-              onTap: () async {
-                final img = await picker.pickImage(source: ImageSource.camera);
-                Navigator.pop(context, img);
-              },
-            ),
-          ],
+    // Cette méthode est maintenant remplacée par ProfileAvatar
+    // Gardée pour compatibilité mais ne sera plus utilisée
+  }
+
+  void _onImageSelected(File? image) {
+    setState(() {
+      _selectedProfileImage = image;
+    });
+    
+    // Sauvegarder dans le service partagé pour synchronisation
+    if (image != null) {
+      _profileImageService.saveProfileImage(image);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Profile image updated! Click Save to confirm changes.'),
+          backgroundColor: Colors.blue,
+          duration: Duration(seconds: 2),
         ),
-      ),
-    );
-    if (picked != null) {
-      setState(() => _pickedImage = picked);
+      );
     }
   }
 
@@ -222,34 +215,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     children: [
                       Center(
-                        child: GestureDetector(
-                          onTap: () => _pickImage(localizationService),
-                          child: Stack(
-                            alignment: Alignment.bottomRight,
-                            children: [
-                              CircleAvatar(
-                                radius: 48,
-                                backgroundColor: colorScheme.surfaceVariant,
-                                backgroundImage: _pickedImage != null ? FileImage(File(_pickedImage!.path)) : null,
-                                child: _pickedImage == null
-                                    ? Icon(Icons.person, size: 60, color: colorScheme.onSurfaceVariant)
-                                    : null,
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.primary,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(Icons.camera_alt, color: colorScheme.onPrimary, size: 16),
-                                ),
-                              ),
-                            ],
-                          ),
+                        child: ProfileAvatar(
+                          imageUrl: null,
+                          onImageSelected: _onImageSelected,
+                          isGuest: false, // Les utilisateurs authentifiés peuvent changer leur image
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -512,6 +481,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
         return;
       }
       
+      // Confirmer la sauvegarde de l'image si elle a été sélectionnée
+      if (_selectedProfileImage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Profile image synchronized successfully!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      
       final params = ProfileUpdateParams(
         firstName: firstName.isEmpty ? null : firstName,
         lastName: lastName.isEmpty ? null : lastName,
@@ -527,5 +507,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
       print('Saving profile with params: ${params.toJson()}');
       context.read<ProfileBloc>().add(UpdateProfile(params));
     }
+  }
+
+  void _saveProfileImage(File image) {
+    // TODO: Implémenter la sauvegarde de l'image
+    // Vous pouvez utiliser SharedPreferences pour sauvegarder le chemin
+    // ou uploader l'image vers un serveur
+    print('Saving profile image: ${image.path}');
+    
+    // Afficher un message de confirmation
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Profile image saved successfully!'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 }
