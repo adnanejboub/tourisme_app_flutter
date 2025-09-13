@@ -34,11 +34,22 @@ class _CartPageState extends State<CartPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(
-              child: Consumer<LocalizationService>(
-                builder: (context, l10n, _) => Text(l10n.translate('failed_load_cart_items')),
-              ),
-            );
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Login Required'),
+                  content: const Text('You must login to view your cart.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            });
+            return const Center(child: Text('Failed to load cart items'));
           }
           final cartItems = snapshot.data ?? [];
           final total = cartItems.fold(0.0, (sum, item) {
@@ -175,3 +186,5 @@ class _CartPageState extends State<CartPage> {
     );
   }
 }
+
+

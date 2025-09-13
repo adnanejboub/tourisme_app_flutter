@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tourisme_app_flutter/domain/product/entities/product.dart';
+import 'package:tourisme_app_flutter/features/marketplace/home/pages/all_products_page.dart';
 import '../../common/widgets/product/product_card.dart';
 
 class NewInWidget extends StatelessWidget {
@@ -20,7 +21,15 @@ class NewInWidget extends StatelessWidget {
               Text('New In', style: Theme.of(context).textTheme.headlineMedium),
               TextButton(
                 onPressed: () {
-                  // Navigate to all new products
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AllProductsPage(
+                        title: 'New In',
+                        products: products,
+                      ),
+                    ),
+                  );
                 },
                 child: const Text('See All'),
               ),

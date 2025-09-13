@@ -10,6 +10,7 @@ import '../widgets/product_colors.dart';
 import '../widgets/product_sizes.dart';
 import '../widgets/product_quantity.dart';
 import '../widgets/add_to_bag.dart';
+import '../widgets/similar_products.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final ProductEntity product;
@@ -123,7 +124,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 100), // space for button
+            padding: const EdgeInsets.only(bottom: 100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -172,6 +173,39 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   },
                 ),
                 const SizedBox(height: 24),
+                // Shipping Info
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.local_shipping,
+                        color: Colors.blue,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Free shipping on all orders over \$100. Estimated delivery: 5-7 business days',
+                          style: TextStyle(
+                            color: Colors.blue.shade700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+                SimilarProductsWidget(
+                  categoryId: widget.product.categoryId,
+                  excludeProductId: widget.product.id,
+                ),
                 const MoreStaticInfo(), // now inside scroll
                 const SizedBox(height: 24),
               ],
@@ -189,23 +223,33 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                 await Future.delayed(const Duration(milliseconds: 500));
 
-                StaticData.addToCart(
-                  widget.product.id,
-                  quantity,
-                  selectedColor ?? '',
-                  selectedSize ?? '',
-                );
-
-                setState(() {
-                  isAddingToCart = false;
-                });
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Added to cart successfully!'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+                try {
+                  await StaticData.addToCart(
+                    widget.product.id,
+                    quantity,
+                    selectedColor ?? '',
+                    selectedSize ?? '',
+                  );
+                  setState(() {
+                    isAddingToCart = false;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Added to cart successfully!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } catch (e) {
+                  setState(() {
+                    isAddingToCart = false;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to add to cart: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               },
               isLoading: isAddingToCart,
             ),

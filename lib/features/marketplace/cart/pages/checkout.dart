@@ -48,20 +48,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Future<void> _placeOrder() async {
-    if (!_formKey.currentState!.validate()) return;
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isProcessing = true;
-    });
+  setState(() {
+    _isProcessing = true;
+  });
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Generate order ID
-    final orderId = DateTime.now().millisecondsSinceEpoch.toString();
-
-    // Clear cart
-    StaticData.clearCart();
+  try {
+    final orderNumber = await StaticData.placeOrder(
+      shippingAddress: _addressController.text,
+      paymentMethod: _selectedPaymentMethod,
+    );
 
     setState(() {
       _isProcessing = false;
@@ -71,10 +68,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => OrderPlacedPage(orderId: orderId),
+        builder: (context) => OrderPlacedPage(orderId: orderNumber ?? ''),
       ),
     );
+  } catch (e) {
+    setState(() {
+      _isProcessing = false;
+    });
+    // Show error message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to place order: $e')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {

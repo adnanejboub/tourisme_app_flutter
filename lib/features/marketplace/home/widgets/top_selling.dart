@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tourisme_app_flutter/domain/product/entities/product.dart';
+import 'package:tourisme_app_flutter/features/marketplace/home/pages/all_products_page.dart';
 import '../../common/widgets/product/product_card.dart';
 
 class TopSellingWidget extends StatelessWidget {
@@ -23,8 +24,15 @@ class TopSellingWidget extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () {
-                  // Navigate to all top selling products
-                },
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AllProductsPage(
+                        title: 'Top Selling',
+                        products: products,
+                      ),
+                    ),
+                  );                },
                 child: const Text('See All'),
               ),
             ],
