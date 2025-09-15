@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+// import 'package:google_sign_in/google_sign_in.dart'; // Temporarily disabled to avoid build errors
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import '../../domain/entities/social_auth_entities.dart';
@@ -11,34 +11,29 @@ import '../../../../config/social_auth_config.dart';
 
 /// Service pour l'authentification sociale
 class SocialAuthService {
-  // Configuration Google Sign-In
-  static final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: Platform.isIOS ? SocialAuthConfig.googleClientId : null,
-    scopes: ['email', 'profile'],
-  );
+  // Configuration Google Sign-In (désactivée temporairement)
+  // static final GoogleSignIn _googleSignIn = GoogleSignIn(
+  //   clientId: Platform.isIOS ? SocialAuthConfig.googleClientId : null,
+  //   scopes: ['email', 'profile'],
+  // );
 
-  /// Authentification avec Google
+  /// Authentification avec Google (stub temporaire pour éviter les erreurs de build)
   static Future<SocialAuthEntity?> signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null;
-
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      return SocialAuthEntity(
-        accessToken: googleAuth.accessToken ?? '',
-        idToken: googleAuth.idToken,
-        provider: 'google',
-        providerId: googleUser.id,
-        email: googleUser.email,
-        displayName: googleUser.displayName,
-        photoUrl: googleUser.photoUrl,
-      );
-    } catch (e) {
-      debugPrint('Erreur Google Sign-In: $e');
-      return null;
-    }
+    // TODO: Re-activer Google Sign-In quand la configuration sera prête
+    // Exemple (référence):
+    // final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+    // if (googleUser == null) return null;
+    // final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    // return SocialAuthEntity(
+    //   accessToken: googleAuth.accessToken ?? '',
+    //   idToken: googleAuth.idToken,
+    //   provider: 'google',
+    //   providerId: googleUser.id,
+    //   email: googleUser.email,
+    //   displayName: googleUser.displayName,
+    //   photoUrl: googleUser.photoUrl,
+    // );
+    return null;
   }
 
   /// Authentification avec Apple
@@ -102,7 +97,7 @@ class SocialAuthService {
   static Future<void> signOut() async {
     try {
       await Future.wait([
-        _googleSignIn.signOut(),
+        // _googleSignIn.signOut(), // Désactivé temporairement
         FacebookAuth.instance.logOut(),
       ]);
     } catch (e) {

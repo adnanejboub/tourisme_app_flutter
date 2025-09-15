@@ -622,10 +622,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   void _navigateToCasablanca(BuildContext context) async {
-    // Créer les données de base de Casablanca
+    // Activer le mode invité et créer les données de base de Casablanca
+    _guestModeService.enableGuestMode();
     final casablancaData = {
       'id': 1,
       'nom': 'Casablanca',
+      'nomVille': 'Casablanca',
+      'name': 'Casablanca',
       'description': 'La plus grande ville du Maroc et son centre économique, connue pour sa mosquée Hassan II et son architecture moderne.',
       'imageUrl': 'assets/images/cities/casablanca.jpg',
       'latitude': 33.5731,

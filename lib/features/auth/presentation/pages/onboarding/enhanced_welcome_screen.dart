@@ -6,6 +6,7 @@ import '../../../../../core/services/localization_service.dart';
 import '../../../../../core/providers/theme_provider.dart';
 import '../../../../../core/services/guest_mode_service.dart';
 import '../../../../../core/services/location_service.dart';
+import '../../../../explore/presentation/pages/city_details_page.dart';
 
 class EnhancedWelcomeScreen extends StatefulWidget {
   const EnhancedWelcomeScreen({Key? key}) : super(key: key);
@@ -401,8 +402,96 @@ class _EnhancedWelcomeScreenState extends State<EnhancedWelcomeScreen>
   }
 
   void _handleNewTrip() async {
-    // Navigate to city selection page
-    Navigator.pushNamed(context, AppRoutes.citySelection);
+    // Navigate directly to Casablanca details
+    _guestModeService.enableGuestMode();
+    final casablancaData = {
+      'id': 1,
+      'nom': 'Casablanca',
+      'nomVille': 'Casablanca',
+      'name': 'Casablanca',
+      'description': 'La plus grande ville du Maroc et son centre économique, connue pour sa mosquée Hassan II et son architecture moderne.',
+      'imageUrl': 'assets/images/cities/casablanca.jpg',
+      'latitude': 33.5731,
+      'longitude': -7.5898,
+      'pays': 'Maroc',
+      'region': 'Casablanca-Settat',
+      'population': '3.4M',
+      'superficie': '220 km²',
+      'climat': 'Méditerranéen',
+      'langue': 'Arabe, Français',
+      'monnaie': 'Dirham marocain (MAD)',
+      'fuseau_horaire': 'UTC+1',
+      'code_telephonique': '+212',
+      'aeroport': 'Aéroport Mohammed V',
+      'gare': 'Gare Casa-Port',
+      'attractions_principales': [
+        'Mosquée Hassan II',
+        'Place Mohammed V',
+        'Corniche de Casablanca',
+        'Marché Central',
+        'Quartier Habous',
+      ],
+      'activites': [
+        'Visite de la mosquée Hassan II',
+        'Promenade sur la Corniche',
+        'Shopping au Marché Central',
+        'Découverte du quartier Habous',
+        'Visite du Parc de la Ligue Arabe',
+      ],
+      'specialites_culinaires': [
+        'Pastilla',
+        'Tajine',
+        'Couscous',
+        'Thé à la menthe',
+        'Pâtisseries marocaines',
+      ],
+      'conseils_voyage': [
+        'Visitez la mosquée Hassan II tôt le matin',
+        'Explorez le quartier Habous pour l\'artisanat',
+        'Profitez du coucher de soleil sur la Corniche',
+        'Goûtez aux spécialités locales au Marché Central',
+      ],
+      'transport': ['Tramway', 'Bus', 'Taxi', 'Location de voiture', 'Vélo'],
+      'hebergement': [
+        'Hôtels de luxe',
+        'Riads traditionnels',
+        'Auberges de jeunesse',
+        'Appartements de location',
+      ],
+      'shopping': [
+        'Marché Central',
+        'Quartier Habous',
+        'Centre commercial Morocco Mall',
+        'Souks traditionnels',
+      ],
+      'vie_nocturne': ['Bars et clubs', 'Restaurants', 'Théâtres', 'Cinémas'],
+      'sante_securite': [
+        'Hôpitaux modernes',
+        'Pharmacies',
+        'Police touristique',
+        'Services d\'urgence',
+      ],
+      'budget': [
+        'Hébergement: 200-800 MAD/nuit',
+        'Repas: 50-200 MAD',
+        'Transport: 10-50 MAD',
+        'Activités: 100-300 MAD',
+      ],
+      'meilleure_periode': 'Mars à Mai, Septembre à Novembre',
+      'duree_recommandee': '2-3 jours',
+      'niveau_budget': 'Moyen à Élevé',
+      'type_voyage': 'Urbain, Culturel, Business',
+      'accessibilite': 'Bonne',
+      'langues_parlees': ['Arabe', 'Français', 'Anglais'],
+    };
+
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CityDetailsPage(city: casablancaData),
+      ),
+    );
   }
 
   void _handleExplore() {

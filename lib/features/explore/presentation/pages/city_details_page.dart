@@ -21,6 +21,10 @@ import '../../../saved/data/services/wishlist_service.dart';
 import '../../../saved/presentation/pages/saved_page.dart';
 import '../../../saved/data/services/trip_service.dart';
 import '../../../saved/data/models/trip_model.dart';
+import '../../../../core/services/guest_mode_service.dart';
+import '../../../../config/routes/app_routes.dart';
+import '../../../../core/services/moroccan_monuments_service.dart';
+import '../../data/services/activity_data_service.dart';
 
 class CityDetailsPage extends StatefulWidget {
   final Map<String, dynamic> city;
@@ -95,12 +99,54 @@ class _CityDetailsPageState extends State<CityDetailsPage>
         _errorMessage = null;
       });
 
-      final cityId = widget.city['id'] as int?;
+      final cityId = (widget.city['id'] as num?)?.toInt();
       if (cityId == null) {
         throw Exception('City ID not found');
       }
 
       final details = await _apiService.getCityDetails(cityId);
+
+      // Si l'API renvoie une autre ville (ex: Marrakech) que celle passée (ex: Casablanca),
+      // forcer l'affichage sur la ville demandée en utilisant les données locales.
+      try {
+        final providedName = (widget.city['nomVille'] ?? widget.city['name'] ?? widget.city['nom'] ?? '')
+            .toString();
+        final apiCity = (details['city'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+        final apiName = (apiCity['nomVille'] ?? apiCity['name'] ?? apiCity['nom'] ?? '')
+            .toString();
+        if (providedName.isNotEmpty && providedName.toLowerCase() != apiName.toLowerCase()) {
+          // Remplacer le bloc city par la ville fournie
+          details['city'] = {
+            ...apiCity,
+            'id': widget.city['id'] ?? apiCity['id'],
+            'nomVille': providedName,
+            'name': providedName,
+            'nom': providedName,
+          };
+
+          // Charger activités et monuments locaux pour la ville fournie
+          final models = ActivityDataService.getActivitiesForCity(providedName);
+          details['activities'] = models
+              .map((a) => {
+                    'id': a.id,
+                    'nom': a.nom,
+                    'nomActivite': a.nom,
+                    'description': a.description,
+                    'prix': a.prix,
+                    'dureeMinimun': a.dureeMinimun,
+                    'dureeMaximun': a.dureeMaximun,
+                    'saison': a.saison,
+                    'niveauDificulta': a.niveauDificulta,
+                    'categorie': a.categorie,
+                    'typeActivite': a.categorie,
+                    'imageUrl': a.imageUrl,
+                    'ville': a.ville,
+                  })
+              .toList();
+          final monumentsService = MoroccanMonumentsService();
+          details['monuments'] = monumentsService.getMonumentsByCity(providedName);
+        }
+      } catch (_) {}
       
       // Charger les hébergements et services depuis les services locaux
       final accommodationsService = MoroccanAccommodationsService();
@@ -195,7 +241,7 @@ class _CityDetailsPageState extends State<CityDetailsPage>
   }
 
   Future<void> _toggleFavorite() async {
-    final cityId = widget.city['id'] as int?;
+    final cityId = (widget.city['id'] as num?)?.toInt();
     if (cityId == null) return;
     final prev = _isFavorite;
     setState(() {
@@ -350,12 +396,22 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
   void _planItinerary() async {
     if (_isLoading) return;
 
+    // Si invité, demander l'authentification avant de planifier
+    try {
+      final guestService = GuestModeService();
+      await guestService.loadGuestModeState();
+      if (guestService.isGuestMode) {
+        if (mounted) AppRoutes.navigateToLogin(context);
+        return;
+      }
+    } catch (_) {}
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final cityData = _cityDetails?['city'] ?? widget.city;
+      final cityData = widget.city.isNotEmpty ? widget.city : (_cityDetails?['city'] ?? {});
       final cityName =
           cityData['nomVille'] ?? cityData['name'] ?? 'Unknown City';
 
@@ -2748,7 +2804,8 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
     bool isTablet,
     bool isDesktop,
   ) {
-    return Container(
+    // Scrollable to avoid tiny overflows across screen densities
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
@@ -2759,7 +2816,8 @@ Téléchargez l'application de tourisme pour découvrir plus de destinations inc
           ),
           const SizedBox(height: 24),
           Text(
-            'Plan Your Perfect Trip to ${(_cityDetails?['city'] ?? widget.city)['nomVille'] ?? (_cityDetails?['city'] ?? widget.city)['name'] ?? 'this destination'}',
+            'Plan Your Perfect Trip to '
+            '${(widget.city)['nomVille'] ?? (widget.city)['name'] ?? ((_cityDetails?['city'] ?? {})['nomVille'] ?? (_cityDetails?['city'] ?? {})['name'] ?? 'this destination')}',
             style: TextStyle(
               fontSize: isDesktop ? 24 : (isTablet ? 22 : 20),
               fontWeight: FontWeight.bold,

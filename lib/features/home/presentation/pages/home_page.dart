@@ -2462,7 +2462,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         onTap: () {
-          // Ouvrir la page de recherche Explore pour réutiliser les suggestions et l’affichage
+          // Ouvrir la page de recherche Explore pour réutiliser les suggestions et l'affichage
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -2993,7 +2993,7 @@ Téléchargez l'application de tourisme pour découvrir plus d'activités incroy
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 200,
+          height: 220,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -3074,90 +3074,92 @@ Téléchargez l'application de tourisme pour découvrir plus d'activités incroy
               ),
             ),
             // Content
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    service['nom'] ?? 'Service',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  if (service['type'] != null)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      service['type'],
+                      service['nom'] ?? 'Service',
                       style: TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 14,
-                        color: colorScheme.onSurface.withOpacity(0.6),
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          service['ville'] ?? 'Localisation inconnue',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: colorScheme.onSurface.withOpacity(0.6),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                    const SizedBox(height: 4),
+                    if (service['type'] != null)
+                      Text(
+                        service['type'],
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      if (service['prixMin'] != null || service['prix'] != null)
-                        Text(
-                          service['prixMin'] != null && service['prixMin'] > 0
-                              ? 'À partir de ${service['prixMin']} ${service['devise'] ?? 'MAD'}'
-                              : 'Gratuit',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
-                          ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          size: 14,
+                          color: colorScheme.onSurface.withOpacity(0.6),
                         ),
-                      const Spacer(),
-                      if (service['notesMoyennes'] != null)
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.star,
-                              size: 14,
-                              color: Colors.amber,
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            service['ville'] ?? 'Localisation inconnue',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurface.withOpacity(0.6),
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${service['notesMoyennes']}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colorScheme.onSurface.withOpacity(0.8),
-                                fontWeight: FontWeight.w600,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        if (service['prixMin'] != null || service['prix'] != null)
+                          Text(
+                            service['prixMin'] != null && service['prixMin'] > 0
+                                ? 'À partir de ${service['prixMin']} ${service['devise'] ?? 'MAD'}'
+                                : 'Gratuit',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        const Spacer(),
+                        if (service['notesMoyennes'] != null)
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.star,
+                                size: 14,
+                                color: Colors.amber,
                               ),
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
-                ],
+                              const SizedBox(width: 4),
+                              Text(
+                                '${service['notesMoyennes']}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: colorScheme.onSurface.withOpacity(0.8),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -3224,7 +3226,7 @@ Téléchargez l'application de tourisme pour découvrir plus d'activités incroy
           ),
           const SizedBox(height: 16),
           SizedBox(
-            height: 200,
+            height: 210,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: events.length,
